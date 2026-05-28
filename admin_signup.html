@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Sign Up</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght=400;500;600;700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy: #1a3a6b;
+      --navy-btn: #002D62;
+      --navy-btn-hover: #2F578A;
+      --link-blue: #2057CE;
+      --card-bg: #ffffff;
+      --input-bg: #d9d9d9;
+      --text-dark: #1a2540;
+      --label: #4a4a4a;
+    }
+
+    body, input, button, select, textarea, a {
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: #c8d9ee;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bg-photo {
+      position: fixed;
+      inset: 0;
+      background: url('assets/bg_cityhall.png') center center / cover no-repeat;
+      filter: blur(0px) brightness(0.92);
+      z-index: 0;
+    }
+
+    .bg-tint {
+      position: fixed;
+      inset: 0;
+      background: rgba(180, 210, 240, 0.45);
+      z-index: 1;
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 18px 28px;
+    }
+
+    .logo-icon {
+      width: 70px;
+      height: 70px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .logo-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    .logo-text .brand-img {
+      height: 30px;
+      width: auto;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* ── Main layout ── */
+    .page-center {
+      position: relative;
+      z-index: 10;
+      flex: 1;
+      display: flex;
+      align-items: flex-start; /* Pulls the card to the top */
+      justify-content: center;
+      padding: 10px 20px 40px 20px; 
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 45px 0px 50px 0px;
+      width: 100%;
+      max-width: 570px;
+      box-shadow: 0 10px 45px rgba(10, 30, 70, 0.15);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-content {
+      padding: 0 55px;
+    }
+
+    .card-content.form-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* Avatar */
+    .avatar {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .avatar img {
+      width: 75px;
+      height: 75px;
+      object-fit: contain;
+    }
+
+    /* Title */
+    .card-title {
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 35px;
+      letter-spacing: -0.01em;
+    }
+
+    /* Divider */
+    .divider {
+      height: 1px;
+      background: #dde4f0;
+      margin-bottom: 35px;
+      width: 100%;
+    }
+
+    /* Form groups */
+    .form-group {
+      margin-bottom: 22px;
+    }
+
+    .form-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    label {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--label);
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 17px 19px;
+      background: var(--input-bg);
+      border: 2px solid transparent;
+      border-radius: 12px;
+      font-size: 1rem;
+      color: var(--text-dark);
+      outline: none;
+      transition: border-color 0.2s ease, background-color 0.2s ease;
+    }
+
+    input.pw-input {
+      padding-right: 50px;
+    }
+
+    input::placeholder { color: #757575; }
+
+    input:focus {
+      border-color: var(--link-blue);
+      background-color: #f0f4fb;
+    }
+
+    /* Password wrapper */
+    .password-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #606060;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+    }
+
+    .toggle-password:hover { color: var(--link-blue); }
+
+    .toggle-password svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    /* Validation hint */
+    .input-hint {
+      font-size: 0.75rem;
+      color: #888;
+      margin-top: 6px;
+      padding-left: 4px;
+    }
+
+    .input-hint.error {
+      color: #c0392b;
+    }
+
+    .input-hint.success {
+      color: #27ae60;
+    }
+
+    /* Sign up button */
+    .btn-signup {
+      width: 100%;
+      padding: 18px;
+      background: var(--navy-btn);
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      letter-spacing: 0.01em;
+      transition: background 0.2s, transform 0.1s;
+      box-shadow: 0 4px 12px rgba(6, 49, 101, 0.2);
+      margin-top: 10px;
+    }
+
+    .btn-signup:hover { background: var(--navy-btn-hover); }
+    .btn-signup:active { transform: scale(0.99); }
+
+    /* Footer */
+    .card-footer {
+      text-align: center;
+      margin-top: 28px;
+      font-size: 0.8rem;
+      color: #555;
+    }
+
+    .card-footer a {
+      color: var(--link-blue);
+      font-weight: 700;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-photo"></div>
+  <div class="bg-tint"></div>
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="logo-icon">
+      <img src="assets/logo.png" alt="DocsEase Logo" />
+    </div>
+    <div class="logo-text">
+      <img src="assets/docsease_text.png" alt="DocsEase" class="brand-img" />
+    </div>
+  </header>
+
+  <!-- Card -->
+  <main class="page-center">
+    <div class="card">
+
+      <div class="card-content">
+        <div class="avatar">
+          <img src="assets/profile_signin.png" alt="profile" />
+        </div>
+        <h1 class="card-title">Administrator Sign up</h1>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="card-content form-area">
+        <form id="signupForm" onsubmit="return handleSignup(event);">
+
+          <!-- Full Name -->
+          <div class="form-group">
+            <div class="form-row">
+              <label for="fullname">Full Name</label>
+            </div>
+            <input type="text" id="fullname" placeholder="Enter your full name..." autocomplete="name" />
+          </div>
+
+          <!-- Email -->
+          <div class="form-group">
+            <div class="form-row">
+              <label for="email">Email</label>
+            </div>
+            <input type="email" id="email" placeholder="Enter your email..." autocomplete="email" />
+          </div>
+
+          <!-- Password -->
+          <div class="form-group">
+            <div class="form-row">
+              <label for="password">Password</label>
+            </div>
+            <div class="password-wrapper">
+              <input type="password" id="password" class="pw-input"
+                     placeholder="Enter your password..." autocomplete="new-password" />
+              <button type="button" class="toggle-password" onclick="togglePw('password','eyeIcon1')" aria-label="Toggle password">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                     stroke-width="2" stroke="currentColor" id="eyeIcon1">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Confirm Password -->
+          <div class="form-group">
+            <div class="form-row">
+              <label for="confirmPassword">Confirm Password</label>
+            </div>
+            <div class="password-wrapper">
+              <input type="password" id="confirmPassword" class="pw-input"
+                     placeholder="Re-enter your password..." autocomplete="new-password" />
+              <button type="button" class="toggle-password" onclick="togglePw('confirmPassword','eyeIcon2')" aria-label="Toggle confirm password">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                     stroke-width="2" stroke="currentColor" id="eyeIcon2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </button>
+            </div>
+            <p id="matchHint" class="input-hint"></p>
+          </div>
+
+          <button type="submit" class="btn-signup">Sign up</button>
+        </form>
+
+        <p class="card-footer">
+          Already have an account? <a href="admin_signin.html">Sign in</a>
+        </p>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    // Toggle password visibility (shared helper)
+    const eyeShow = `
+      <path stroke-linecap="round" stroke-linejoin="round"
+        d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+      <path stroke-linecap="round" stroke-linejoin="round"
+        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    `;
+    const eyeHide = `
+      <path stroke-linecap="round" stroke-linejoin="round"
+        d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+    `;
+
+    function togglePw(inputId, iconId) {
+      const input = document.getElementById(inputId);
+      const icon  = document.getElementById(iconId);
+      const isHidden = input.type === 'password';
+      input.type = isHidden ? 'text' : 'password';
+      icon.innerHTML = isHidden ? eyeHide : eyeShow;
+    }
+
+    // Live confirm-password match hint
+    document.getElementById('confirmPassword').addEventListener('input', checkMatch);
+    document.getElementById('password').addEventListener('input', checkMatch);
+
+    function checkMatch() {
+      const pw  = document.getElementById('password').value;
+      const cpw = document.getElementById('confirmPassword').value;
+      const hint = document.getElementById('matchHint');
+      if (!cpw) { hint.textContent = ''; return; }
+      if (pw === cpw) {
+        hint.textContent = 'Passwords match ✓';
+        hint.className = 'input-hint success';
+      } else {
+        hint.textContent = 'Passwords do not match';
+        hint.className = 'input-hint error';
+      }
+    }
+
+    // Basic form validation on submit
+    function handleSignup(e) {
+      e.preventDefault();
+      const fullname = document.getElementById('fullname').value.trim();
+      const email    = document.getElementById('email').value.trim();
+      const pw       = document.getElementById('password').value;
+      const cpw      = document.getElementById('confirmPassword').value;
+
+      if (!fullname || !email || !pw || !cpw) {
+        alert('Please fill in all fields.');
+        return false;
+      }
+      if (pw !== cpw) {
+        alert('Passwords do not match.');
+        return false;
+      }
+      // TODO: wire up to your backend
+      alert('Account created successfully!');
+      return false;
+    }
+  </script>
+
+</body>
+</html>
