@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Sign In</title>
+  <link rel="icon" type="image/png" href="../assets/logo_whitebg.png" />
+  <style>
+    /* ── 1. Import the font ── */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght=400;500;600;700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy: #1a3a6b;
+      --navy-dark: #122a52;
+      --navy-btn: #002D62; 
+      --navy-btn-hover: #2F578A;
+      --link-blue: #2057CE;
+      --bg-overlay: rgba(210, 225, 245, 0.55);
+      --card-bg: #ffffff;
+      --input-bg: #d9d9d9; 
+      --input-border: transparent;
+      --text-dark: #1a2540;
+      --text-muted: #757575;
+      --label: #4a4a4a; 
+    }
+
+    body, input, button, select, textarea, a {
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: #c8d9ee;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* ── Background image layer ── */
+    .bg-photo {
+      position: fixed;
+      inset: 0;
+      background: url('../assets/bg_cityhall.png') center center / cover no-repeat;
+      filter: blur(0px) brightness(0.92);
+      z-index: 0;
+    }
+
+    /* Blue tint overlay */
+    .bg-tint {
+      position: fixed;
+      inset: 0;
+      background: rgba(180, 210, 240, 0.45);
+      z-index: 1;
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      align-items: center; 
+      gap: 14px;
+      padding: 18px 28px;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .logo-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .logo-text {
+      display: flex;
+      flex-direction: column; 
+      justify-content: center;
+      line-height: 1;
+    }
+
+    .logo-text .brand-img {
+      height: 17px; 
+      width: auto;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* ── Main layout ── */
+    .page-center {
+      position: relative;
+      z-index: 10;
+      flex: 1;
+      display: flex;
+      align-items: flex-start; 
+      justify-content: center;
+      padding: 20px;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 35px 0px 30px 0px; 
+      width: 100%;
+      max-width: 480px;   
+      height: 520px;  
+      box-shadow: 0 10px 45px rgba(10, 30, 70, 0.15);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Inner wrapper scaled to keep correct proportions inside the larger container */
+    .card-content {
+      padding: 0 35px; 
+    }
+    
+    /* SPACING FIXED: Changed to flex-start so content naturally groups closer together upwards */
+    .card-content.form-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+
+    /* avatar spacing optimized */
+    .avatar {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 1px;
+    }
+
+    .avatar img {
+      width: 55px; 
+      height: 55px;
+      object-fit: contain;
+    }
+
+    /* title spacing optimized */
+    .card-title {
+      text-align: center;
+      font-size: 1.75rem; 
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 20px;
+      letter-spacing: -0.01em;
+    }
+
+    /* divider placement fixed */
+    .divider {
+      height: 3px;
+      background: #dde4f0;
+      margin-bottom: 30px; 
+      width: 100%; 
+    }
+
+    /* form groups spacing balanced */
+    .form-group {
+      margin-bottom: 25px; 
+    }
+
+    .form-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px; 
+    }
+
+    label {
+      font-size: 0.85rem; 
+      font-weight: 700;
+      color: var(--label);
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .forgot-link {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--link-blue);
+      text-decoration: underline; 
+    }
+
+    .forgot-link:hover { opacity: 0.8; }
+
+    input[type="email"],
+    input[type="password"],
+    input[type="text"].pw-input {
+      width: 100%;
+      padding: 13px 16px; 
+      background: var(--input-bg);
+      border: 2px solid transparent; 
+      border-radius: 12px;
+      font-size: 0.95rem; 
+      color: var(--text-dark);
+      outline: none;
+      transition: border-color 0.2s ease, background-color 0.2s ease;
+    }
+
+    /* Ensure space for eye icon on the right side of the password field */
+    input.pw-input {
+      padding-right: 50px;
+    }
+
+    input::placeholder { color: #757575; }
+
+    input:focus {
+      border-color: var(--link-blue);
+      background-color: #f0f4fb; 
+    }
+
+    /* REMOVE BROWSER NATIVE EYE OVERLAYS */
+    input::-ms-reveal,
+    input::-ms-clear {
+      display: none !important;
+    }
+    input::-webkit-contacts-auto-fill-button,
+    input::-webkit-credentials-auto-fill-button {
+      visibility: hidden;
+      display: none !important;
+      pointer-events: none;
+    }
+
+    /* Relative container wrapper for eye button placement */
+    .password-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #606060;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+    }
+
+    .toggle-password:hover {
+      color: var(--link-blue);
+    }
+
+    /* Target the custom image element wrapper inside the button */
+    .eye-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+    }
+
+    /* Sign in button spacing */
+    .btn-signin {
+      width: 100%;
+      padding: 14px; 
+      background: var(--navy-btn);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      letter-spacing: 0.01em;
+      transition: background 0.2s, transform 0.1s;
+      box-shadow: 0 4px 12px rgba(6, 49, 101, 0.2);
+      margin-top: 8px;
+    }
+
+    .btn-signin:hover { background: var(--navy-btn-hover); }
+    .btn-signin:active { transform: scale(0.99); }
+
+    /* footer note spacing sitting beautifully beneath button */
+    .card-footer {
+      text-align: center;
+      margin-top: 44px;
+      font-size: 0.8rem;
+      color: #555;
+    }
+
+    .card-footer a {
+      color: var(--link-blue);
+      font-weight: 700;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-photo"></div>
+  <div class="bg-tint"></div>
+
+  <header class="topbar">
+    <div class="logo-icon">
+      <img src="../assets/logo.png" alt="DocsEase Logo" />
+    </div>
+    <div class="logo-text">
+      <img src="../assets/docsease_text.png" alt="DocsEase" class="brand-img" />
+    </div>
+  </header>
+
+  <main class="page-center">
+    <div class="card">
+
+      <div class="card-content">
+        <div class="avatar">
+          <img src="../assets/profile_signin.png" alt="profile" />
+        </div>
+        <h1 class="card-title">Administrator Sign in</h1>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="card-content form-area">
+        <form onsubmit="return false;">
+          <div class="form-group">
+            <div class="form-row">
+              <label for="email">Email</label>
+            </div>
+            <input type="email" id="email" placeholder="Enter your email"/>
+          </div>
+
+          <div class="form-group">
+            <div class="form-row">
+              <label for="password">Password</label>
+              <a href="#" class="forgot-link">Forget Password</a>
+            </div>
+            
+            <div class="password-wrapper">
+              <input type="password" id="password" class="pw-input" placeholder="Enter your password"/>
+              <button type="button" id="togglePassword" class="toggle-password" aria-label="Toggle password visibility">
+                <span id="eyeIcon" class="eye-container">
+                  <img src="../assets/eyeShow.png" alt="Show Password" style="width: 100%; height: 100%; object-fit: contain;" />
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <button type="button" class="btn-signin" onclick="window.location.href='../Sidebar/dashboard.html'">Sign in</button>
+        </form>
+
+        <p class="card-footer">
+          Don't have an account? <a href="signup.html">Sign up</a>
+        </p>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    const togglePasswordBtn = document.querySelector('#togglePassword');
+    const passwordInput = document.querySelector('#password');
+    const eyeIcon = document.querySelector('#eyeIcon');
+
+    const eyeShow = `
+      <img src="../assets/eyeShow.png" alt="Show Password" style="width: 100%; height: 100%; object-fit: contain;" />
+    `;
+
+    const eyeHide = `
+      <img src="../assets/eyeHide.png" alt="Hide Password" style="width: 100%; height: 100%; object-fit: contain;" />
+    `;
+
+    togglePasswordBtn.addEventListener('click', function () {
+      const isHidden = passwordInput.getAttribute('type') === 'password';
+      passwordInput.setAttribute('type', isHidden ? 'text' : 'password');
+      eyeIcon.innerHTML = isHidden ? eyeHide : eyeShow;
+    });
+  </script>
+
+</body>
+</html>
