@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DocsEase – Category List</title>
+  <link rel="icon" type="image/png" href="../assets/logo_whitebg.png" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --navy: #002D62;
+      --sidebar-bg: #ffffff;
+      --main-bg: #dce8f5;
+      --card-bg: #ffffff;
+      --text-dark: #0d1f3c;
+      --text-muted: #6b7a99;
+      --active-bg: #e8eef8;
+      --shadow: 0 8px 24px rgba(10, 30, 80, 0.08);
+      --btn-blue: #406AAF;
+    }
+
+    body,
+    input,
+    button,
+    a {
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      height: 100vh;
+      max-height: 100vh;
+      display: flex;
+      background: var(--main-bg);
+      overflow: hidden;
+    }
+
+    /* ── SIDEBAR AREA ── */
+    .sidebar {
+      width: 310px;
+      min-width: 310px;
+      background: var(--sidebar-bg);
+      display: flex;
+      flex-direction: column;
+      padding: 28px 0 24px 0;
+      box-shadow: 2px 0 12px rgba(10, 30, 80, 0.07);
+      z-index: 10;
+      height: 100%;
+      transition: width 0.25s ease, min-width 0.25s ease;
+      overflow: hidden;
+    }
+
+    .sidebar.collapsed {
+      width: 72px;
+      min-width: 72px;
+    }
+
+    .sidebar.collapsed .sidebar-logo {
+      padding: 0 0 32px 0;
+      justify-content: center;
+    }
+
+    .sidebar.collapsed .nav-item {
+      justify-content: center;
+      padding: 14px;
+    }
+
+    .logo-text,
+    .nav-label {
+      overflow: hidden;
+      white-space: nowrap;
+      opacity: 1;
+      max-width: 200px;
+      transition: opacity 0.25s ease, max-width 0.25s ease;
+    }
+
+    .sidebar.collapsed .logo-text,
+    .sidebar.collapsed .nav-label {
+      opacity: 0;
+      max-width: 0;
+    }
+
+    .btn-collapse {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      opacity: 0.6;
+      transition: opacity 0.18s;
+    }
+
+    .btn-collapse:hover {
+      opacity: 1;
+    }
+
+    .btn-collapse img {
+      width: 30px;
+      height: 30px;
+      object-fit: contain;
+    }
+
+    .sidebar.collapsed .btn-collapse {
+      margin-left: 0;
+    }
+
+    .sidebar-bottom {
+      padding: 12px 16px;
+      margin-top: auto;
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 28px 32px 28px;
+    }
+
+    .sidebar-logo .logo-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .sidebar-logo .logo-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .sidebar-logo .logo-text {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    .sidebar-logo .brand-img {
+      height: 17px;
+      width: auto;
+      object-fit: contain;
+      display: block;
+    }
+
+    .sidebar-nav-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.18s;
+    }
+
+    .nav-item:hover,
+    .nav-item.active {
+      background: var(--active-bg);
+    }
+
+    .nav-item .nav-icon {
+      width: 26px;
+      height: 26px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-item .nav-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .nav-item .nav-label {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--navy);
+    }
+
+    /* ── MAIN WORKSPACE PANEL ── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 40px 0 40px;
+      flex-shrink: 0;
+    }
+
+    .btn-back {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--navy);
+      padding: 8px 0;
+      transition: opacity 0.2s;
+      flex-shrink: 0;
+    }
+
+    .btn-back:hover {
+      opacity: 0.6;
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+
+    .user-info {
+      text-align: right;
+      line-height: 1.2;
+    }
+
+    .user-info .user-name {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    .user-info .user-role {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .user-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #d9d9d9;
+      flex-shrink: 0;
+    }
+
+    .user-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* ── WORKSPACE CONTENT ── */
+    .content {
+      flex: 1;
+      padding: 24px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      overflow: hidden;
+    }
+
+    .header-group {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      flex-shrink: 0;
+    }
+
+    .title-area h2 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #000;
+      letter-spacing: -0.01em;
+      margin-bottom: 4px;
+    }
+
+    .title-area p {
+      font-size: 0.95rem;
+      color: #4a4a4a;
+      font-weight: 500;
+    }
+
+    .actions-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      width: 100%;
+      flex-shrink: 0;
+    }
+
+    .search-input-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 370px;
+    }
+
+    .search-input-wrapper input {
+      width: 100%;
+      height: 46px;
+      background: #ffffff;
+      border: 1px solid #b5acac;
+      border-radius: 30px;
+      padding: 0 16px 0 65px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      outline: none;
+      transition: border-color 0.2s ease, background-color 0.2s ease;
+    }
+
+    .search-input-wrapper input:focus {
+      border-color: #2057CE;
+      background-color: #f0f4fb;
+    }
+
+    .search-input-wrapper input::placeholder {
+      color: #9ba6b9;
+    }
+
+    .search-icon-embed {
+      position: absolute;
+      left: 17px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 25px;
+      height: 25px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .search-icon-embed img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .btn-add-service {
+      height: 52px;
+      padding: 0 24px;
+      background: linear-gradient(to right, #0a3966, #3b7bb5);
+      border: none;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(10, 40, 90, 0.15);
+      transition: opacity 0.2s;
+      flex-shrink: 0;
+    }
+
+    .btn-add-service:hover {
+      opacity: 0.90;
+    }
+
+    .btn-add-service img {
+      height: 18px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    /* ── OFFICE PANEL CARD ── */
+    .panel-card {
+      flex: 1;
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 32px 25px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    /* ── SCROLLABLE SERVICE GRID ── */
+    .services-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 20px;
+    }
+
+    .services-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .services-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .services-scroll::-webkit-scrollbar-thumb {
+      background: rgba(13, 31, 60, 0.15);
+      border-radius: 10px;
+    }
+
+    .services-scroll::-webkit-scrollbar-thumb:hover {
+      background: rgba(13, 31, 60, 0.3);
+    }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 30px;
+    }
+
+    .service-btn {
+      background: var(--btn-blue);
+      border: none;
+      border-radius: 14px;
+      color: #fff;
+      font-size: 1.2rem;
+      font-weight: 500;
+      padding: 44px 40px;
+      text-align: center;
+      cursor: pointer;
+      line-height: 1.4;
+      transition: opacity 0.2s, transform 0.2s;
+      min-height: 150px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .service-btn:hover {
+      opacity: 0.88;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+
+<body>
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">
+        <img src="../assets/logo.png" alt="DocsEase Logo" />
+      </div>
+      <div class="logo-text">
+        <img src="../assets/docsease_text.png" alt="DocsEase" class="brand-img" />
+      </div>
+    </div>
+
+    <div class="sidebar-nav-container">
+      <nav class="sidebar-nav">
+        <a href="../Sidebar/dashboard.html" class="nav-item">
+          <div class="nav-icon"><img src="../assets/dashboard.png" alt="Dashboard" /></div>
+          <span class="nav-label">Dashboard</span>
+        </a>
+        <a href="../Sidebar/service_management.html" class="nav-item active">
+          <div class="nav-icon"><img src="../assets/service_mngment.png" alt="Service Management" /></div>
+          <span class="nav-label">Service Management</span>
+        </a>
+        <a href="../Sidebar/map_management.html" class="nav-item">
+          <div class="nav-icon"><img src="../assets/map_mngment.png" alt="Map Management" /></div>
+          <span class="nav-label">Map Management</span>
+        </a>
+        <a href="../Sidebar/analytics.html" class="nav-item">
+          <div class="nav-icon"><img src="../assets/analytics.png" alt="Analytics" /></div>
+          <span class="nav-label">Analytics</span>
+        </a>
+      </nav>
+    </div>
+
+    <div class="sidebar-bottom">
+      <button class="btn-collapse" onclick="toggleSidebar()" title="Collapse sidebar">
+        <img id="collapse-icon" src="../assets/collapse.png" alt="Collapse" />
+      </button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="btn-back" onclick="window.location.href='service_management.html'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+        Back
+      </button>
+
+      <div class="user-profile">
+        <div class="user-info">
+          <div class="user-name">Admin user</div>
+          <div class="user-role">Profile</div>
+        </div>
+        <div class="user-avatar">
+            <a href="../Authentication/auth.html">
+              <img src="../assets/user_profile.png" alt="Admin profile" />
+            </a>
+        </div>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="header-group">
+        <div class="title-area">
+          <h2 id="page-title">Service List</h2>
+          <p id="page-subtitle">Monitor and manage document processes.</p>
+        </div>
+      </div>
+
+      <div class="actions-row">
+        <div class="search-input-wrapper">
+          <div class="search-icon-embed">
+            <img src="../assets/search.png" alt="Search icon" />
+          </div>
+          <input type="text" id="search-input" placeholder="Search service..." aria-label="Search city office updates" oninput="filterServices(this.value)" />
+        </div>
+
+        <button type="button" class="btn-add-service" onclick="window.location.href='../Forms/add_service.html'">
+          <img src="../assets/add_service.png" alt="Plus Icon" />
+          <span>Add New Service</span>
+        </button>
+      </div>
+
+      <div class="panel-card">
+        <div class="services-scroll">
+          <div class="services-grid" id="services-grid"></div>
+          <p id="no-results" style="display:none; text-align:center; color:#6b7a99; font-size:1rem; font-weight:600; margin-top:40px;">No services found.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.querySelector('.sidebar').classList.toggle('collapsed');
+      const collapsed = document.querySelector('.sidebar').classList.contains('collapsed');
+      const icon = document.getElementById('collapse-icon');
+      icon.src = collapsed ? '../assets/collapse-right.png' : '../assets/collapse.png';
+      icon.alt = collapsed ? 'Expand' : 'Collapse';
+    }
+
+    function filterServices(query) {
+      const q = query.trim().toLowerCase();
+      const btns = document.querySelectorAll('#services-grid .service-btn');
+      let visible = 0;
+      btns.forEach(btn => {
+        const show = btn.textContent.toLowerCase().includes(q);
+        btn.style.display = show ? '' : 'none';
+        if (show) visible++;
+      });
+      document.getElementById('no-results').style.display = visible === 0 ? 'block' : 'none';
+    }
+
+    const services = {
+      'Business Permit and Licensing Office': [
+        'New Business Application',
+        'Renewal of Business Application',
+        'Retirement of Business',
+        'Special Permit',
+        'Certificate of No Record',
+        'Permit Update Transactions',
+        'Certificate of Business Status',
+        'Complaints and Violations'
+      ]
+    };
+
+    const defaultServices = [
+      'Document Request',
+      'Certificate Issuance',
+      'Application Processing',
+      'Record Verification',
+      'Permit Application',
+      'Complaint Filing'
+    ];
+
+    const params = new URLSearchParams(window.location.search);
+    const office = params.get('office') || '';
+
+    if (office) {
+      document.getElementById('page-title').textContent = office;
+      document.getElementById('page-subtitle').textContent = `Monitor and manage service items listed under ${office}.`;
+    }
+
+    const list = services[office] || defaultServices;
+    const grid = document.getElementById('services-grid');
+
+    list.forEach(name => {
+      const btn = document.createElement('button');
+      btn.className = 'service-btn';
+      btn.textContent = name;
+      btn.onclick = () => { window.location.href = '../Forms/edit_service.html?service=' + encodeURIComponent(name); };
+      grid.appendChild(btn);
+    });
+  </script>
+
+</body>
+</html>

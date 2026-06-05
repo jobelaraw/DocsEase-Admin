@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DocsEase – Sign In</title>
+  <link rel="icon" type="image/png" href="../assets/logo_whitebg.png" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:       #0f2d5e;
+      --navy-btn:   #0f2d5e;
+      --navy-hover: #1a4080;
+      --blue-text1:  #4BB8FA;
+      --blue-text2:  #2F2FE4;
+      --panel-bg:   #e8eef8;
+      --input-bg:   #ffffff;
+      --label:      #3a3a3a;
+      --placeholder:#9aa3b2;
+      --link:       #2a7de1;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Inter', sans-serif;
+      background: #000;
+      overflow: hidden;
+    }
+
+    /* ══════════════════════════════════════
+       WRAPPER — two panels side by side
+    ══════════════════════════════════════ */
+    .wrapper {
+      display: flex;
+      width: 200%;         
+      height: 100vh;
+      transition: transform 0.65s cubic-bezier(0.77, 0, 0.18, 1);
+    }
+
+    .wrapper.signup-mode {
+      transform: translateX(-50%);
+    }
+
+    /* ══════════════════════════════════════
+       SCREEN  (each half of wrapper = 1 viewport)
+    ══════════════════════════════════════ */
+    .screen {
+      width: 50%;
+      height: 100vh;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    /* ── PHOTO PANEL — fills the whole screen ── */
+    .photo-panel {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    .photo-panel img.bg {
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 130%;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    #screen-signup .photo-panel img.bg {
+      object-position: center;
+      width: 100%; height: 130%;
+    }
+
+    .photo-panel::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.42);
+    }
+
+      .photo-text {
+        position: absolute;
+        top: 52px; bottom: 0; left: 0;
+        z-index: 11;
+        padding: 0 52px 64px 52px;
+        color: #fff;
+        max-width: 60%;
+      }
+
+      #screen-signup .photo-text {
+        top: 52px;
+        bottom: auto;
+        left: auto;
+        right: 0;
+        text-align: right;
+        padding: 0 52px 0 52px;
+        max-width: 60%;
+      }
+
+.photo-text h1 {
+      font-size: clamp(4.5rem, 3.2vw, 4.5rem);
+      font-weight: 900;
+      line-height: 1.12;
+      letter-spacing: 0.02em;
+      margin-bottom: 24px;
+      text-shadow: 20px 10px 90px rgba(0, 0, 0, 0.95), 
+                   0 0 1px rgba(0, 0, 0, 0.7),
+                   0 0 800px rgba(0, 0, 0, 0.4);
+    }   
+
+    .photo-text h1 .accent { color: var(--blue-text1); }
+    #screen-signup .photo-text h1 .accent1 { color: var(--blue-text2); }
+
+.photo-text p {
+      font-size: 1.09rem;
+      line-height: 1.65;
+      color: rgba(255,255,255,0.95); 
+      font-weight: 500;
+      max-width: 700px;
+      /* text-shadow: 0 .5px 8px rgba(0, 0, 0, 0.95),
+                   0 .5px 3px rgba(0, 0, 0, 0.8); */
+    }
+
+    /* ── FORM PANEL — flush right, only left corners rounded ── */
+    .form-panel {
+      position: absolute;
+      top: 0; right: 0; bottom: 0;
+      width: 480px;
+      background: var(--panel-bg);
+      border-radius: 24px 0 0 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 52px;
+      z-index: 10;
+      box-shadow: -8px 0 40px rgba(0,0,0,0.25);
+    }
+
+    /* Sign up: flush left, only right corners rounded */
+    #screen-signup .form-panel {
+      right: unset;
+      left: 0;
+      border-radius: 0 24px 24px 0;
+      justify-content: flex-start;
+      overflow-y: auto;
+      padding: 28px 40px;
+      box-shadow: 8px 0 40px rgba(0,0,0,0.25);
+    }
+
+    /* Logo */
+    .panel-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 80px;
+      margin-top: -50px;
+      align-self: center;
+    }
+
+    .panel-logo .logo-icon {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .panel-logo .logo-icon img {
+      width: 100%; height: 100%; object-fit: contain;
+    }
+
+    .panel-logo .logo-wordmark {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--navy);
+      letter-spacing: -0.02em;
+    }
+
+    /* Heading */
+    .panel-heading {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .panel-heading h2 {
+      font-size: 1.9rem;
+      font-weight: 800;
+      color: var(--navy);
+      letter-spacing: -0.025em;
+      margin-bottom: 6px;
+    }
+
+    .panel-heading p {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #555;
+    }
+
+    /* Form */
+    .form-body {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .field-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .field-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--label);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .forget-link {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--link);
+      text-decoration: none;
+    }
+
+    .forget-link:hover { text-decoration: underline; }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-wrap input {
+      width: 100%;
+      padding: 15px 48px 15px 22px;
+      background: var(--input-bg);
+      border: 2px solid transparent;
+      border-radius: 50px;   /* fully rounded pill — matches screenshot */
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      color: #1a2540;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .input-wrap input::placeholder { color: var(--placeholder); }
+
+    .input-wrap input::-ms-reveal,
+    .input-wrap input::-webkit-contacts-auto-fill-button,
+    .input-wrap input::-webkit-credentials-auto-fill-button { display: none; }
+
+    .input-wrap input:focus {
+      border-color: var(--link);
+      background: #f5f8ff;
+    }
+
+    .eye-btn {
+      position: absolute;
+      right: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #555;
+      display: flex;
+      align-items: center;
+      padding: 3px;
+    }
+
+    .eye-btn:hover { color: var(--navy); }
+    .eye-btn img { width: 22px; height: 22px; object-fit: contain; }
+
+ /* Sign in button */
+    .btn-main {
+      width: 100%;
+      height: 54px;             
+      margin-top: 20px;
+      background: var(--navy-btn);
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.92rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      box-shadow: 0 4px 14px rgba(15,45,94,0.25);
+      box-sizing: border-box;     
+    }
+
+    .btn-main:hover  { background: var(--navy-hover); }
+    .btn-main:active { transform: scale(0.99); }
+
+    /* OR divider */
+    .or-divider {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: #888;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .or-divider::before,
+    .or-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #b8c4d8;
+    }
+
+    /* Google button */
+    .btn-google {
+      width: 100%;
+      height: 54px;               
+      background: #ffffff;
+      border: 2px solid #e0e6ef;
+      border-radius: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #222;
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      box-sizing: border-box;    
+    }
+
+    .btn-google:hover {
+      background: #f5f8ff;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.10);
+    }
+
+    .btn-google .g-logo {
+      width: 22px; 
+      height: 22px;
+      flex-shrink: 0;
+      object-fit: contain;
+    }
+
+    /* Footer */
+    .panel-footer {
+      margin-top: 42px;
+      font-size: 0.8rem;
+      color: #666;
+      text-align: center;
+    }
+
+    .panel-footer a {
+      color: var(--link);
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .panel-footer a:hover { text-decoration: underline; }
+
+    /* ══════════════════════════════════════
+       SCREEN 2 — SIGN UP  (mirror layout)
+    ══════════════════════════════════════ */
+    #screen-signup .form-panel {
+      order: -1;
+      justify-content: flex-start;
+      overflow-y: auto;
+      padding: 28px 52px;
+    }
+
+    #screen-signup .panel-logo { margin-bottom: 40px; margin-top: -10px; }
+    #screen-signup .panel-heading { margin-bottom: 21px; }
+    #screen-signup .panel-heading h2 { font-size: 1.9rem; margin-bottom: 10px; }
+    #screen-signup .form-body { gap: 16px; }
+    #screen-signup .input-wrap input { padding: 11px 48px 11px 22px; }
+    #screen-signup .btn-main { padding: 13px; margin-top: 10px; margin-bottom: -10px; }
+    #screen-signup .btn-google { padding: 11px 20px; margin-top: -10px; }
+    #screen-signup .panel-footer { margin-top: 25px; }
+  </style>
+</head>
+<body>
+
+<div class="wrapper" id="wrapper">
+
+  <!-- ════════════════════════════
+       SCREEN 1 — SIGN IN
+  ════════════════════════════ -->
+  <div class="screen" id="screen-signin">
+
+    <!-- Left: Photo -->
+    <div class="photo-panel">
+      <img class="bg" src="../assets/bg_cityhall2.jpg" alt="City Hall" />
+      <div class="photo-text">
+        <h1>Manage Services.<br>Guide <span class="accent" id="typewriter"></span></h1>
+        <p>Log in to your administrative dashboard to manage, update, and streamline municipal services in real-time. Use this portal to configure document requirements, update application fees, and ensure citizens always have the most accurate processing guides in the palm of their hands.</p>
+      </div>
+    </div>
+
+    <!-- Right: Form -->
+    <div class="form-panel">
+
+      <div class="panel-logo">
+        <div class="logo-icon">
+          <img src="../assets/logo_whitebg.png" alt="DocsEase" />
+        </div>
+        <span class="logo-wordmark"><img src="../assets/docsease_text.png" alt="DocsEase" style="height:20px; width:auto; object-fit:contain;" /></span>
+      </div>
+      <div class="panel-heading">
+        <h2>Welcome back, Admin!</h2>
+        <p>Please sign in to your account.</p>
+      </div>
+
+      <div class="form-body">
+
+        <div class="field-group">
+          <label class="field-label">Email</label>
+          <div class="input-wrap">
+            <input type="email" id="si-email" placeholder="Enter your email" autocomplete="email" />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <div class="field-row">
+            <label class="field-label">Password</label>
+            <a href="#" class="forget-link">Forget Password</a>
+          </div>
+          <div class="input-wrap">
+            <input type="password" id="si-password" placeholder="Enter your password" autocomplete="current-password" />
+            <button type="button" class="eye-btn" onclick="toggleEye('si-password', 'eye-si')" aria-label="Toggle password">
+              <img id="eye-si" src="../assets/eyeShow.png" alt="Toggle password" />
+            </button>
+          </div>
+        </div>
+
+        <button type="button" class="btn-main" onclick="window.location.href='../Sidebar/dashboard.html'">Sign in</button>
+
+        <div class="or-divider">OR</div>
+
+        <button class="btn-google" onclick="return false;">
+          <img class="g-logo" src="../assets/google.png" alt="Google" />
+          Continue with Google
+        </button>
+
+      </div>
+
+      <p class="panel-footer">
+        Don't have an account? <a href="#" onclick="goSignup(event)">Sign up</a>
+      </p>
+
+    </div>
+  </div><!-- /screen-signin -->
+
+
+  <!-- ════════════════════════════
+       SCREEN 2 — SIGN UP  
+  ════════════════════════════ -->
+  <div class="screen" id="screen-signup">
+
+    <!-- Form panel (left in signup mode) -->
+    <div class="form-panel">
+
+      <div class="panel-logo">
+        <div class="logo-icon">
+          <img src="../assets/logo.png" alt="DocsEase" />
+        </div>
+        <span class="logo-wordmark"><img src="../assets/docsease_text.png" alt="DocsEase" style="height:20px; width:auto; object-fit:contain;" /></span>
+      </div>
+      <div class="panel-heading">
+        <h2>Create Account</h2>
+        <p>Sign up to get started with DocsEase.</p>
+      </div>
+
+      <div class="form-body">
+
+        <div class="field-group">
+          <label class="field-label">Full Name</label>
+          <div class="input-wrap">
+            <input type="text" placeholder="Enter your full name" />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Email</label>
+          <div class="input-wrap">
+            <input type="email" placeholder="Enter your email" />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Password</label>
+          <div class="input-wrap">
+            <input type="password" id="su-password" placeholder="Enter your password" />
+            <button type="button" class="eye-btn" onclick="toggleEye('su-password','eye-su')" aria-label="Toggle">
+              <img id="eye-su" src="../assets/eyeShow.png" alt="Toggle password" />
+            </button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Confirm Password</label>
+          <div class="input-wrap">
+            <input type="password" id="su-confirm" placeholder="Re-enter your password" />
+            <button type="button" class="eye-btn" onclick="toggleEye('su-confirm','eye-su2')" aria-label="Toggle">
+              <img id="eye-su2" src="../assets/eyeShow.png" alt="Toggle password" />
+            </button>
+          </div>
+        </div>
+
+        <button type="button" class="btn-main" onclick="window.location.href='../Sidebar/dashboard.html'">SIGN UP</button>
+
+        <div class="or-divider">OR</div>
+
+        <button class="btn-google" onclick="return false;">
+          <img class="g-logo" src="../assets/google.png" alt="Google" />
+          Continue with Google
+        </button>
+
+      </div>
+
+      <p class="panel-footer">
+        Already have an account? <a href="#" onclick="goSignin(event)">Sign in</a>
+      </p>
+
+    </div>
+
+    <!-- Photo panel (right in signup mode) -->
+    <div class="photo-panel">
+      <img class="bg" src="../assets/bg_cityhall2.jpg" alt="City Hall" />
+      <div class="photo-text">
+        <h1><span class="accent" id="typewriter2"></span> the<br>DocsEase<br>Community.</h1>
+        <p>Create your administrator account and start managing municipal services, document workflows, and citizen guidance in one secure platform.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const wrapper = document.getElementById('wrapper');
+
+  function goSignup(e) {
+    e.preventDefault();
+    wrapper.classList.add('signup-mode');
+  }
+
+  function goSignin(e) {
+    e.preventDefault();
+    wrapper.classList.remove('signup-mode');
+  }
+
+  const words = ['Citizens.', 'Applicants.', 'Biñanenses.'];
+  let wi = 0, ci = 0, deleting = false;
+  const tw = document.getElementById('typewriter');
+
+  function type() {
+    const word = words[wi];
+    tw.textContent = deleting ? word.substring(0, ci--) : word.substring(0, ci++);
+    if (!deleting && ci > word.length) { deleting = true; setTimeout(type, 1800); return; }
+    if (deleting && ci < 0)            { deleting = false; wi = (wi + 1) % words.length; }
+    setTimeout(type, deleting ? 60 : 100);
+  }
+  type();
+
+  const words2 = ['Lead', 'Drive', 'Join'];
+  let wi2 = 0, ci2 = 0, deleting2 = false;
+  const tw2 = document.getElementById('typewriter2');
+
+  function type2() {
+    const word = words2[wi2];
+    tw2.textContent = deleting2 ? word.substring(0, ci2--) : word.substring(0, ci2++);
+    if (!deleting2 && ci2 > word.length) { deleting2 = true; setTimeout(type2, 1800); return; }
+    if (deleting2 && ci2 < 0)            { deleting2 = false; wi2 = (wi2 + 1) % words2.length; }
+    setTimeout(type2, deleting2 ? 60 : 100);
+  }
+  type2();
+
+  function toggleEye(inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const img   = document.getElementById(iconId);
+    const hide = input.type === 'password';
+    input.type = hide ? 'text' : 'password';
+    img.src = hide ? '../assets/eyeHide.png' : '../assets/eyeShow.png';
+    img.alt = hide ? 'Hide password' : 'Show password';
+  }
+</script>
+
+</body>
+</html>
