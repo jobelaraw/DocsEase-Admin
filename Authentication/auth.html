@@ -526,155 +526,155 @@
 </head>
 <body>
 
-<div class="wrapper" id="wrapper">
+  <div class="wrapper" id="wrapper">
 
-  <!-- ════════════════════════════
-       SCREEN 1 — SIGN IN
-  ════════════════════════════ -->
-  <div class="screen" id="screen-signin">
+    <!-- ════════════════════════════
+        SCREEN 1 — SIGN IN
+    ════════════════════════════ -->
+    <div class="screen" id="screen-signin">
 
-    <!-- Left: Photo -->
-    <div class="photo-panel">
-      <img class="bg" src="../assets/bg_cityhall2.jpg" alt="City Hall" />
-      <div class="photo-text">
-        <h1>Manage Services.<br>Guide <span class="accent" id="typewriter"></span></h1>
-        <p>Log in to your administrative dashboard to manage, update, and streamline municipal services in real-time. Use this portal to configure document requirements, update application fees, and ensure citizens always have the most accurate processing guides in the palm of their hands.</p>
-      </div>
-    </div>
-
-    <!-- Right: Form -->
-    <div class="form-panel">
-
-      <div class="panel-logo">
-        <div class="logo-icon">
-          <img src="../assets/logo_whitebg.png" alt="DocsEase" />
+      <!-- Left: Photo -->
+      <div class="photo-panel">
+        <img class="bg" src="../assets/bg_cityhall2.jpg" alt="City Hall" />
+        <div class="photo-text">
+          <h1>Manage Services.<br>Guide <span class="accent" id="typewriter"></span></h1>
+          <p>Log in to your administrative dashboard to manage, update, and streamline municipal services in real-time. Use this portal to configure document requirements, update application fees, and ensure citizens always have the most accurate processing guides in the palm of their hands.</p>
         </div>
-        <span class="logo-wordmark"><img src="../assets/docsease_text.png" alt="DocsEase" style="height:20px; width:auto; object-fit:contain;" /></span>
-      </div>
-      <div class="panel-heading">
-        <h2>Welcome back, Admin!</h2>
-        <p>Please sign in to your account.</p>
       </div>
 
-      <div class="form-body">
+      <!-- Right: Form -->
+      <div class="form-panel">
 
-        <div class="field-group">
-          <label class="field-label">Email</label>
-          <div class="input-wrap">
-            <input type="email" id="si-email" placeholder="Enter your email" autocomplete="email" />
+        <div class="panel-logo">
+          <div class="logo-icon">
+            <img src="../assets/logo_whitebg.png" alt="DocsEase" />
           </div>
+          <span class="logo-wordmark"><img src="../assets/docsease_text.png" alt="DocsEase" style="height:20px; width:auto; object-fit:contain;" /></span>
+        </div>
+        <div class="panel-heading">
+          <h2>Welcome back, Admin!</h2>
+          <p>Please sign in to your account.</p>
         </div>
 
-        <div class="field-group">
-          <div class="field-row">
+        <div class="form-body">
+
+          <div class="field-group">
+            <label class="field-label">Email</label>
+            <div class="input-wrap">
+              <input type="email" id="si-email" placeholder="Enter your email" autocomplete="email" />
+            </div>
+          </div>
+          <div class="field-group">
+            <div class="field-row">
+              <label class="field-label">Password</label>
+              <a href="#" class="forgot-link" onclick="goForgotPass(event)">Forgot Password</a>
+            </div>
+            <div class="input-wrap">
+              <input type="password" id="si-password" placeholder="Enter your password" autocomplete="current-password" />
+              <button type="button" class="eye-btn" onclick="toggleEye('si-password', 'eye-si')" aria-label="Toggle password">
+                <img id="eye-si" src="../assets/eyeShow.png" alt="Toggle password" />
+              </button>
+            </div>
+          </div>
+
+          <button type="button" class="btn-main" onclick="window.location.href='../Sidebar/dashboard.html'">Sign in</button>
+
+          <div class="or-divider">OR</div>
+
+          <button class="btn-google" onclick="return false;">
+            <img class="g-logo" src="../assets/google.png" alt="Google" />
+            Continue with Google
+          </button>
+
+        </div>
+
+        <p class="panel-footer">
+          Don't have an account? <a href="#" onclick="goSignup(event)">Sign up</a>
+        </p>
+
+      </div>
+    </div><!-- /screen-signin -->
+
+
+    <!-- ════════════════════════════
+        SCREEN 2 — SIGN UP  
+    ════════════════════════════ -->
+    <div class="screen" id="screen-signup">
+
+      <!-- Form panel (left in signup mode) -->
+      <div class="form-panel">
+
+        <div class="panel-logo">
+          <div class="logo-icon">
+            <img src="../assets/logo.png" alt="DocsEase" />
+          </div>
+          <span class="logo-wordmark"><img src="../assets/docsease_text.png" alt="DocsEase" style="height:20px; width:auto; object-fit:contain;" /></span>
+        </div>
+        <div class="panel-heading">
+          <h2>Create Account</h2>
+          <p>Sign up to get started with DocsEase.</p>
+        </div>
+
+        <div class="form-body">
+
+          <div class="field-group">
+            <label class="field-label">Full Name</label>
+            <div class="input-wrap">
+              <input type="text" placeholder="Enter your full name" />
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Email</label>
+            <div class="input-wrap">
+              <input type="email" placeholder="Enter your email" />
+            </div>
+          </div>
+
+          <div class="field-group">
             <label class="field-label">Password</label>
-            <a href="#" class="forgot-link" onclick="goForgotPass(event)">Forgot Password</a>
+            <div class="input-wrap">
+              <input type="password" id="su-password" placeholder="Enter your password" />
+              <button type="button" class="eye-btn" onclick="toggleEye('su-password','eye-su')" aria-label="Toggle">
+                <img id="eye-su" src="../assets/eyeShow.png" alt="Toggle password" />
+              </button>
+            </div>
           </div>
-          <div class="input-wrap">
-            <input type="password" id="si-password" placeholder="Enter your password" autocomplete="current-password" />
-            <button type="button" class="eye-btn" onclick="toggleEye('si-password', 'eye-si')" aria-label="Toggle password">
-              <img id="eye-si" src="../assets/eyeShow.png" alt="Toggle password" />
-            </button>
+
+          <div class="field-group">
+            <label class="field-label">Confirm Password</label>
+            <div class="input-wrap">
+              <input type="password" id="su-confirm" placeholder="Re-enter your password" />
+              <button type="button" class="eye-btn" onclick="toggleEye('su-confirm','eye-su2')" aria-label="Toggle">
+                <img id="eye-su2" src="../assets/eyeShow.png" alt="Toggle password" />
+              </button>
+            </div>
           </div>
+
+          <button type="button" class="btn-main" onclick="window.location.href='../Sidebar/dashboard.html'">SIGN UP</button>
+
+          <div class="or-divider">OR</div>
+
+          <button class="btn-google" onclick="return false;">
+            <img class="g-logo" src="../assets/google.png" alt="Google" />
+            Continue with Google
+          </button>
+
         </div>
 
-        <button type="button" class="btn-main" onclick="window.location.href='../Sidebar/dashboard.html'">Sign in</button>
-
-        <div class="or-divider">OR</div>
-
-        <button class="btn-google" onclick="return false;">
-          <img class="g-logo" src="../assets/google.png" alt="Google" />
-          Continue with Google
-        </button>
+        <p class="panel-footer">
+          Already have an account? <a href="#" onclick="goSignin(event)">Sign in</a>
+        </p>
 
       </div>
 
-      <p class="panel-footer">
-        Don't have an account? <a href="#" onclick="goSignup(event)">Sign up</a>
-      </p>
-
-    </div>
-  </div><!-- /screen-signin -->
-
-
-  <!-- ════════════════════════════
-       SCREEN 2 — SIGN UP  
-  ════════════════════════════ -->
-  <div class="screen" id="screen-signup">
-
-    <!-- Form panel (left in signup mode) -->
-    <div class="form-panel">
-
-      <div class="panel-logo">
-        <div class="logo-icon">
-          <img src="../assets/logo.png" alt="DocsEase" />
+      <!-- Photo panel (right in signup mode) -->
+      <div class="photo-panel">
+        <img class="bg" src="../assets/bg_cityhall2.jpg" alt="City Hall" />
+        <div class="photo-text">
+          <h1><span class="accent" id="typewriter2"></span> the<br>DocsEase<br>Community.</h1>
+          <p>Create your administrator account and start managing municipal services, document workflows, and citizen guidance in one secure platform.</p>
         </div>
-        <span class="logo-wordmark"><img src="../assets/docsease_text.png" alt="DocsEase" style="height:20px; width:auto; object-fit:contain;" /></span>
-      </div>
-      <div class="panel-heading">
-        <h2>Create Account</h2>
-        <p>Sign up to get started with DocsEase.</p>
-      </div>
-
-      <div class="form-body">
-
-        <div class="field-group">
-          <label class="field-label">Full Name</label>
-          <div class="input-wrap">
-            <input type="text" placeholder="Enter your full name" />
-          </div>
-        </div>
-
-        <div class="field-group">
-          <label class="field-label">Email</label>
-          <div class="input-wrap">
-            <input type="email" placeholder="Enter your email" />
-          </div>
-        </div>
-
-        <div class="field-group">
-          <label class="field-label">Password</label>
-          <div class="input-wrap">
-            <input type="password" id="su-password" placeholder="Enter your password" />
-            <button type="button" class="eye-btn" onclick="toggleEye('su-password','eye-su')" aria-label="Toggle">
-              <img id="eye-su" src="../assets/eyeShow.png" alt="Toggle password" />
-            </button>
-          </div>
-        </div>
-
-        <div class="field-group">
-          <label class="field-label">Confirm Password</label>
-          <div class="input-wrap">
-            <input type="password" id="su-confirm" placeholder="Re-enter your password" />
-            <button type="button" class="eye-btn" onclick="toggleEye('su-confirm','eye-su2')" aria-label="Toggle">
-              <img id="eye-su2" src="../assets/eyeShow.png" alt="Toggle password" />
-            </button>
-          </div>
-        </div>
-
-        <button type="button" class="btn-main" onclick="window.location.href='../Sidebar/dashboard.html'">SIGN UP</button>
-
-        <div class="or-divider">OR</div>
-
-        <button class="btn-google" onclick="return false;">
-          <img class="g-logo" src="../assets/google.png" alt="Google" />
-          Continue with Google
-        </button>
-
-      </div>
-
-      <p class="panel-footer">
-        Already have an account? <a href="#" onclick="goSignin(event)">Sign in</a>
-      </p>
-
-    </div>
-
-    <!-- Photo panel (right in signup mode) -->
-    <div class="photo-panel">
-      <img class="bg" src="../assets/bg_cityhall2.jpg" alt="City Hall" />
-      <div class="photo-text">
-        <h1><span class="accent" id="typewriter2"></span> the<br>DocsEase<br>Community.</h1>
-        <p>Create your administrator account and start managing municipal services, document workflows, and citizen guidance in one secure platform.</p>
       </div>
     </div>
   </div>
@@ -774,125 +774,171 @@
     </div>
 
   </div>
+  
+  <script type="module">
+    // Import your setup and the specific Firebase Auth functions
+    import { auth } from '../Firebase/firebase-config.js'; // Adjust path as needed
+    // import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-</div>
+    // --- CONNECTION TEST SCRIPT ---
+    // Remove later once we confirm Firebase is working correctly
+    console.log("Attempting to connect to Firebase...");
+    
+    if (auth) {
+      console.log("🔥 SUCCESS! Firebase is connected to DocuGuide.");
+      console.log("Project ID:", auth.app.options.projectId);
+    } else {
+      console.error("❌ ERROR: Firebase failed to initialize.");
+    }
 
-<script>
-  const wrapper = document.getElementById('wrapper');
+    // --- SCRIPT RELATED TO FIREBASE BELOW ---
 
-  function goSignup(e) {
-    e.preventDefault();
-    wrapper.className = 'wrapper signup-mode';
-  }
+    // Sample event listener for sign-in button
+    /* // Grab your HTML elements
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const signInButton = document.querySelector('.btn-signin');
 
-  function goSignin(e) {
-    e.preventDefault();
-    wrapper.className = 'wrapper';
-  }
+    signInButton.addEventListener('click', (e) => {
+      e.preventDefault(); // Stop form submission
+      
+      const email = emailInput.value;
+      const password = passwordInput.value;
 
-  function goForgotPass(e) {
-    e.preventDefault();
-    wrapper.className = 'wrapper forgotpass-mode';
-  }
+      // Call Firebase Auth
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          // Success! The admin is logged in.
+          const user = userCredential.user;
+          console.log("Logged in as:", user.email);
+          
+          // NOW redirect to the dashboard
+          window.location.href = '../Sidebar/dashboard.html';
+        })
+        .catch((error) => {
+          // Handle errors (wrong password, etc.)
+          console.error("Error signing in:", error.message);
+          alert("Sign in failed: " + error.message);
+        });
+    }); */
+  </script>
 
-  function goRecoveryCode(e) {
-    e.preventDefault();
-    wrapper.style.transition = 'none';
-    wrapper.className = 'wrapper recoverycode-mode';
-    // Re-enable transition after navigation
-    setTimeout(() => { wrapper.style.transition = ''; }, 50);
-    startResendTimer();
-  }
+  <script>
+    const wrapper = document.getElementById('wrapper');
 
-  function verifyCode(e) {
-    e.preventDefault();
-    const code = document.getElementById('recovery-code').value.trim();
-    if (!code) return;
-    // TODO: Connect to backend to verify code
-    alert('Code verified: ' + code);
-  }
+    function goSignup(e) {
+      e.preventDefault();
+      wrapper.className = 'wrapper signup-mode';
+    }
 
-  // Resend timer
-  let resendInterval = null;
-  function startResendTimer() {
-    const btn = document.getElementById('btn-resend');
-    const timerSpan = document.getElementById('resend-timer');
-    let seconds = 30;
-    btn.disabled = true;
-    timerSpan.textContent = seconds;
-    btn.textContent = '';
-    btn.innerHTML = 'Resend Code (<span id="resend-timer">' + seconds + '</span>s)';
+    function goSignin(e) {
+      e.preventDefault();
+      wrapper.className = 'wrapper';
+    }
 
-    if (resendInterval) clearInterval(resendInterval);
-    resendInterval = setInterval(() => {
-      seconds--;
-      document.getElementById('resend-timer').textContent = seconds;
-      if (seconds <= 0) {
-        clearInterval(resendInterval);
-        btn.disabled = false;
-        btn.textContent = 'Resend Code';
-      }
-    }, 1000);
-  }
+    function goForgotPass(e) {
+      e.preventDefault();
+      wrapper.className = 'wrapper forgotpass-mode';
+    }
 
-  function resendCode(e) {
-    e.preventDefault();
-    // TODO: Connect to backend to resend code
-    startResendTimer();
-  }
+    function goRecoveryCode(e) {
+      e.preventDefault();
+      wrapper.style.transition = 'none';
+      wrapper.className = 'wrapper recoverycode-mode';
+      // Re-enable transition after navigation
+      setTimeout(() => { wrapper.style.transition = ''; }, 50);
+      startResendTimer();
+    }
 
-  const words = ['Citizens.', 'Applicants.', 'Biñanenses.'];
-  let wi = 0, ci = 0, deleting = false;
-  const tw = document.getElementById('typewriter');
+    function verifyCode(e) {
+      e.preventDefault();
+      const code = document.getElementById('recovery-code').value.trim();
+      if (!code) return;
+      // TODO: Connect to backend to verify code
+      alert('Code verified: ' + code);
+    }
 
-  function type() {
-    const word = words[wi];
-    tw.textContent = deleting ? word.substring(0, ci--) : word.substring(0, ci++);
-    if (!deleting && ci > word.length) { deleting = true; setTimeout(type, 1800); return; }
-    if (deleting && ci < 0)            { deleting = false; wi = (wi + 1) % words.length; }
-    setTimeout(type, deleting ? 60 : 100);
-  }
-  type();
+    // Resend timer
+    let resendInterval = null;
+    function startResendTimer() {
+      const btn = document.getElementById('btn-resend');
+      const timerSpan = document.getElementById('resend-timer');
+      let seconds = 30;
+      btn.disabled = true;
+      timerSpan.textContent = seconds;
+      btn.textContent = '';
+      btn.innerHTML = 'Resend Code (<span id="resend-timer">' + seconds + '</span>s)';
 
-  const words2 = ['Lead', 'Drive', 'Join'];
-  let wi2 = 0, ci2 = 0, deleting2 = false;
-  const tw2 = document.getElementById('typewriter2');
+      if (resendInterval) clearInterval(resendInterval);
+      resendInterval = setInterval(() => {
+        seconds--;
+        document.getElementById('resend-timer').textContent = seconds;
+        if (seconds <= 0) {
+          clearInterval(resendInterval);
+          btn.disabled = false;
+          btn.textContent = 'Resend Code';
+        }
+      }, 1000);
+    }
 
-  function type2() {
-    const word = words2[wi2];
-    tw2.textContent = deleting2 ? word.substring(0, ci2--) : word.substring(0, ci2++);
-    if (!deleting2 && ci2 > word.length) { deleting2 = true; setTimeout(type2, 1800); return; }
-    if (deleting2 && ci2 < 0)            { deleting2 = false; wi2 = (wi2 + 1) % words2.length; }
-    setTimeout(type2, deleting2 ? 60 : 100);
-  }
-  type2();
+    function resendCode(e) {
+      e.preventDefault();
+      // TODO: Connect to backend to resend code
+      startResendTimer();
+    }
 
-  // Typewriter 3 — Forgot Password + Recovery Code screens (synced)
-  const words3 = ['Forgot', 'Recover', 'Lost'];
-  let wi3 = 0, ci3 = 0, deleting3 = false;
-  const tw3 = document.getElementById('typewriter3');
-  const tw3b = document.getElementById('typewriter3b');
+    const words = ['Citizens.', 'Applicants.', 'Biñanenses.'];
+    let wi = 0, ci = 0, deleting = false;
+    const tw = document.getElementById('typewriter');
 
-  function type3() {
-    const word = words3[wi3];
-    const text = deleting3 ? word.substring(0, ci3--) : word.substring(0, ci3++);
-    tw3.textContent = text;
-    tw3b.textContent = text;
-    if (!deleting3 && ci3 > word.length) { deleting3 = true; setTimeout(type3, 1800); return; }
-    if (deleting3 && ci3 < 0)            { deleting3 = false; wi3 = (wi3 + 1) % words3.length; }
-    setTimeout(type3, deleting3 ? 60 : 100);
-  }
-  type3();
+    function type() {
+      const word = words[wi];
+      tw.textContent = deleting ? word.substring(0, ci--) : word.substring(0, ci++);
+      if (!deleting && ci > word.length) { deleting = true; setTimeout(type, 1800); return; }
+      if (deleting && ci < 0)            { deleting = false; wi = (wi + 1) % words.length; }
+      setTimeout(type, deleting ? 60 : 100);
+    }
+    type();
 
-  function toggleEye(inputId, iconId) {
-    const input = document.getElementById(inputId);
-    const img   = document.getElementById(iconId);
-    const hide = input.type === 'password';
-    input.type = hide ? 'text' : 'password';
-    img.src = hide ? '../assets/eyeHide.png' : '../assets/eyeShow.png';
-    img.alt = hide ? 'Hide password' : 'Show password';
-  }
-</script>
+    const words2 = ['Lead', 'Drive', 'Join'];
+    let wi2 = 0, ci2 = 0, deleting2 = false;
+    const tw2 = document.getElementById('typewriter2');
+
+    function type2() {
+      const word = words2[wi2];
+      tw2.textContent = deleting2 ? word.substring(0, ci2--) : word.substring(0, ci2++);
+      if (!deleting2 && ci2 > word.length) { deleting2 = true; setTimeout(type2, 1800); return; }
+      if (deleting2 && ci2 < 0)            { deleting2 = false; wi2 = (wi2 + 1) % words2.length; }
+      setTimeout(type2, deleting2 ? 60 : 100);
+    }
+    type2();
+
+    // Typewriter 3 — Forgot Password + Recovery Code screens (synced)
+    const words3 = ['Forgot', 'Recover', 'Lost'];
+    let wi3 = 0, ci3 = 0, deleting3 = false;
+    const tw3 = document.getElementById('typewriter3');
+    const tw3b = document.getElementById('typewriter3b');
+
+    function type3() {
+      const word = words3[wi3];
+      const text = deleting3 ? word.substring(0, ci3--) : word.substring(0, ci3++);
+      tw3.textContent = text;
+      tw3b.textContent = text;
+      if (!deleting3 && ci3 > word.length) { deleting3 = true; setTimeout(type3, 1800); return; }
+      if (deleting3 && ci3 < 0)            { deleting3 = false; wi3 = (wi3 + 1) % words3.length; }
+      setTimeout(type3, deleting3 ? 60 : 100);
+    }
+    type3();
+
+    function toggleEye(inputId, iconId) {
+      const input = document.getElementById(inputId);
+      const img   = document.getElementById(iconId);
+      const hide = input.type === 'password';
+      input.type = hide ? 'text' : 'password';
+      img.src = hide ? '../assets/eyeHide.png' : '../assets/eyeShow.png';
+      img.alt = hide ? 'Hide password' : 'Show password';
+    }
+  </script>       
 
 </body>
 </html>
