@@ -561,6 +561,22 @@
     </div>
   </div>
 
+  <script type="module">
+    // Import your setup and the specific Firebase Auth functions
+    import { auth } from '../Firebase/firebase-config.js'; // Adjust path as needed
+
+    // --- CONNECTION TEST SCRIPT ---
+    // Remove later once you confirm Firebase is working correctly
+    console.log("Attempting to connect to Firebase...");
+    
+    if (auth) {
+      console.log("🔥 SUCCESS! Firebase is connected to DocuGuide.");
+      console.log("Project ID:", auth.app.options.projectId);
+    } else {
+      console.error("❌ ERROR: Firebase failed to initialize.");
+    }
+  </script>
+  
   <script>
     function toggleSidebar() {
       document.querySelector('.sidebar').classList.toggle('collapsed');
