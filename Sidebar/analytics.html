@@ -587,10 +587,7 @@
           <div class="nav-icon"><img src="../assets/service_mngment.png" alt="Service Management" /></div>
           <span class="nav-label">Service Management</span>
         </a>
-        <a href="#" class="nav-item" title="Map Management">
-          <div class="nav-icon"><img src="../assets/map_mngment.png" alt="Map Management" /></div>
-          <span class="nav-label">Map Management</span>
-        </a>
+
         <a href="analytics.html" class="nav-item active" title="Analytics">
           <div class="nav-icon"><img src="../assets/analytics.png" alt="Analytics" /></div>
           <span class="nav-label">Analytics</span>
@@ -938,22 +935,17 @@
   </div>
 
   <script type="module">
-    // Import your setup and the specific Firebase Auth functions
-    import { auth } from '../Firebase/firebase-config.js'; // Adjust path as needed
+    import { auth } from '../Firebase/firebase-config.js';
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-    // --- CONNECTION TEST SCRIPT ---
-    // Remove later once we confirm Firebase is working correctly
-    console.log("Attempting to connect to Firebase...");
-    
-    if (auth) {
-      console.log("🔥 SUCCESS! Firebase is connected to DocuGuide.");
-      console.log("Project ID:", auth.app.options.projectId);
-    } else {
-      console.error("❌ ERROR: Firebase failed to initialize.");
-    }
-    
-    // --- SCRIPT RELATED TO FIREBASE BELOW ---
-
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { window.location.href = '../Authentication/auth.html'; return; }
+      const token = await user.getIdTokenResult();
+      if (!token.claims.admin) {
+        alert('Access denied. Admins only.');
+        window.location.href = '../Authentication/auth.html';
+      }
+    });
   </script>
   
   <script>
