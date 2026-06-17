@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>DocsEase – Sign In</title>
   <link rel="icon" type="image/png" href="../assets/logo_whitebg.png" />
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
@@ -35,28 +36,32 @@
     ══════════════════════════════════════ */
     .wrapper {
       display: flex;
-      width: 400%;         
+      width: 500%;         
       height: 100vh;
       transition: transform 0.65s cubic-bezier(0.77, 0, 0.18, 1);
     }
 
     .wrapper.signup-mode {
-      transform: translateX(-25%);
+      transform: translateX(-20%);
     }
 
     .wrapper.forgotpass-mode {
-      transform: translateX(-50%);
+      transform: translateX(-40%);
     }
 
     .wrapper.recoverycode-mode {
-      transform: translateX(-75%);
+      transform: translateX(-60%);
+    }
+
+    .wrapper.resetpass-mode {
+      transform: translateX(-80%);
     }
 
     /* ══════════════════════════════════════
        SCREEN  (each half of wrapper = 1 viewport)
     ══════════════════════════════════════ */
     .screen {
-      width: 25%;
+      width: 20%;
       height: 100vh;
       flex-shrink: 0;
       position: relative;
@@ -496,6 +501,54 @@
       max-width: 65%;
     }
 
+    /* ══════════════════════════════════════
+       SCREEN 5 — RESET PASSWORD
+    ══════════════════════════════════════ */
+    #screen-resetpass .form-panel {
+      right: unset;
+      left: 0;
+      border-radius: 0 24px 24px 0;
+      box-shadow: 8px 0 40px rgba(0,0,0,0.25);
+    }
+
+    #screen-resetpass .panel-logo {
+      margin-top: -5px;
+      margin-bottom: 60px;
+    }
+
+    #screen-resetpass .panel-heading {
+      margin-bottom: 32px;
+      margin-top: 40px;
+    }
+
+    #screen-resetpass .panel-heading p {
+      font-size: 0.85rem;
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    #screen-resetpass .form-body {
+      gap: 16px;
+      margin-top: 30px;
+    }
+
+    #screen-resetpass .btn-main {
+      margin-top: 10px;
+    }
+
+    #screen-resetpass .panel-footer {
+      margin-top: 120px;
+    }
+
+    #screen-resetpass .photo-text {
+      left: auto;
+      right: 0;
+      bottom: auto;
+      text-align: right;
+      padding: 0 52px;
+      max-width: 65%;
+    }
+
     /* Resend button */
     .btn-resend {
       width: 100%;
@@ -522,9 +575,132 @@
       opacity: 0.5;
       cursor: not-allowed;
     }
+
+    /* ══════════════════════════════════════
+       TOAST MODAL
+    ══════════════════════════════════════ */
+    .toast-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .toast-overlay.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .toast-box {
+      background: #fff;
+      border-radius: 20px;
+      padding: 40px 36px 32px;
+      text-align: center;
+      max-width: 360px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      transform: scale(0.9);
+      transition: transform 0.25s;
+    }
+    .toast-overlay.show .toast-box {
+      transform: scale(1);
+    }
+    .toast-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .toast-icon.success {
+      border: 3px solid #27ae60;
+    }
+    .toast-icon.success::after {
+      content: '';
+      width: 12px;
+      height: 22px;
+      border: solid #27ae60;
+      border-width: 0 3.5px 3.5px 0;
+      transform: rotate(45deg);
+      margin-top: -4px;
+    }
+    .toast-icon.error {
+      border: 3px solid #e74c3c;
+    }
+    .toast-icon.error::before,
+    .toast-icon.error::after {
+      content: '';
+      position: absolute;
+      width: 3.5px;
+      height: 26px;
+      background: #e74c3c;
+      border-radius: 2px;
+    }
+    .toast-icon.error::before {
+      transform: rotate(45deg);
+    }
+    .toast-icon.error::after {
+      transform: rotate(-45deg);
+    }
+    .toast-icon.error {
+      position: relative;
+    }
+    .toast-icon.info {
+      border: 3px solid #2a7de1;
+    }
+    .toast-icon.info::after {
+      content: 'i';
+      font-size: 1.6rem;
+      color: #2a7de1;
+      font-weight: 800;
+      font-style: italic;
+    }
+    .toast-title {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #1a2540;
+      margin-bottom: 8px;
+    }
+    .toast-msg {
+      font-size: 0.88rem;
+      color: #555;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+    .toast-btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 50px;
+      background: #4a7cff;
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toast-btn:hover {
+      background: #3a65d4;
+    }
   </style>
 </head>
 <body>
+
+  <!-- Toast Modal -->
+  <div class="toast-overlay" id="toast-overlay">
+    <div class="toast-box">
+      <div class="toast-icon" id="toast-icon"></div>
+      <div class="toast-title" id="toast-title"></div>
+      <div class="toast-msg" id="toast-msg"></div>
+      <button class="toast-btn" id="toast-btn" onclick="closeToast()">Continue</button>
+    </div>
+  </div>
 
   <div class="wrapper" id="wrapper">
 
@@ -577,11 +753,11 @@
             </div>
           </div>
 
-          <button type="button" class="btn-main" onclick="window.location.href='../Sidebar/dashboard.html'">Sign in</button>
+          <button type="button" class="btn-main" onclick="handleSignIn()">Sign in</button>
 
           <div class="or-divider">OR</div>
 
-          <button class="btn-google" onclick="return false;">
+          <button class="btn-google" onclick="handleGoogleSignIn()">
             <img class="g-logo" src="../assets/google.png" alt="Google" />
             Continue with Google
           </button>
@@ -620,14 +796,14 @@
           <div class="field-group">
             <label class="field-label">Full Name</label>
             <div class="input-wrap">
-              <input type="text" placeholder="Enter your full name" />
+              <input type="text" id="su-name" placeholder="Enter your full name" />
             </div>
           </div>
 
           <div class="field-group">
             <label class="field-label">Email</label>
             <div class="input-wrap">
-              <input type="email" placeholder="Enter your email" />
+              <input type="email" id="su-email" placeholder="Enter your email" />
             </div>
           </div>
 
@@ -651,11 +827,11 @@
             </div>
           </div>
 
-          <button type="button" class="btn-main" onclick="window.location.href='../Sidebar/dashboard.html'">SIGN UP</button>
+          <button type="button" class="btn-main" onclick="handleSignUp()">SIGN UP</button>
 
           <div class="or-divider">OR</div>
 
-          <button class="btn-google" onclick="return false;">
+          <button class="btn-google" onclick="handleGoogleSignIn()">
             <img class="g-logo" src="../assets/google.png" alt="Google" />
             Continue with Google
           </button>
@@ -677,7 +853,7 @@
         </div>
       </div>
     </div>
-  </div>
+
   <!-- ════════════════════════════
        SCREEN 3 — FORGOT PASSWORD
   ════════════════════════════ -->
@@ -706,7 +882,7 @@
           </div>
         </div>
 
-        <button type="button" class="btn-main" onclick="goRecoveryCode(event)">NEXT</button>
+        <button type="button" class="btn-main" onclick="handleForgotPassword()">NEXT</button>
       </div>
 
       <p class="panel-footer">
@@ -731,6 +907,7 @@
   ════════════════════════════ -->
   <div class="screen" id="screen-recoverycode">
 
+
     <!-- Form panel (left) -->
     <div class="form-panel">
 
@@ -754,8 +931,8 @@
           </div>
         </div>
 
-        <button type="button" class="btn-main" onclick="verifyCode(event)">Verify</button>
-        <button type="button" class="btn-resend" id="btn-resend" disabled onclick="resendCode(event)">Resend Code (<span id="resend-timer">30</span>s)</button>
+        <button type="button" class="btn-main" onclick="handleVerifyCode()">Verify</button>
+        <button type="button" class="btn-resend" id="btn-resend" disabled onclick="handleResendCode()">Resend Code (<span id="resend-timer">30</span>s)</button>
       </div>
 
       <p class="panel-footer">
@@ -774,53 +951,258 @@
     </div>
 
   </div>
-  
-  <script type="module">
-    // Import your setup and the specific Firebase Auth functions
-    import { auth } from '../Firebase/firebase-config.js'; // Adjust path as needed
-    // import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-    // --- CONNECTION TEST SCRIPT ---
-    // Remove later once we confirm Firebase is working correctly
-    console.log("Attempting to connect to Firebase...");
-    
-    if (auth) {
-      console.log("🔥 SUCCESS! Firebase is connected to DocuGuide.");
-      console.log("Project ID:", auth.app.options.projectId);
-    } else {
-      console.error("❌ ERROR: Firebase failed to initialize.");
+  <!-- ════════════════════════════
+       SCREEN 5 — RESET PASSWORD
+  ════════════════════════════ -->
+  <div class="screen" id="screen-resetpass">
+
+    <!-- Form panel (left) -->
+    <div class="form-panel">
+
+      <div class="panel-logo">
+        <div class="logo-icon">
+          <img src="../assets/logo.png" alt="DocsEase" />
+        </div>
+        <span class="logo-wordmark"><img src="../assets/docsease_text.png" alt="DocsEase" style="height:20px; width:auto; object-fit:contain;" /></span>
+      </div>
+
+      <div class="panel-heading">
+        <h2>Reset Password</h2>
+        <p>Create a new password for your account. Make sure it's strong and secure.</p>
+      </div>
+
+      <div class="form-body">
+        <div class="field-group">
+          <label class="field-label">New Password</label>
+          <div class="input-wrap">
+            <input type="password" id="new-password" placeholder="Enter new password" autocomplete="new-password" />
+            <button type="button" class="eye-btn" onclick="toggleEye('new-password','eye-np')" aria-label="Toggle password">
+              <img id="eye-np" src="../assets/eyeShow.png" alt="Toggle password" />
+            </button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Confirm Password</label>
+          <div class="input-wrap">
+            <input type="password" id="confirm-new-password" placeholder="Re-enter new password" autocomplete="new-password" />
+            <button type="button" class="eye-btn" onclick="toggleEye('confirm-new-password','eye-cnp')" aria-label="Toggle password">
+              <img id="eye-cnp" src="../assets/eyeShow.png" alt="Toggle password" />
+            </button>
+          </div>
+        </div>
+
+        <button type="button" class="btn-main" onclick="handleResetPassword()">Reset Password</button>
+      </div>
+
+      <p class="panel-footer">
+        Remember your password? <a href="#" onclick="goSignin(event)">Back to Sign in</a>
+      </p>
+
+    </div>
+
+    <!-- Photo panel (right) -->
+    <div class="photo-panel">
+      <img class="bg" src="../assets/bg_cityhall2.jpg" alt="City Hall" />
+      <div class="photo-text">
+        <h1><span class="accent" id="typewriter3c"></span> your <br>password?</h1>
+        <p>We'll help you regain access to your administrator dashboard safely and securely.</p>
+      </div>
+    </div>
+
+  </div>
+  </div>
+
+  <script>
+    // Initialize EmailJS before module script
+    emailjs.init({ publicKey: 'sNwiz0smyu1zo-ozX' });
+
+    // Toast notification system
+    let toastCallback = null;
+    function showToast(type, title, msg, btnText, callback) {
+      const overlay = document.getElementById('toast-overlay');
+      const icon = document.getElementById('toast-icon');
+      const titleEl = document.getElementById('toast-title');
+      const msgEl = document.getElementById('toast-msg');
+      const btn = document.getElementById('toast-btn');
+      icon.className = 'toast-icon ' + type;
+      titleEl.textContent = title;
+      msgEl.textContent = msg;
+      btn.textContent = btnText || 'Continue';
+      toastCallback = callback || null;
+      overlay.classList.add('show');
     }
+    function closeToast() {
+      document.getElementById('toast-overlay').classList.remove('show');
+      if (toastCallback) { toastCallback(); toastCallback = null; }
+    }
+  </script>
 
-    // --- SCRIPT RELATED TO FIREBASE BELOW ---
+  <script type="module">
+    import { auth, db, googleProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail, updateProfile, doc, setDoc, serverTimestamp } from '../Firebase/firebase-config.js';
 
-    // Sample event listener for sign-in button
-    /* // Grab your HTML elements
-    const emailInput = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
-    const signInButton = document.querySelector('.btn-signin');
+    let recoveryCode = null;
+    let recoveryEmail = null;
+    let codeExpiry = null;
 
-    signInButton.addEventListener('click', (e) => {
-      e.preventDefault(); // Stop form submission
-      
-      const email = emailInput.value;
-      const password = passwordInput.value;
+    // --- SIGN IN ---
+    window.handleSignIn = async function() {
+      const email = document.getElementById('si-email').value.trim();
+      const password = document.getElementById('si-password').value;
+      if (!email || !password) { showToast('error', 'Missing Fields', 'Please fill in all fields.'); return; }
 
-      // Call Firebase Auth
-      signInWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          // Success! The admin is logged in.
-          const user = userCredential.user;
-          console.log("Logged in as:", user.email);
-          
-          // NOW redirect to the dashboard
-          window.location.href = '../Sidebar/dashboard.html';
-        })
-        .catch((error) => {
-          // Handle errors (wrong password, etc.)
-          console.error("Error signing in:", error.message);
-          alert("Sign in failed: " + error.message);
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        // Force token refresh to get latest custom claims
+        await userCredential.user.getIdToken(true);
+        window.location.href = '../Sidebar/dashboard.html';
+      } catch (error) {
+        let msg = 'Something went wrong. Please try again.';
+        if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') msg = 'Incorrect email or password. Please try again.';
+        else if (error.code === 'auth/user-not-found') msg = 'No account found with this email address.';
+        else if (error.code === 'auth/too-many-requests') msg = 'Too many failed attempts. Please wait a moment and try again.';
+        else if (error.code === 'auth/network-request-failed') msg = 'No internet connection. Please check your network.';
+        else if (error.code === 'auth/invalid-email') msg = 'Please enter a valid email address.';
+        showToast('error', 'Sign In Failed', msg);
+      }
+    };
+
+    // --- SIGN UP ---
+    window.handleSignUp = async function() {
+      const name = document.getElementById('su-name').value.trim();
+      const email = document.getElementById('su-email').value.trim();
+      const password = document.getElementById('su-password').value;
+      const confirm = document.getElementById('su-confirm').value;
+      if (!name || !email || !password || !confirm) { showToast('error', 'Missing Fields', 'Please fill in all fields.'); return; }
+      if (password !== confirm) { showToast('error', 'Mismatch', 'Passwords do not match.'); return; }
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(userCredential.user, { displayName: name });
+        await setDoc(doc(db, 'admin', userCredential.user.uid), {
+          admin_id: userCredential.user.uid,
+          full_name: name,
+          email: email,
+          password: '',
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
         });
-    }); */
+        showToast('success', 'Account Created!', 'Welcome to DocsEase, ' + name + '.', 'Go to Dashboard', () => {
+          window.location.href = '../Sidebar/dashboard.html';
+        });
+      } catch (error) {
+        showToast('error', 'Sign Up Failed', error.message);
+      }
+    };
+
+    // --- GOOGLE SIGN IN ---
+    window.handleGoogleSignIn = async function() {
+      try {
+        const result = await signInWithPopup(auth, googleProvider);
+        const user = result.user;
+        await setDoc(doc(db, 'admin', user.uid), {
+          admin_id: user.uid,
+          full_name: user.displayName || '',
+          email: user.email,
+          password: '',
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+        window.location.href = '../Sidebar/dashboard.html';
+      } catch (error) {
+        showToast('error', 'Google Sign In Failed', error.message);
+      }
+    };
+
+    // --- FORGOT PASSWORD: Send 6-digit code via EmailJS ---
+    window.handleForgotPassword = async function() {
+      const email = document.getElementById('recovery-email').value.trim();
+      if (!email) { showToast('error', 'Missing Email', 'Please enter your email.'); return; }
+
+      // Generate 6-digit code
+      recoveryCode = Math.floor(100000 + Math.random() * 900000).toString();
+      recoveryEmail = email;
+      codeExpiry = Date.now() + 5 * 60 * 1000; // 5 minutes
+
+      try {
+        await emailjs.send('service_77esocf', 'template_0lhosxe', {
+          to_email: email,
+          passcode: recoveryCode
+        });
+        document.getElementById('recovery-code').value = '';
+        // Show success toast then navigate
+        showToast('success', 'Check your Email', 'A recovery code has been sent to your email. Please check your inbox.', 'Continue', () => {
+          const wrapper = document.getElementById('wrapper');
+          wrapper.style.transition = 'none';
+          wrapper.className = 'wrapper recoverycode-mode';
+          setTimeout(() => { wrapper.style.transition = ''; }, 50);
+          window.startResendTimer();
+        });
+      } catch (error) {
+        console.error('EmailJS error:', error);
+        showToast('error', 'Failed to Send', error?.text || error?.message || 'Something went wrong.');
+      }
+    };
+
+    // --- VERIFY RECOVERY CODE ---
+    window.handleVerifyCode = function() {
+      const input = document.getElementById('recovery-code').value.trim();
+      if (!input) { showToast('error', 'Missing Code', 'Please enter the code.'); return; }
+      if (Date.now() > codeExpiry) { showToast('error', 'Code Expired', 'Your code has expired. Please resend.'); return; }
+      if (input !== recoveryCode) { showToast('error', 'Invalid Code', 'The code you entered is incorrect. Try again.'); return; }
+
+      // Code verified — go to reset password screen
+      const wrapper = document.getElementById('wrapper');
+      wrapper.style.transition = 'none';
+      wrapper.className = 'wrapper resetpass-mode';
+      setTimeout(() => { wrapper.style.transition = ''; }, 50);
+    };
+
+    // --- RESEND CODE ---
+    window.handleResendCode = async function() {
+      recoveryCode = Math.floor(100000 + Math.random() * 900000).toString();
+      codeExpiry = Date.now() + 5 * 60 * 1000;
+
+      try {
+        await emailjs.send('service_77esocf', 'template_0lhosxe', {
+          to_email: recoveryEmail,
+          passcode: recoveryCode
+        });
+        showToast('success', 'Code Resent', 'A new recovery code has been sent to your email.', 'OK');
+        window.startResendTimer();
+      } catch (error) {
+        console.error('EmailJS error:', error);
+        showToast('error', 'Failed to Resend', error?.text || error?.message || 'Something went wrong.');
+      }
+    };
+
+    // --- RESET PASSWORD: Call Cloud Function to update password ---
+    window.handleResetPassword = async function() {
+      const pw = document.getElementById('new-password').value;
+      const cpw = document.getElementById('confirm-new-password').value;
+      if (!pw || !cpw) { showToast('error', 'Missing Fields', 'Please fill in all fields.'); return; }
+      if (pw !== cpw) { showToast('error', 'Mismatch', 'Passwords do not match.'); return; }
+      if (pw.length < 6) { showToast('error', 'Too Short', 'Password must be at least 6 characters.'); return; }
+
+      try {
+        const response = await fetch('https://resetuserpassword-bshowuzioa-uc.a.run.app', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: recoveryEmail, newPassword: pw })
+        });
+        const data = await response.json();
+        if (data.success) {
+          showToast('success', 'Password Reset!', 'Your password has been changed successfully. Please sign in with your new password.', 'Sign In', () => {
+            document.getElementById('wrapper').className = 'wrapper';
+          });
+        } else {
+          showToast('error', 'Reset Failed', data.error || 'Unknown error');
+        }
+      } catch (error) {
+        showToast('error', 'Reset Failed', error.message);
+      }
+    };
   </script>
 
   <script>
@@ -838,6 +1220,7 @@
 
     function goForgotPass(e) {
       e.preventDefault();
+      document.getElementById('recovery-code').value = '';
       wrapper.className = 'wrapper forgotpass-mode';
     }
 
@@ -850,29 +1233,37 @@
       startResendTimer();
     }
 
-    function verifyCode(e) {
+    function goResetPass(e) {
       e.preventDefault();
-      const code = document.getElementById('recovery-code').value.trim();
-      if (!code) return;
-      // TODO: Connect to backend to verify code
-      alert('Code verified: ' + code);
+      wrapper.style.transition = 'none';
+      wrapper.className = 'wrapper resetpass-mode';
+      setTimeout(() => { wrapper.style.transition = ''; }, 50);
+    }
+
+    function resetPassword(e) {
+      e.preventDefault();
+      const pw = document.getElementById('new-password').value;
+      const cpw = document.getElementById('confirm-new-password').value;
+      if (!pw || !cpw) return;
+      if (pw !== cpw) { alert('Passwords do not match'); return; }
+      // TODO: Connect to backend to reset password
+      alert('Password reset successfully!');
+      goSignin(e);
     }
 
     // Resend timer
     let resendInterval = null;
-    function startResendTimer() {
+    window.startResendTimer = function() {
       const btn = document.getElementById('btn-resend');
-      const timerSpan = document.getElementById('resend-timer');
       let seconds = 30;
       btn.disabled = true;
-      timerSpan.textContent = seconds;
-      btn.textContent = '';
       btn.innerHTML = 'Resend Code (<span id="resend-timer">' + seconds + '</span>s)';
 
       if (resendInterval) clearInterval(resendInterval);
       resendInterval = setInterval(() => {
         seconds--;
-        document.getElementById('resend-timer').textContent = seconds;
+        const timerEl = document.getElementById('resend-timer');
+        if (timerEl) timerEl.textContent = seconds;
         if (seconds <= 0) {
           clearInterval(resendInterval);
           btn.disabled = false;
@@ -918,12 +1309,14 @@
     let wi3 = 0, ci3 = 0, deleting3 = false;
     const tw3 = document.getElementById('typewriter3');
     const tw3b = document.getElementById('typewriter3b');
+    const tw3c = document.getElementById('typewriter3c');
 
     function type3() {
       const word = words3[wi3];
       const text = deleting3 ? word.substring(0, ci3--) : word.substring(0, ci3++);
       tw3.textContent = text;
       tw3b.textContent = text;
+      tw3c.textContent = text;
       if (!deleting3 && ci3 > word.length) { deleting3 = true; setTimeout(type3, 1800); return; }
       if (deleting3 && ci3 < 0)            { deleting3 = false; wi3 = (wi3 + 1) % words3.length; }
       setTimeout(type3, deleting3 ? 60 : 100);
