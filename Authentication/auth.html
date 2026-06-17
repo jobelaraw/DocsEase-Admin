@@ -35,20 +35,28 @@
     ══════════════════════════════════════ */
     .wrapper {
       display: flex;
-      width: 200%;         
+      width: 400%;         
       height: 100vh;
       transition: transform 0.65s cubic-bezier(0.77, 0, 0.18, 1);
     }
 
     .wrapper.signup-mode {
+      transform: translateX(-25%);
+    }
+
+    .wrapper.forgotpass-mode {
       transform: translateX(-50%);
+    }
+
+    .wrapper.recoverycode-mode {
+      transform: translateX(-75%);
     }
 
     /* ══════════════════════════════════════
        SCREEN  (each half of wrapper = 1 viewport)
     ══════════════════════════════════════ */
     .screen {
-      width: 50%;
+      width: 25%;
       height: 100vh;
       flex-shrink: 0;
       position: relative;
@@ -130,7 +138,7 @@
       top: 0; right: 0; bottom: 0;
       width: 480px;
       background: var(--panel-bg);
-      border-radius: 24px 0 0 24px;
+      border-radius: 24px 0 0 24px; 
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -157,7 +165,7 @@
       align-items: center;
       gap: 10px;
       margin-bottom: 80px;
-      margin-top: -50px;
+      margin-top: -10px;
       align-self: center;
     }
 
@@ -227,14 +235,14 @@
       text-transform: uppercase;
     }
 
-    .forget-link {
+    .forgot-link {
       font-size: 0.78rem;
       font-weight: 600;
       color: var(--link);
       text-decoration: none;
     }
 
-    .forget-link:hover { text-decoration: underline; }
+    .forgot-link:hover { text-decoration: underline; }
 
     .input-wrap {
       position: relative;
@@ -390,6 +398,130 @@
     #screen-signup .btn-main { padding: 13px; margin-top: 10px; margin-bottom: -10px; }
     #screen-signup .btn-google { padding: 11px 20px; margin-top: -10px; }
     #screen-signup .panel-footer { margin-top: 25px; }
+
+    /* ══════════════════════════════════════
+       SCREEN 3 — FORGOT PASSWORD
+    ══════════════════════════════════════ */
+    #screen-forgotpass .form-panel {
+      right: unset;
+      left: 0;
+      border-radius: 0 24px 24px 0;
+      box-shadow: 8px 0 40px rgba(0,0,0,0.25);
+    }
+
+    #screen-forgotpass .form-body { margin-top: 30px; }
+
+    #screen-forgotpass .panel-logo {
+      margin-bottom: 60px;
+      margin-top: -5px;
+    }
+
+    #screen-forgotpass .panel-heading {
+      margin-bottom: 32px;
+      margin-top: 40px;
+    }
+
+    #screen-forgotpass .panel-heading p {
+      font-size: 0.85rem;
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    #screen-forgotpass .photo-text {
+      left: auto;
+      right: 0;
+      bottom: auto;
+      text-align: right;
+      padding: 0 52px;
+      max-width: 65%;
+    }
+
+    #screen-forgotpass .photo-text h1 {
+      margin-bottom: 20px;
+    }
+
+    #screen-forgotpass .photo-text p {
+      margin-top: 8px;
+    }
+
+    #screen-forgotpass .panel-footer {
+      margin-top: 180px;
+    }
+
+    /* ══════════════════════════════════════
+       SCREEN 4 — RECOVERY CODE (customize spacing here)
+    ══════════════════════════════════════ */
+    #screen-recoverycode .form-panel {
+      right: unset;
+      left: 0;
+      border-radius: 0 24px 24px 0;
+      box-shadow: 8px 0 40px rgba(0,0,0,0.25);
+    }
+
+    #screen-recoverycode .panel-logo {
+      margin-top: -5px;       /* same as forgot password */
+      margin-bottom: 60px;   /* same as forgot password */
+    }
+
+    #screen-recoverycode .panel-heading {
+      margin-bottom: 32px;    /* space between heading and input */
+      margin-top: 40px;
+    }
+
+    #screen-recoverycode .panel-heading p {
+      font-size: 0.85rem;
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    #screen-recoverycode .form-body {
+      gap: 16px;              /* space between elements */
+      margin-top: 30px;
+    }
+
+    #screen-recoverycode .btn-main {
+      margin-top: 10px;       /* space above verify button */
+    }
+
+    #screen-recoverycode .panel-footer {
+      margin-top: 120px;      /* space above footer */
+    }
+
+    #screen-recoverycode .photo-text {
+      left: auto;
+      right: 0;
+      bottom: auto;
+      text-align: right;
+      padding: 0 52px;
+      max-width: 65%;
+    }
+
+    /* Resend button */
+    .btn-resend {
+      width: 100%;
+      height: 54px;
+      background: #ffffff;
+      border: 2px solid #e0e6ef;
+      border-radius: 50px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--navy);
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s, opacity 0.2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    }
+
+    .btn-resend:hover:not(:disabled) {
+      background: #f5f8ff;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.10);
+    }
+
+    .btn-resend:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -436,7 +568,7 @@
         <div class="field-group">
           <div class="field-row">
             <label class="field-label">Password</label>
-            <a href="#" class="forget-link">Forget Password</a>
+            <a href="#" class="forgot-link" onclick="goForgotPass(event)">Forgot Password</a>
           </div>
           <div class="input-wrap">
             <input type="password" id="si-password" placeholder="Enter your password" autocomplete="current-password" />
@@ -546,6 +678,103 @@
       </div>
     </div>
   </div>
+  <!-- ════════════════════════════
+       SCREEN 3 — FORGOT PASSWORD
+  ════════════════════════════ -->
+  <div class="screen" id="screen-forgotpass">
+
+    <!-- Form panel (left) -->
+    <div class="form-panel">
+
+      <div class="panel-logo">
+        <div class="logo-icon">
+          <img src="../assets/logo.png" alt="DocsEase" />
+        </div>
+        <span class="logo-wordmark"><img src="../assets/docsease_text.png" alt="DocsEase" style="height:20px; width:auto; object-fit:contain;" /></span>
+      </div>
+
+      <div class="panel-heading">
+        <h2>Enter Email Address</h2>
+        <p>Input your registered email address below so we can verify your identity.</p>
+      </div>
+
+      <div class="form-body">
+        <div class="field-group">
+          <label class="field-label">Email Address</label>
+          <div class="input-wrap">
+            <input type="email" id="recovery-email" placeholder="Enter your registered email" autocomplete="email" />
+          </div>
+        </div>
+
+        <button type="button" class="btn-main" onclick="goRecoveryCode(event)">NEXT</button>
+      </div>
+
+      <p class="panel-footer">
+        Remember your password? <a href="#" onclick="goSignin(event)">Back to Sign in</a>
+      </p>
+
+    </div>
+
+    <!-- Photo panel (right) -->
+    <div class="photo-panel">
+      <img class="bg" src="../assets/bg_cityhall2.jpg" alt="City Hall" />
+      <div class="photo-text">
+        <h1><span class="accent" id="typewriter3"></span> your <br>password?</h1>
+        <p>We'll help you regain access to your administrator dashboard safely and securely.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ════════════════════════════
+       SCREEN 4 — RECOVERY CODE
+  ════════════════════════════ -->
+  <div class="screen" id="screen-recoverycode">
+
+    <!-- Form panel (left) -->
+    <div class="form-panel">
+
+      <div class="panel-logo">
+        <div class="logo-icon">
+          <img src="../assets/logo.png" alt="DocsEase" />
+        </div>
+        <span class="logo-wordmark"><img src="../assets/docsease_text.png" alt="DocsEase" style="height:20px; width:auto; object-fit:contain;" /></span>
+      </div>
+
+      <div class="panel-heading">
+        <h2>Enter Recovery Code</h2>
+        <p>Please type the 6-digit verification code sent to your registered email address.</p>
+      </div>
+
+      <div class="form-body">
+        <div class="field-group">
+          <label class="field-label">Recovery Code</label>
+          <div class="input-wrap">
+            <input type="text" id="recovery-code" placeholder="Enter 6-digit code" maxlength="6" autocomplete="one-time-code" />
+          </div>
+        </div>
+
+        <button type="button" class="btn-main" onclick="verifyCode(event)">Verify</button>
+        <button type="button" class="btn-resend" id="btn-resend" disabled onclick="resendCode(event)">Resend Code (<span id="resend-timer">30</span>s)</button>
+      </div>
+
+      <p class="panel-footer">
+        Wrong email? <a href="#" onclick="goForgotPass(event)">Go back</a>
+      </p>
+
+    </div>
+
+    <!-- Photo panel (right) -->
+    <div class="photo-panel">
+      <img class="bg" src="../assets/bg_cityhall2.jpg" alt="City Hall" />
+      <div class="photo-text">
+        <h1><span class="accent" id="typewriter3b"></span> your <br>password?</h1>
+        <p>We'll help you regain access to your administrator dashboard safely and securely.</p>
+      </div>
+    </div>
+
+  </div>
+
 </div>
 
 <script>
@@ -553,12 +782,63 @@
 
   function goSignup(e) {
     e.preventDefault();
-    wrapper.classList.add('signup-mode');
+    wrapper.className = 'wrapper signup-mode';
   }
 
   function goSignin(e) {
     e.preventDefault();
-    wrapper.classList.remove('signup-mode');
+    wrapper.className = 'wrapper';
+  }
+
+  function goForgotPass(e) {
+    e.preventDefault();
+    wrapper.className = 'wrapper forgotpass-mode';
+  }
+
+  function goRecoveryCode(e) {
+    e.preventDefault();
+    wrapper.style.transition = 'none';
+    wrapper.className = 'wrapper recoverycode-mode';
+    // Re-enable transition after navigation
+    setTimeout(() => { wrapper.style.transition = ''; }, 50);
+    startResendTimer();
+  }
+
+  function verifyCode(e) {
+    e.preventDefault();
+    const code = document.getElementById('recovery-code').value.trim();
+    if (!code) return;
+    // TODO: Connect to backend to verify code
+    alert('Code verified: ' + code);
+  }
+
+  // Resend timer
+  let resendInterval = null;
+  function startResendTimer() {
+    const btn = document.getElementById('btn-resend');
+    const timerSpan = document.getElementById('resend-timer');
+    let seconds = 30;
+    btn.disabled = true;
+    timerSpan.textContent = seconds;
+    btn.textContent = '';
+    btn.innerHTML = 'Resend Code (<span id="resend-timer">' + seconds + '</span>s)';
+
+    if (resendInterval) clearInterval(resendInterval);
+    resendInterval = setInterval(() => {
+      seconds--;
+      document.getElementById('resend-timer').textContent = seconds;
+      if (seconds <= 0) {
+        clearInterval(resendInterval);
+        btn.disabled = false;
+        btn.textContent = 'Resend Code';
+      }
+    }, 1000);
+  }
+
+  function resendCode(e) {
+    e.preventDefault();
+    // TODO: Connect to backend to resend code
+    startResendTimer();
   }
 
   const words = ['Citizens.', 'Applicants.', 'Biñanenses.'];
@@ -586,6 +866,23 @@
     setTimeout(type2, deleting2 ? 60 : 100);
   }
   type2();
+
+  // Typewriter 3 — Forgot Password + Recovery Code screens (synced)
+  const words3 = ['Forgot', 'Recover', 'Lost'];
+  let wi3 = 0, ci3 = 0, deleting3 = false;
+  const tw3 = document.getElementById('typewriter3');
+  const tw3b = document.getElementById('typewriter3b');
+
+  function type3() {
+    const word = words3[wi3];
+    const text = deleting3 ? word.substring(0, ci3--) : word.substring(0, ci3++);
+    tw3.textContent = text;
+    tw3b.textContent = text;
+    if (!deleting3 && ci3 > word.length) { deleting3 = true; setTimeout(type3, 1800); return; }
+    if (deleting3 && ci3 < 0)            { deleting3 = false; wi3 = (wi3 + 1) % words3.length; }
+    setTimeout(type3, deleting3 ? 60 : 100);
+  }
+  type3();
 
   function toggleEye(inputId, iconId) {
     const input = document.getElementById(inputId);
