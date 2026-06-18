@@ -10,10 +10,16 @@ exports.resetUserPassword = onRequest((req, res) => {
       return res.status(405).json({ error: "Method not allowed" });
     }
 
-    const { email, newPassword } = req.body;
+    let body = req.body;
+    if (typeof body === 'string') {
+      try { body = JSON.parse(body); } catch(e) { body = {}; }
+    }
+
+    const email = body.email;
+    const newPassword = body.newPassword;
 
     if (!email || !newPassword) {
-      return res.status(400).json({ error: "Email and newPassword are required" });
+      return res.status(400).json({ error: "Email and newPassword are required", received: body });
     }
 
     try {
