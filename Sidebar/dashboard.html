@@ -623,8 +623,8 @@
     <header class="topbar">
       <div class="user-profile">
         <div class="user-info">
-          <div class="user-name">Admin user</div>
-          <div class="user-role">Profile</div>
+          <div class="user-name">Loading...</div>
+          <div class="user-role">Admin ✓</div>
         </div>
         <div class="user-avatar">
           <div class="user-avatar">
@@ -658,28 +658,26 @@
       <div class="stats-row">
         <div class="stat-card">
           <div class="stat-header">
-            <div class="stat-icon"><img src="../assets/total_completed.png" alt="Total Services" /></div>
-            <div class="stat-label">Total Services</div>
+            <div class="stat-icon"><img src="../assets/map_mngment.png" alt="Total Services" /></div>
+            <div class="stat-label">Total Offices</div>
           </div>
-          <div class="stat-value">983</div>
+          <div class="stat-value" id="total-offices-count">1</div>
         </div>
 
         <div class="stat-card">
           <div class="stat-header">
-            <div class="stat-icon"><img src="../assets/total_users.png" alt="Total Users" /></div>
-            <div class="stat-label">Total Users</div>
+            <div class="stat-icon"><img src="../assets/total_completed.png" alt="Total Users" /></div>
+            <div class="stat-label">Total Services</div>
           </div>
-          <div class="stat-value">1,000</div>
-          <div class="stat-trend">▲ 5% this month</div>
+          <div class="stat-value" id="total-services-count">1</div>
         </div>
 
         <div class="stat-card">
           <div class="stat-header">
             <div class="stat-icon"><img src="../assets/total_users.png" alt="Active Users" /></div>
-            <div class="stat-label">Total Active Users</div>
+            <div class="stat-label">Total Users</div>
           </div>
-          <div class="stat-value">867</div>
-          <div class="stat-trend down">▼ 2% this month</div>
+          <div class="stat-value" id="total-users-count">1</div>
         </div>
       </div>
 
@@ -784,7 +782,8 @@
   </div>
 
   <script type="module">
-    import { auth } from '../Firebase/firebase-config.js';
+    import { auth, db } from '../Firebase/firebase-config.js';
+    import { collection, collectionGroup, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
     onAuthStateChanged(auth, async (user) => {
@@ -798,6 +797,29 @@
         document.querySelector('.user-role').textContent = 'Admin ✓';
       }
     });
+    
+    // --- SCRIPT RELATED TO FIREBASE BELOW ---
+
+    async function loadDashboardCounts() {
+      try {
+        // Count Offices
+        const officesSnap = await getCountFromServer(collection(db, "offices"));
+        document.getElementById('total-offices-count').innerText = officesSnap.data().count;
+
+        // Count ALL Services (across all offices)
+        const servicesSnap = await getCountFromServer(collectionGroup(db, "services"));
+        document.getElementById('total-services-count').innerText = servicesSnap.data().count;
+
+        // Count Users
+        const usersSnap = await getCountFromServer(collection(db, "users"));
+        document.getElementById('total-users-count').innerText = usersSnap.data().count;
+
+      } catch (error) {
+        console.error("Error fetching counts: ", error);
+      }
+    }
+
+    loadDashboardCounts();
   </script>
 
   <script>

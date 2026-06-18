@@ -710,10 +710,6 @@
           <div class="nav-icon"><img src="../assets/service_mngment.png" alt="Service Management" /></div>
           <span class="nav-label">Service Management</span>
         </a>
-        <a href="../Sidebar/map_management.html" class="nav-item">
-          <div class="nav-icon"><img src="../assets/map_mngment.png" alt="Map Management" /></div>
-          <span class="nav-label">Map Management</span>
-        </a>
         <a href="../Sidebar/analytics.html" class="nav-item">
           <div class="nav-icon"><img src="../assets/analytics.png" alt="Analytics" /></div>
           <span class="nav-label">Analytics</span>
@@ -740,8 +736,8 @@
       </div>
       <div class="user-profile">
         <div class="user-info">
-          <div class="user-name">Admin user</div>
-          <div class="user-role">Profile</div>
+          <div class="user-name">Loading...</div>
+          <div class="user-role">Admin ✓</div>
         </div>
             <a href="../Authentication/auth.html">
               <img src="../assets/user_profile.png" alt="Admin profile" />
@@ -964,21 +960,30 @@ Rosemarie Umali</textarea>
 
   <script type="module">
     // Import your setup and the specific Firebase Auth functions
-    import { auth } from '../Firebase/firebase-config.js'; // Adjust path as needed
+    import { auth, db } from '../Firebase/firebase-config.js';
+    import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-    // --- CONNECTION TEST SCRIPT ---
-    // Remove later once we confirm Firebase is working correctly
-    console.log("Attempting to connect to Firebase...");
-    
-    if (auth) {
-      console.log("🔥 SUCCESS! Firebase is connected to DocuGuide.");
-      console.log("Project ID:", auth.app.options.projectId);
-    } else {
-      console.error("❌ ERROR: Firebase failed to initialize.");
-    }
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { window.location.href = '../Authentication/auth.html'; return; }
+      const token = await user.getIdTokenResult();
+      if (!token.claims.admin) {
+        alert('Access denied. Admins only.');
+        window.location.href = '../Authentication/auth.html';
+      } else {
+        document.querySelector('.user-name').textContent = user.displayName || user.email;
+        document.querySelector('.user-role').textContent = 'Admin ✓';
+      }
+    });
     
     // --- SCRIPT RELATED TO FIREBASE BELOW ---
 
+    const params = new URLSearchParams(window.location.search);
+    const currentService = params.get('service');
+
+    if (currentService) {
+      document.getElementById('page-title').textContent = 'Edit Service: ' + currentService;
+    }
   </script>
   
   <script>
@@ -989,12 +994,6 @@ Rosemarie Umali</textarea>
     function switchTab(btn) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-    }
-
-    const params = new URLSearchParams(window.location.search);
-    const service = params.get('service');
-    if (service) {
-      document.getElementById('page-title').textContent = 'Edit Service: ' + service;
     }
   </script>
 

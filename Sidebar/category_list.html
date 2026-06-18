@@ -440,7 +440,7 @@
       gap: 30px;
     }
 
-    .service-btn {
+    .service-card {
       background: var(--btn-blue);
       border: none;
       border-radius: 14px;
@@ -458,7 +458,7 @@
       justify-content: center;
     }
 
-    .service-btn:hover {
+    .service-card:hover {
       opacity: 0.88;
       transform: translateY(-2px);
     }
@@ -514,8 +514,8 @@
 
       <div class="user-profile">
         <div class="user-info">
-          <div class="user-name">Admin user</div>
-          <div class="user-role">Profile</div>
+          <div class="user-name">Loading...</div>
+          <div class="user-role">Admin ✓</div>
         </div>
         <div class="user-avatar">
             <a href="../Authentication/auth.html">
@@ -550,6 +550,7 @@
       <div class="panel-card">
         <div class="services-scroll">
           <div class="services-grid" id="services-grid"></div>
+          <p id="loading" style="text-align: center; color:#6b7a99; font-size:1rem; font-weight:600; margin-top:40px;">Loading services...</p>
           <p id="no-results" style="display:none; text-align:center; color:#6b7a99; font-size:1rem; font-weight:600; margin-top:40px;">No services found.</p>
         </div>
       </div>
@@ -557,7 +558,8 @@
   </div>
 
   <script type="module">
-    import { auth } from '../Firebase/firebase-config.js';
+    import { auth, db } from '../Firebase/firebase-config.js';
+    import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
     onAuthStateChanged(auth, async (user) => {
@@ -566,8 +568,79 @@
       if (!token.claims.admin) {
         alert('Access denied. Admins only.');
         window.location.href = '../Authentication/auth.html';
+      } else {
+        document.querySelector('.user-name').textContent = user.displayName || user.email;
+        document.querySelector('.user-role').textContent = 'Admin ✓';
       }
     });
+
+    // --- SCRIPTS RELATED TO FIREBASE BELOW ---
+
+    // Function for getting the services based on the office name in the URL query parameter
+    const params = new URLSearchParams(window.location.search);
+    const currentOffice = params.get('office');
+
+    if (currentOffice) {
+      document.getElementById('page-title').textContent = currentOffice + " Services";
+      document.getElementById('page-subtitle').textContent = `Monitor and manage service items listed under ${currentOffice}.`;
+    }
+
+    async function loadServices() {
+      const listContainer = document.getElementById('services-grid');
+      const loadingText = document.getElementById('loading');
+      
+      if (!currentOffice) {
+        loadingText.innerText = 'No office selected.';
+        return;
+      }
+
+      try {
+        loadingText.style.display = 'block';
+
+        const officesRef = collection(db, "offices");
+        const officeQuery = query(officesRef, where("office_name", "==", currentOffice));
+        const officeSnapshot = await getDocs(officeQuery);
+
+        if (officeSnapshot.empty) {
+          loadingText.innerText = 'Office not found in the database.';
+          return;
+        }
+
+        // Grab the auto-generated ID from the first result
+        const actualOfficeId = officeSnapshot.docs[0].id;
+        
+        // Path: offices -> [Current Office Name] -> services
+        const servicesRef = collection(db, "offices", actualOfficeId, "services");
+        const querySnapshot = await getDocs(servicesRef);
+
+        if (querySnapshot.empty) {
+          loadingText.innerText = 'No services found for this office yet.';
+          return;
+        } else {
+          loadingText.style.display = 'none';
+        }
+
+        // Loop through the database results and build the HTML
+        querySnapshot.forEach((doc) => {
+          const serviceData = doc.data();
+          const serviceId = doc.id; 
+          
+          const serviceHTML = `
+            <div class="service-card" onclick="openService('${serviceData.service_name || serviceId}')">
+              <p class="card-title">${serviceData.service_name || serviceId}</p>
+            </div>
+          `;
+          
+          listContainer.insertAdjacentHTML('beforeend', serviceHTML);
+        });
+
+      } catch (error) {
+        console.error("Error fetching services: ", error);
+        loadingText.innerText = 'Failed to load services. Check your permissions.';
+      }
+    }
+
+    loadServices();
   </script>
   
   <script>
@@ -581,56 +654,20 @@
 
     function filterServices(query) {
       const q = query.trim().toLowerCase();
-      const btns = document.querySelectorAll('#services-grid .service-btn');
+      const cards = document.querySelectorAll('#services-grid .service-card');
       let visible = 0;
-      btns.forEach(btn => {
-        const show = btn.textContent.toLowerCase().includes(q);
-        btn.style.display = show ? '' : 'none';
+      cards.forEach(card => {
+        const name = card.querySelector('p').textContent.toLowerCase();
+        const show = name.includes(q);
+        card.style.display = show ? '' : 'none';
         if (show) visible++;
       });
       document.getElementById('no-results').style.display = visible === 0 ? 'block' : 'none';
     }
-
-    const services = {
-      'Business Permit and Licensing Office': [
-        'New Business Application',
-        'Renewal of Business Application',
-        'Retirement of Business',
-        'Special Permit',
-        'Certificate of No Record',
-        'Permit Update Transactions',
-        'Certificate of Business Status',
-        'Complaints and Violations'
-      ]
-    };
-
-    const defaultServices = [
-      'Document Request',
-      'Certificate Issuance',
-      'Application Processing',
-      'Record Verification',
-      'Permit Application',
-      'Complaint Filing'
-    ];
-
-    const params = new URLSearchParams(window.location.search);
-    const office = params.get('office') || '';
-
-    if (office) {
-      document.getElementById('page-title').textContent = office;
-      document.getElementById('page-subtitle').textContent = `Monitor and manage service items listed under ${office}.`;
+    
+    function openService(name) {
+      window.location.href = '../Forms/edit_service.html?service=' + encodeURIComponent(name);
     }
-
-    const list = services[office] || defaultServices;
-    const grid = document.getElementById('services-grid');
-
-    list.forEach(name => {
-      const btn = document.createElement('button');
-      btn.className = 'service-btn';
-      btn.textContent = name;
-      btn.onclick = () => { window.location.href = '../Forms/edit_service.html?service=' + encodeURIComponent(name); };
-      grid.appendChild(btn);
-    });
   </script>
 
 </body>
