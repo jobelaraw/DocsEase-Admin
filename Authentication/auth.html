@@ -1056,6 +1056,11 @@
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         // Force token refresh to get latest custom claims
         await userCredential.user.getIdToken(true);
+        const token = await userCredential.user.getIdTokenResult();
+        if (!token.claims.admin) {
+          await auth.signOut();
+          return;
+        }
         window.location.href = '../Sidebar/dashboard.html';
       } catch (error) {
         let msg = 'Something went wrong. Please try again.';
@@ -1092,7 +1097,12 @@
           window.location.href = '../Sidebar/dashboard.html';
         });
       } catch (error) {
-        showToast('error', 'Sign Up Failed', error.message);
+        let msg = 'Something went wrong. Please try again.';
+        if (error.code === 'auth/email-already-in-use') msg = 'This email is already registered. Try signing in instead.';
+        else if (error.code === 'auth/invalid-email') msg = 'Please enter a valid email address.';
+        else if (error.code === 'auth/weak-password') msg = 'Your password is too weak. Use at least 6 characters.';
+        else if (error.code === 'auth/network-request-failed') msg = 'No internet connection. Please check your network.';
+        showToast('error', 'Sign Up Failed', msg);
       }
     };
 
@@ -1111,7 +1121,12 @@
         }, { merge: true });
         window.location.href = '../Sidebar/dashboard.html';
       } catch (error) {
-        showToast('error', 'Google Sign In Failed', error.message);
+        let msg = 'Something went wrong. Please try again.';
+        if (error.code === 'auth/popup-closed-by-user') msg = 'Sign in was cancelled. Please try again.';
+        else if (error.code === 'auth/network-request-failed') msg = 'No internet connection. Please check your network.';
+        else if (error.code === 'auth/unauthorized-domain') msg = 'This domain is not authorized. Please contact support.';
+        else if (error.code === 'auth/account-exists-with-different-credential') msg = 'An account already exists with this email using a different sign-in method.';
+        showToast('error', 'Google Sign In Failed', msg);
       }
     };
 
