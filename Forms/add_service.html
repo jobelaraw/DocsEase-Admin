@@ -256,7 +256,42 @@
       align-items: center;
       gap: 12px;
       cursor: pointer;
+      position: relative;
     }
+
+    .profile-dropdown {
+      position: absolute;
+      top: 54px;
+      right: 0;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+      min-width: 180px;
+      padding: 8px 0;
+      display: none;
+      z-index: 100;
+    }
+    .profile-dropdown.show { display: block; }
+    .profile-dropdown .dd-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 20px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      cursor: pointer;
+      transition: background 0.15s;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+    .profile-dropdown .dd-item:hover { background: #f0f4fb; }
+    .profile-dropdown .dd-item.disabled { opacity: 0.4; cursor: not-allowed; }
+    .profile-dropdown .dd-item.disabled:hover { background: none; }
+    .profile-dropdown .dd-divider { height: 1px; background: #e8eef8; margin: 4px 0; }
+    .profile-dropdown .dd-item.logout { color: #e74c3c; }
 
     .user-info {
       text-align: right;
@@ -488,6 +523,37 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      position: relative;
+    }
+
+    .tab-btn .tab-delete {
+      display: none;
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      opacity: 0.5;
+      transition: opacity 0.15s;
+    }
+    .tab-btn .tab-delete img {
+      width: 14px;
+      height: 14px;
+    }
+    .tab-btn:hover .tab-delete,
+    .tab-btn.active .tab-delete {
+      display: flex;
+    }
+    .tab-btn .tab-delete:hover {
+      opacity: 1;
+      background: #fde8e8;
+    }
+    .tab-btn.default .tab-delete {
+      display: none !important;
     }
 
     .tab-btn.active {
@@ -725,6 +791,7 @@
       opacity: 0.5;
       cursor: not-allowed;
     }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 
@@ -769,15 +836,18 @@
         </button>
         <h1 class="page-title">Add Service</h1>
       </div>
-      <div class="user-profile">
+      <div class="user-profile" onclick="toggleDropdown(event)">
         <div class="user-info">
           <div class="user-name">Loading...</div>
           <div class="user-role">Admin ✓</div>
         </div>
         <div class="user-avatar">
-          <a href="../Authentication/auth.html">
-            <img src="../assets/user_profile.png" alt="Admin profile" />
-          </a>
+          <img src="../assets/user_profile.png" alt="Admin profile" />
+        </div>
+        <div class="profile-dropdown" id="profile-dropdown">
+          <button class="dd-item disabled" onclick="event.stopPropagation()">Edit Profile</button>
+          <div class="dd-divider"></div>
+          <button class="dd-item logout" onclick="handleSignOut(event)">Sign Out</button>
         </div>
       </div>
     </header>
@@ -785,7 +855,7 @@
     <div class="form-wrapper">
 
       <div class="tab-bar" id="tabs-header">
-        <div class="tab-btn active" onclick="switchTab('tab-1', this)">
+        <div class="tab-btn active default" onclick="switchTab('tab-1', this)">
           <input type="text" value="Walk-In" placeholder="Tab Name" onclick="event.stopPropagation()"
             oninput="updateTabWidth(this)" />
         </div>
@@ -934,7 +1004,16 @@
 
   <script type="module">
     import { auth, db } from '../Firebase/firebase-config.js';
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+    window.handleSignOut = async function(e) {
+      e.stopPropagation();
+      const overlay = document.createElement('div');
+      overlay.innerHTML = '<div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999;"><div style="background:#fff;border-radius:20px;padding:40px 36px 32px;text-align:center;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2);"><div style="width:48px;height:48px;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;"><div style="width:48px;height:48px;border:4px solid rgba(42,125,225,0.2);border-top-color:#2a7de1;border-radius:50%;animation:spin 0.7s linear infinite;"></div></div><div style="font-size:1.3rem;font-weight:800;color:#1a2540;margin-bottom:8px;">Signing Out...</div><div style="font-size:0.88rem;color:#555;">Please wait.</div></div></div>';
+      document.body.appendChild(overlay);
+      await signOut(auth);
+      window.location.href = '../Authentication/auth.html';
+    };
     // 1. Swapped addDoc for doc and setDoc
     import { collection, getDocs, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
@@ -943,9 +1022,14 @@
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) { window.location.href = '../Authentication/auth.html'; return; }
-      const token = await user.getIdTokenResult();
+      let token = await user.getIdTokenResult();
       if (!token.claims.admin) {
-        alert('Access denied. Admins only.');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        await user.getIdToken(true);
+        token = await user.getIdTokenResult();
+      }
+      if (!token.claims.admin) {
+        await auth.signOut();
         window.location.href = '../Authentication/auth.html';
       } else {
         document.querySelector('.user-name').textContent = user.displayName || user.email;
@@ -1003,13 +1087,41 @@
       });
 
       if (emptyFields) {
-        alert("Please fill in all required fields.");
+        const successOverlay = document.createElement('div');
+        successOverlay.innerHTML = `
+          <div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999;">
+            <div style="background:#fff;border-radius:20px;padding:40px 36px 32px;text-align:center;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+              <div style="width:64px;height:64px;border:3px solid #e74c3c;border-radius:50%;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;position:relative;">
+                <div style="position:absolute;width:3.5px;height:26px;background:#e74c3c;border-radius:2px;transform:rotate(45deg);"></div>
+                <div style="position:absolute;width:3.5px;height:26px;background:#e74c3c;border-radius:2px;transform:rotate(-45deg);"></div>
+              </div>
+              <div style="font-size:1.3rem;font-weight:800;color:#1a2540;margin-bottom:8px;">Missing Fields</div>
+              <div style="font-size:0.88rem;color:#555;line-height:1.5;margin-bottom:24px;">Please fill in all required fields before adding the service.</div>
+              <button onclick="this.closest('div[style]').parentElement.remove()" style="width:100%;padding:14px;border:none;border-radius:50px;background:#4a7cff;color:#fff;font-size:0.95rem;font-weight:700;cursor:pointer;">OK</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(successOverlay);
         return;
       }
 
       const officeId = officesMap[officeName];
       if (!officeId) {
-        alert("Invalid office selected. Please choose a valid office from the dropdown list.");
+        const successOverlay = document.createElement('div');
+        successOverlay.innerHTML = `
+          <div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999;">
+            <div style="background:#fff;border-radius:20px;padding:40px 36px 32px;text-align:center;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+              <div style="width:64px;height:64px;border:3px solid #e74c3c;border-radius:50%;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;position:relative;">
+                <div style="position:absolute;width:3.5px;height:26px;background:#e74c3c;border-radius:2px;transform:rotate(45deg);"></div>
+                <div style="position:absolute;width:3.5px;height:26px;background:#e74c3c;border-radius:2px;transform:rotate(-45deg);"></div>
+              </div>
+              <div style="font-size:1.3rem;font-weight:800;color:#1a2540;margin-bottom:8px;">Invalid Office</div>
+              <div style="font-size:0.88rem;color:#555;line-height:1.5;margin-bottom:24px;">Please select a valid office from the dropdown list.</div>
+              <button onclick="this.closest('div[style]').parentElement.remove()" style="width:100%;padding:14px;border:none;border-radius:50px;background:#4a7cff;color:#fff;font-size:0.95rem;font-weight:700;cursor:pointer;">OK</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(successOverlay);
         return;
       }
 
@@ -1088,12 +1200,39 @@
         const serviceRef = doc(db, "offices", officeId, "services", customServiceId);
         await setDoc(serviceRef, serviceData);
         
-        alert("Service successfully added to " + officeName + "!");
-        window.location.href = '../Sidebar/service_management.html';
+        // Show success notification then redirect
+        const successOverlay = document.createElement('div');
+        successOverlay.innerHTML = `
+          <div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999;">
+            <div style="background:#fff;border-radius:20px;padding:40px 36px 32px;text-align:center;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+              <div style="width:64px;height:64px;border:3px solid #27ae60;border-radius:50%;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;">
+                <div style="width:12px;height:22px;border:solid #27ae60;border-width:0 3.5px 3.5px 0;transform:rotate(45deg);margin-top:-4px;"></div>
+              </div>
+              <div style="font-size:1.3rem;font-weight:800;color:#1a2540;margin-bottom:8px;">Service Added!</div>
+              <div style="font-size:0.88rem;color:#555;line-height:1.5;margin-bottom:24px;">The service has been successfully added to ${officeName}.</div>
+              <button onclick="window.location.href='../Sidebar/service_management.html'" style="width:100%;padding:14px;border:none;border-radius:50px;background:#4a7cff;color:#fff;font-size:0.95rem;font-weight:700;cursor:pointer;">Continue</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(successOverlay);
         
       } catch (error) {
         console.error("Error saving service:", error);
-        alert("Failed to save service. Check your permissions.");
+        const errorOverlay = document.createElement('div');
+        errorOverlay.innerHTML = `
+          <div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999;">
+            <div style="background:#fff;border-radius:20px;padding:40px 36px 32px;text-align:center;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+              <div style="width:64px;height:64px;border:3px solid #e74c3c;border-radius:50%;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;position:relative;">
+                <div style="position:absolute;width:3.5px;height:26px;background:#e74c3c;border-radius:2px;transform:rotate(45deg);"></div>
+                <div style="position:absolute;width:3.5px;height:26px;background:#e74c3c;border-radius:2px;transform:rotate(-45deg);"></div>
+              </div>
+              <div style="font-size:1.3rem;font-weight:800;color:#1a2540;margin-bottom:8px;">Save Failed</div>
+              <div style="font-size:0.88rem;color:#555;line-height:1.5;margin-bottom:24px;">Something went wrong while saving the service. Please try again.</div>
+              <button onclick="this.closest('div[style]').parentElement.remove()" style="width:100%;padding:14px;border:none;border-radius:50px;background:#4a7cff;color:#fff;font-size:0.95rem;font-weight:700;cursor:pointer;">OK</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(errorOverlay);
         
         const saveBtn = document.querySelector('.btn-save');
         saveBtn.textContent = "Add Service";
@@ -1106,6 +1245,16 @@
     function toggleSidebar() {
       document.querySelector('.sidebar').classList.toggle('collapsed');
     }
+
+    function toggleDropdown(e) {
+      e.stopPropagation();
+      document.getElementById('profile-dropdown').classList.toggle('show');
+    }
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.user-profile')) {
+        document.getElementById('profile-dropdown').classList.remove('show');
+      }
+    });
 
     // --- CUSTOM COMBOBOX LOGIC ---
     document.addEventListener('click', function (e) {
@@ -1146,7 +1295,7 @@
       const newTab = document.createElement('div');
       newTab.className = 'tab-btn';
       newTab.onclick = () => switchTab(newTabId, newTab);
-      newTab.innerHTML = `<input type="text" value="New Tab" placeholder="Tab Name" onclick="event.stopPropagation()" oninput="updateTabWidth(this)"/>`;
+      newTab.innerHTML = `<input type="text" value="New Tab" placeholder="Tab Name" onclick="event.stopPropagation()" oninput="updateTabWidth(this)"/><button class="tab-delete" onclick="event.stopPropagation(); deleteTab(this)" title="Delete tab"><img src="../assets/delete.png" alt="Delete"/></button>`;
 
       const addBtn = document.querySelector('.btn-add-tab');
       addBtn.parentNode.insertBefore(newTab, addBtn);
@@ -1181,6 +1330,25 @@
 
     function updateTabWidth(input) {
       input.style.width = Math.max(90, input.value.length * 8) + 'px';
+    }
+
+    function deleteTab(btn) {
+      const tabBtn = btn.closest('.tab-btn');
+      if (tabBtn.classList.contains('default')) return;
+      const allTabs = document.querySelectorAll('.tab-btn');
+      const index = Array.from(allTabs).indexOf(tabBtn);
+      const panes = document.querySelectorAll('.tab-pane');
+      // Remove the pane
+      if (panes[index]) panes[index].remove();
+      // Remove the tab
+      tabBtn.remove();
+      // Switch to first tab
+      const firstTab = document.querySelector('.tab-btn');
+      const firstPane = document.querySelector('.tab-pane');
+      if (firstTab && firstPane) {
+        firstTab.classList.add('active');
+        firstPane.classList.add('active');
+      }
     }
 
     // --- REQUIREMENTS LOGIC ---

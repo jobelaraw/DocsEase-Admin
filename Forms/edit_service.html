@@ -268,7 +268,42 @@
       align-items: center;
       gap: 12px;
       cursor: pointer;
+      position: relative;
     }
+
+    .profile-dropdown {
+      position: absolute;
+      top: 54px;
+      right: 0;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+      min-width: 180px;
+      padding: 8px 0;
+      display: none;
+      z-index: 100;
+    }
+    .profile-dropdown.show { display: block; }
+    .profile-dropdown .dd-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 20px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      cursor: pointer;
+      transition: background 0.15s;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+    .profile-dropdown .dd-item:hover { background: #f0f4fb; }
+    .profile-dropdown .dd-item.disabled { opacity: 0.4; cursor: not-allowed; }
+    .profile-dropdown .dd-item.disabled:hover { background: none; }
+    .profile-dropdown .dd-divider { height: 1px; background: #e8eef8; margin: 4px 0; }
+    .profile-dropdown .dd-item.logout { color: #e74c3c; }
 
     .user-info {
       text-align: right;
@@ -690,6 +725,7 @@
     .btn-save:hover {
       opacity: 0.9;
     }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 
@@ -734,14 +770,19 @@
         </button>
         <h1 class="page-title" id="page-title">Edit Service: New Business Application</h1>
       </div>
-      <div class="user-profile">
+      <div class="user-profile" onclick="toggleDropdown(event)">
         <div class="user-info">
           <div class="user-name">Loading...</div>
           <div class="user-role">Admin ✓</div>
         </div>
-            <a href="../Authentication/auth.html">
-              <img src="../assets/user_profile.png" alt="Admin profile" />
-            </a>
+        <div class="user-avatar">
+          <img src="../assets/user_profile.png" alt="Admin profile" />
+        </div>
+        <div class="profile-dropdown" id="profile-dropdown">
+          <button class="dd-item disabled" onclick="event.stopPropagation()">Edit Profile</button>
+          <div class="dd-divider"></div>
+          <button class="dd-item logout" onclick="handleSignOut(event)">Sign Out</button>
+        </div>
       </div>
     </header>
 
@@ -962,13 +1003,27 @@ Rosemarie Umali</textarea>
     // Import your setup and the specific Firebase Auth functions
     import { auth, db } from '../Firebase/firebase-config.js';
     import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+    window.handleSignOut = async function(e) {
+      e.stopPropagation();
+      const overlay = document.createElement('div');
+      overlay.innerHTML = '<div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999;"><div style="background:#fff;border-radius:20px;padding:40px 36px 32px;text-align:center;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2);"><div style="width:48px;height:48px;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;"><div style="width:48px;height:48px;border:4px solid rgba(42,125,225,0.2);border-top-color:#2a7de1;border-radius:50%;animation:spin 0.7s linear infinite;"></div></div><div style="font-size:1.3rem;font-weight:800;color:#1a2540;margin-bottom:8px;">Signing Out...</div><div style="font-size:0.88rem;color:#555;">Please wait.</div></div></div>';
+      document.body.appendChild(overlay);
+      await signOut(auth);
+      window.location.href = '../Authentication/auth.html';
+    };
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) { window.location.href = '../Authentication/auth.html'; return; }
-      const token = await user.getIdTokenResult();
+      let token = await user.getIdTokenResult();
       if (!token.claims.admin) {
-        alert('Access denied. Admins only.');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        await user.getIdToken(true);
+        token = await user.getIdTokenResult();
+      }
+      if (!token.claims.admin) {
+        await auth.signOut();
         window.location.href = '../Authentication/auth.html';
       } else {
         document.querySelector('.user-name').textContent = user.displayName || user.email;
@@ -990,6 +1045,16 @@ Rosemarie Umali</textarea>
     function toggleSidebar() {
       document.querySelector('.sidebar').classList.toggle('collapsed');
     }
+
+    function toggleDropdown(e) {
+      e.stopPropagation();
+      document.getElementById('profile-dropdown').classList.toggle('show');
+    }
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.user-profile')) {
+        document.getElementById('profile-dropdown').classList.remove('show');
+      }
+    });
 
     function switchTab(btn) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
