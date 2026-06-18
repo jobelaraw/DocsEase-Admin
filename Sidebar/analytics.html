@@ -605,8 +605,8 @@
     <header class="topbar">
       <div class="user-profile">
         <div class="user-info">
-          <div class="user-name">Admin user</div>
-          <div class="user-role">Profile</div>
+          <div class="user-name">Loading...</div>
+          <div class="user-role">Admin ✓</div>
         </div>
             <a href="../Authentication/auth.html">
               <img src="../assets/user_profile.png" alt="Admin profile" />
@@ -944,8 +944,14 @@
       if (!token.claims.admin) {
         alert('Access denied. Admins only.');
         window.location.href = '../Authentication/auth.html';
+      } else {
+        document.querySelector('.user-name').textContent = user.displayName || user.email;
+        document.querySelector('.user-role').textContent = 'Admin ✓';
       }
     });
+    
+    // --- SCRIPTS RELATED TO FIREBASE BELOW ---
+    
   </script>
   
   <script>
