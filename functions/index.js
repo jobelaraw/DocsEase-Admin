@@ -66,7 +66,9 @@ exports.onAdminCreated = onDocumentCreated("admin/{userId}", async (event) => {
   const userId = event.params.userId;
   try {
     await admin.auth().setCustomUserClaims(userId, { admin: true });
-    console.log(`Admin claim set for user: ${userId}`);
+    // Auto-verify email so both email/password and Google can coexist
+    await admin.auth().updateUser(userId, { emailVerified: true });
+    console.log(`Admin claim set and email verified for user: ${userId}`);
   } catch (error) {
     console.error(`Failed to set admin claim for ${userId}:`, error);
   }
