@@ -1139,6 +1139,7 @@
           admin_id: userCredential.user.uid,
           full_name: name,
           email: email,
+          sign_in_method: 'email',
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         });
@@ -1156,7 +1157,7 @@
       } catch (error) {
         document.getElementById('toast-overlay').classList.remove('show');
         let msg = 'Something went wrong. Please try again.';
-        if (error.code === 'auth/email-already-in-use') msg = 'This email is already registered. Please sign in instead or use the Google button.';
+        if (error.code === 'auth/email-already-in-use') msg = 'This email is already registered. Please sign in using the Google button.';
         else if (error.code === 'auth/invalid-email') msg = 'Please enter a valid email address.';
         else if (error.code === 'auth/weak-password') msg = 'Your password is too weak. Use at least 6 characters.';
         else if (error.code === 'auth/network-request-failed') msg = 'No internet connection. Please check your network.';
@@ -1187,17 +1188,27 @@
 
         // Check if already an admin, if not create record
         const adminDoc = await getDoc(doc(db, 'admin', user.uid));
-        if (!adminDoc.exists()) {
-          await setDoc(doc(db, 'admin', user.uid), {
-            admin_id: user.uid,
-            full_name: user.displayName || '',
-            email: user.email,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
-          });
-          await new Promise(resolve => setTimeout(resolve, 3000));
-          await user.getIdToken(true);
+        if (adminDoc.exists()) {
+          const adminData = adminDoc.data();
+          if (adminData.sign_in_method === 'email') {
+            await auth.signOut();
+            document.getElementById('toast-overlay').classList.remove('show');
+            showToast('error', 'Use Email & Password', 'This account was created using email and password. Please sign in with your email and password instead.');
+            return;
+          }
+          window.location.href = '../Sidebar/dashboard.html';
+          return;
         }
+        await setDoc(doc(db, 'admin', user.uid), {
+          admin_id: user.uid,
+          full_name: user.displayName || '',
+          email: user.email,
+          sign_in_method: 'google',
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        await user.getIdToken(true);
 
         window.location.href = '../Sidebar/dashboard.html';
       } catch (error) {
