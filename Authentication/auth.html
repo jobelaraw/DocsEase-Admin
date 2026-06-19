@@ -1,42 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>DocsEase – Sign In</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DocsEase – Authentication</title>
   <link rel="icon" type="image/png" href="../assets/logo_whitebg.png" />
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js" integrity="sha384-SALc35EccAf6RzGw4iNsyj7kTPr33K7RoGzYu+7heZhT8s0GZouafRiCg1qy44AS" crossorigin="anonymous"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --navy:       #0f2d5e;
-      --navy-btn:   #0f2d5e;
-      --navy-hover: #1a4080;
-      --blue-text1:  #4BB8FA;
-      --blue-text2:  #2F2FE4;
-      --panel-bg:   #e8eef8;
-      --input-bg:   #ffffff;
-      --label:      #3a3a3a;
-      --placeholder:#9aa3b2;
-      --link:       #2a7de1;
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
-    html, body {
+    :root {
+      --navy: #0f2d5e;
+      --navy-btn: #0f2d5e;
+      --navy-hover: #1a4080;
+      --blue-text1: #4BB8FA;
+      --blue-text2: #2F2FE4;
+      --panel-bg: #e8eef8;
+      --input-bg: #ffffff;
+      --label: #3a3a3a;
+      --placeholder: #9aa3b2;
+      --link: #2a7de1;
+    }
+
+    html,
+    body {
       height: 100%;
       font-family: 'Inter', sans-serif;
       background: #000;
       overflow: hidden;
     }
 
-    /* ══════════════════════════════════════
-       WRAPPER — two panels side by side
-    ══════════════════════════════════════ */
     .wrapper {
       display: flex;
-      width: 500%;         
+      width: 500%;
       height: 100vh;
       transition: transform 0.65s cubic-bezier(0.77, 0, 0.18, 1);
     }
@@ -57,9 +62,6 @@
       transform: translateX(-80%);
     }
 
-    /* ══════════════════════════════════════
-       SCREEN  (each half of wrapper = 1 viewport)
-    ══════════════════════════════════════ */
     .screen {
       width: 20%;
       height: 100vh;
@@ -67,7 +69,6 @@
       position: relative;
     }
 
-    /* ── PHOTO PANEL — fills the whole screen ── */
     .photo-panel {
       position: absolute;
       inset: 0;
@@ -77,83 +78,90 @@
     .photo-panel img.bg {
       position: absolute;
       inset: 0;
-      width: 100%; height: 130%;
+      width: 100%;
+      height: 130%;
       object-fit: cover;
       object-position: center;
     }
 
     #screen-signup .photo-panel img.bg {
       object-position: center;
-      width: 100%; height: 130%;
+      width: 100%;
+      height: 130%;
     }
 
     .photo-panel::after {
       content: '';
       position: absolute;
       inset: 0;
-      background: rgba(0,0,0,0.42);
+      background: rgba(0, 0, 0, 0.42);
     }
 
-      .photo-text {
-        position: absolute;
-        top: 52px; bottom: 0; left: 0;
-        z-index: 11;
-        padding: 0 52px 64px 52px;
-        color: #fff;
-        max-width: 60%;
-      }
+    .photo-text {
+      position: absolute;
+      top: 52px;
+      bottom: 0;
+      left: 0;
+      z-index: 11;
+      padding: 0 52px 64px 52px;
+      color: #fff;
+      max-width: 60%;
+    }
 
-      #screen-signup .photo-text {
-        top: 52px;
-        bottom: auto;
-        left: auto;
-        right: 0;
-        text-align: right;
-        padding: 0 52px 0 52px;
-        max-width: 60%;
-      }
+    #screen-signup .photo-text {
+      top: 52px;
+      bottom: auto;
+      left: auto;
+      right: 0;
+      text-align: right;
+      padding: 0 52px 0 52px;
+      max-width: 60%;
+    }
 
-.photo-text h1 {
+    .photo-text h1 {
       font-size: clamp(4.5rem, 3.2vw, 4.5rem);
       font-weight: 900;
       line-height: 1.12;
       letter-spacing: 0.02em;
       margin-bottom: 24px;
-      text-shadow: 20px 10px 90px rgba(0, 0, 0, 0.95), 
-                   0 0 1px rgba(0, 0, 0, 0.7),
-                   0 0 800px rgba(0, 0, 0, 0.4);
-    }   
-
-    .photo-text h1 .accent { color: var(--blue-text1); }
-    #screen-signup .photo-text h1 .accent1 { color: var(--blue-text2); }
-
-.photo-text p {
-      font-size: 1.09rem;
-      line-height: 1.65;
-      color: rgba(255,255,255,0.95); 
-      font-weight: 500;
-      max-width: 700px;
-      /* text-shadow: 0 .5px 8px rgba(0, 0, 0, 0.95),
-                   0 .5px 3px rgba(0, 0, 0, 0.8); */
+      text-shadow: 20px 10px 90px rgba(0, 0, 0, 0.95),
+        0 0 1px rgba(0, 0, 0, 0.7),
+        0 0 800px rgba(0, 0, 0, 0.4);
     }
 
-    /* ── FORM PANEL — flush right, only left corners rounded ── */
+    .photo-text h1 .accent {
+      color: var(--blue-text1);
+    }
+
+    #screen-signup .photo-text h1 .accent1 {
+      color: var(--blue-text2);
+    }
+
+    .photo-text p {
+      font-size: 1.09rem;
+      line-height: 1.65;
+      color: rgba(255, 255, 255, 0.95);
+      font-weight: 500;
+      max-width: 700px;
+    }
+
     .form-panel {
       position: absolute;
-      top: 0; right: 0; bottom: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
       width: 480px;
       background: var(--panel-bg);
-      border-radius: 24px 0 0 24px; 
+      border-radius: 24px 0 0 24px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       padding: 48px 52px;
       z-index: 10;
-      box-shadow: -8px 0 40px rgba(0,0,0,0.25);
+      box-shadow: -8px 0 40px rgba(0, 0, 0, 0.25);
     }
 
-    /* Sign up: flush left, only right corners rounded */
     #screen-signup .form-panel {
       right: unset;
       left: 0;
@@ -161,10 +169,9 @@
       justify-content: flex-start;
       overflow-y: auto;
       padding: 28px 40px;
-      box-shadow: 8px 0 40px rgba(0,0,0,0.25);
+      box-shadow: 8px 0 40px rgba(0, 0, 0, 0.25);
     }
 
-    /* Logo */
     .panel-logo {
       display: flex;
       align-items: center;
@@ -175,14 +182,17 @@
     }
 
     .panel-logo .logo-icon {
-      width: 44px; height: 44px;
+      width: 44px;
+      height: 44px;
       border-radius: 10px;
       overflow: hidden;
       flex-shrink: 0;
     }
 
     .panel-logo .logo-icon img {
-      width: 100%; height: 100%; object-fit: contain;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
 
     .panel-logo .logo-wordmark {
@@ -192,7 +202,6 @@
       letter-spacing: -0.02em;
     }
 
-    /* Heading */
     .panel-heading {
       text-align: center;
       margin-bottom: 32px;
@@ -212,7 +221,6 @@
       color: #555;
     }
 
-    /* Form */
     .form-body {
       width: 100%;
       display: flex;
@@ -247,7 +255,9 @@
       text-decoration: none;
     }
 
-    .forgot-link:hover { text-decoration: underline; }
+    .forgot-link:hover {
+      text-decoration: underline;
+    }
 
     .input-wrap {
       position: relative;
@@ -258,20 +268,24 @@
       padding: 15px 48px 15px 22px;
       background: var(--input-bg);
       border: 2px solid transparent;
-      border-radius: 50px;   /* fully rounded pill — matches screenshot */
+      border-radius: 50px;
       font-family: 'Inter', sans-serif;
       font-size: 0.9rem;
       color: #1a2540;
       outline: none;
       transition: border-color 0.2s, background 0.2s;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     }
 
-    .input-wrap input::placeholder { color: var(--placeholder); }
+    .input-wrap input::placeholder {
+      color: var(--placeholder);
+    }
 
     .input-wrap input::-ms-reveal,
     .input-wrap input::-webkit-contacts-auto-fill-button,
-    .input-wrap input::-webkit-credentials-auto-fill-button { display: none; }
+    .input-wrap input::-webkit-credentials-auto-fill-button {
+      display: none;
+    }
 
     .input-wrap input:focus {
       border-color: var(--link);
@@ -292,13 +306,19 @@
       padding: 3px;
     }
 
-    .eye-btn:hover { color: var(--navy); }
-    .eye-btn img { width: 22px; height: 22px; object-fit: contain; }
+    .eye-btn:hover {
+      color: var(--navy);
+    }
 
- /* Sign in button */
+    .eye-btn img {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+    }
+
     .btn-main {
       width: 100%;
-      height: 54px;             
+      height: 54px;
       margin-top: 20px;
       background: var(--navy-btn);
       color: #fff;
@@ -311,14 +331,18 @@
       border-radius: 50px;
       cursor: pointer;
       transition: background 0.2s, transform 0.1s;
-      box-shadow: 0 4px 14px rgba(15,45,94,0.25);
-      box-sizing: border-box;     
+      box-shadow: 0 4px 14px rgba(15, 45, 94, 0.25);
+      box-sizing: border-box;
     }
 
-    .btn-main:hover  { background: var(--navy-hover); }
-    .btn-main:active { transform: scale(0.99); }
+    .btn-main:hover {
+      background: var(--navy-hover);
+    }
 
-    /* OR divider */
+    .btn-main:active {
+      transform: scale(0.99);
+    }
+
     .or-divider {
       display: flex;
       align-items: center;
@@ -336,10 +360,9 @@
       background: #b8c4d8;
     }
 
-    /* Google button */
     .btn-google {
       width: 100%;
-      height: 54px;               
+      height: 54px;
       background: #ffffff;
       border: 2px solid #e0e6ef;
       border-radius: 50px;
@@ -353,23 +376,22 @@
       color: #222;
       cursor: pointer;
       transition: background 0.2s, box-shadow 0.2s;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-      box-sizing: border-box;    
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+      box-sizing: border-box;
     }
 
     .btn-google:hover {
       background: #f5f8ff;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.10);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
     }
 
     .btn-google .g-logo {
-      width: 22px; 
+      width: 22px;
       height: 22px;
       flex-shrink: 0;
       object-fit: contain;
     }
 
-    /* Footer */
     .panel-footer {
       margin-top: 42px;
       font-size: 0.8rem;
@@ -383,11 +405,10 @@
       text-decoration: none;
     }
 
-    .panel-footer a:hover { text-decoration: underline; }
+    .panel-footer a:hover {
+      text-decoration: underline;
+    }
 
-    /* ══════════════════════════════════════
-       SCREEN 2 — SIGN UP  (mirror layout)
-    ══════════════════════════════════════ */
     #screen-signup .form-panel {
       order: -1;
       justify-content: flex-start;
@@ -395,26 +416,53 @@
       padding: 28px 52px;
     }
 
-    #screen-signup .panel-logo { margin-bottom: 40px; margin-top: -10px; }
-    #screen-signup .panel-heading { margin-bottom: 21px; }
-    #screen-signup .panel-heading h2 { font-size: 1.9rem; margin-bottom: 10px; }
-    #screen-signup .form-body { gap: 16px; }
-    #screen-signup .input-wrap input { padding: 11px 48px 11px 22px; }
-    #screen-signup .btn-main { padding: 13px; margin-top: 10px; margin-bottom: -10px; }
-    #screen-signup .btn-google { padding: 11px 20px; margin-top: -10px; }
-    #screen-signup .panel-footer { margin-top: 25px; }
+    #screen-signup .panel-logo {
+      margin-bottom: 40px;
+      margin-top: -10px;
+    }
 
-    /* ══════════════════════════════════════
-       SCREEN 3 — FORGOT PASSWORD
-    ══════════════════════════════════════ */
+    #screen-signup .panel-heading {
+      margin-bottom: 21px;
+    }
+
+    #screen-signup .panel-heading h2 {
+      font-size: 1.9rem;
+      margin-bottom: 10px;
+    }
+
+    #screen-signup .form-body {
+      gap: 16px;
+    }
+
+    #screen-signup .input-wrap input {
+      padding: 11px 48px 11px 22px;
+    }
+
+    #screen-signup .btn-main {
+      padding: 13px;
+      margin-top: 10px;
+      margin-bottom: -10px;
+    }
+
+    #screen-signup .btn-google {
+      padding: 11px 20px;
+      margin-top: -10px;
+    }
+
+    #screen-signup .panel-footer {
+      margin-top: 25px;
+    }
+
     #screen-forgotpass .form-panel {
       right: unset;
       left: 0;
       border-radius: 0 24px 24px 0;
-      box-shadow: 8px 0 40px rgba(0,0,0,0.25);
+      box-shadow: 8px 0 40px rgba(0, 0, 0, 0.25);
     }
 
-    #screen-forgotpass .form-body { margin-top: 30px; }
+    #screen-forgotpass .form-body {
+      margin-top: 30px;
+    }
 
     #screen-forgotpass .panel-logo {
       margin-bottom: 60px;
@@ -453,23 +501,20 @@
       margin-top: 180px;
     }
 
-    /* ══════════════════════════════════════
-       SCREEN 4 — RECOVERY CODE (customize spacing here)
-    ══════════════════════════════════════ */
     #screen-recoverycode .form-panel {
       right: unset;
       left: 0;
       border-radius: 0 24px 24px 0;
-      box-shadow: 8px 0 40px rgba(0,0,0,0.25);
+      box-shadow: 8px 0 40px rgba(0, 0, 0, 0.25);
     }
 
     #screen-recoverycode .panel-logo {
-      margin-top: -5px;       /* same as forgot password */
-      margin-bottom: 60px;   /* same as forgot password */
+      margin-top: -5px;
+      margin-bottom: 60px;
     }
 
     #screen-recoverycode .panel-heading {
-      margin-bottom: 32px;    /* space between heading and input */
+      margin-bottom: 32px;
       margin-top: 40px;
     }
 
@@ -480,16 +525,16 @@
     }
 
     #screen-recoverycode .form-body {
-      gap: 16px;              /* space between elements */
+      gap: 16px;
       margin-top: 30px;
     }
 
     #screen-recoverycode .btn-main {
-      margin-top: 10px;       /* space above verify button */
+      margin-top: 10px;
     }
 
     #screen-recoverycode .panel-footer {
-      margin-top: 120px;      /* space above footer */
+      margin-top: 120px;
     }
 
     #screen-recoverycode .photo-text {
@@ -501,14 +546,11 @@
       max-width: 65%;
     }
 
-    /* ══════════════════════════════════════
-       SCREEN 5 — RESET PASSWORD
-    ══════════════════════════════════════ */
     #screen-resetpass .form-panel {
       right: unset;
       left: 0;
       border-radius: 0 24px 24px 0;
-      box-shadow: 8px 0 40px rgba(0,0,0,0.25);
+      box-shadow: 8px 0 40px rgba(0, 0, 0, 0.25);
     }
 
     #screen-resetpass .panel-logo {
@@ -549,7 +591,6 @@
       max-width: 65%;
     }
 
-    /* Resend button */
     .btn-resend {
       width: 100%;
       height: 54px;
@@ -563,12 +604,12 @@
       letter-spacing: 0.04em;
       cursor: pointer;
       transition: background 0.2s, box-shadow 0.2s, opacity 0.2s;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
     }
 
     .btn-resend:hover:not(:disabled) {
       background: #f5f8ff;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.10);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
     }
 
     .btn-resend:disabled {
@@ -576,13 +617,10 @@
       cursor: not-allowed;
     }
 
-    /* ══════════════════════════════════════
-       TOAST MODAL
-    ══════════════════════════════════════ */
     .toast-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.4);
+      background: rgba(0, 0, 0, 0.4);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -591,10 +629,12 @@
       pointer-events: none;
       transition: opacity 0.25s;
     }
+
     .toast-overlay.show {
       opacity: 1;
       pointer-events: all;
     }
+
     .toast-box {
       background: #fff;
       border-radius: 20px;
@@ -602,13 +642,15 @@
       text-align: center;
       max-width: 360px;
       width: 90%;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
       transform: scale(0.9);
       transition: transform 0.25s;
     }
+
     .toast-overlay.show .toast-box {
       transform: scale(1);
     }
+
     .toast-icon {
       width: 64px;
       height: 64px;
@@ -618,9 +660,11 @@
       align-items: center;
       justify-content: center;
     }
+
     .toast-icon.success {
       border: 3px solid #27ae60;
     }
+
     .toast-icon.success::after {
       content: '';
       width: 12px;
@@ -630,9 +674,11 @@
       transform: rotate(45deg);
       margin-top: -4px;
     }
+
     .toast-icon.error {
       border: 3px solid #e74c3c;
     }
+
     .toast-icon.error::before,
     .toast-icon.error::after {
       content: '';
@@ -642,41 +688,49 @@
       background: #e74c3c;
       border-radius: 2px;
     }
+
     .toast-icon.error::before {
       transform: rotate(45deg);
     }
+
     .toast-icon.error::after {
       transform: rotate(-45deg);
     }
+
     .toast-icon.error {
       position: relative;
     }
+
     .toast-icon.info {
       border: none;
       width: 48px;
       height: 48px;
     }
+
     .toast-icon.info::after {
       content: '';
       width: 48px;
       height: 48px;
-      border: 4px solid rgba(42,125,225,0.2);
+      border: 4px solid rgba(42, 125, 225, 0.2);
       border-top-color: #2a7de1;
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
     }
+
     .toast-title {
       font-size: 1.3rem;
       font-weight: 800;
       color: #1a2540;
       margin-bottom: 8px;
     }
+
     .toast-msg {
       font-size: 0.88rem;
       color: #555;
       line-height: 1.5;
       margin-bottom: 24px;
     }
+
     .toast-btn {
       width: 100%;
       padding: 14px;
@@ -689,31 +743,39 @@
       cursor: pointer;
       transition: background 0.2s;
     }
+
     .toast-btn:hover {
       background: #3a65d4;
     }
+
     .toast-btn:disabled {
       opacity: 0.7;
       cursor: not-allowed;
     }
+
     .toast-spinner {
       display: none;
       width: 20px;
       height: 20px;
-      border: 3px solid rgba(255,255,255,0.3);
+      border: 3px solid rgba(255, 255, 255, 0.3);
       border-top-color: #fff;
       border-radius: 50%;
       animation: spin 0.6s linear infinite;
       margin: 0 auto;
     }
+
     .toast-spinner.active {
       display: block;
     }
+
     @keyframes spin {
-      to { transform: rotate(360deg); }
+      to {
+        transform: rotate(360deg);
+      }
     }
   </style>
 </head>
+
 <body>
 
   <!-- Toast Modal -->
@@ -738,7 +800,9 @@
         <img class="bg" src="../assets/bg_cityhall2.jpg" alt="City Hall" />
         <div class="photo-text">
           <h1>Manage Services.<br>Guide <span class="accent" id="typewriter"></span></h1>
-          <p>Log in to your administrative dashboard to manage, update, and streamline municipal services in real-time. Use this portal to configure document requirements, update application fees, and ensure citizens always have the most accurate processing guides in the palm of their hands.</p>
+          <p>Log in to your administrative dashboard to manage, update, and streamline municipal services in real-time.
+            Use this portal to configure document requirements, update application fees, and ensure citizens always have
+            the most accurate processing guides in the palm of their hands.</p>
         </div>
       </div>
 
@@ -749,7 +813,8 @@
           <div class="logo-icon">
             <img src="../assets/logo_whitebg.png" alt="DocsEase" />
           </div>
-          <span class="logo-wordmark"><img src="../assets/docsease_text.png" alt="DocsEase" style="height:20px; width:auto; object-fit:contain;" /></span>
+          <span class="logo-wordmark"><img src="../assets/docsease_text.png" alt="DocsEase"
+              style="height:20px; width:auto; object-fit:contain;" /></span>
         </div>
         <div class="panel-heading">
           <h2>Welcome back, Admin!</h2>
@@ -770,8 +835,10 @@
               <a href="#" class="forgot-link" onclick="goForgotPass(event)">Forgot Password</a>
             </div>
             <div class="input-wrap">
-              <input type="password" id="si-password" placeholder="Enter your password" autocomplete="current-password" />
-              <button type="button" class="eye-btn" onclick="toggleEye('si-password', 'eye-si')" aria-label="Toggle password">
+              <input type="password" id="si-password" placeholder="Enter your password"
+                autocomplete="current-password" />
+              <button type="button" class="eye-btn" onclick="toggleEye('si-password', 'eye-si')"
+                aria-label="Toggle password">
                 <img id="eye-si" src="../assets/eyeHide.png" alt="Show password" />
               </button>
             </div>
@@ -808,7 +875,8 @@
           <div class="logo-icon">
             <img src="../assets/logo.png" alt="DocsEase" />
           </div>
-          <span class="logo-wordmark"><img src="../assets/docsease_text.png" alt="DocsEase" style="height:20px; width:auto; object-fit:contain;" /></span>
+          <span class="logo-wordmark"><img src="../assets/docsease_text.png" alt="DocsEase"
+              style="height:20px; width:auto; object-fit:contain;" /></span>
         </div>
         <div class="panel-heading">
           <h2>Create Account</h2>
@@ -873,176 +941,183 @@
         <img class="bg" src="../assets/bg_cityhall2.jpg" alt="City Hall" />
         <div class="photo-text">
           <h1><span class="accent" id="typewriter2"></span> the<br>DocsEase<br>Community.</h1>
-          <p>Create your administrator account and start managing municipal services, document workflows, and citizen guidance in one secure platform.</p>
+          <p>Create your administrator account and start managing municipal services, document workflows, and citizen
+            guidance in one secure platform.</p>
         </div>
       </div>
     </div>
 
-  <!-- ════════════════════════════
+    <!-- ════════════════════════════
        SCREEN 3 — FORGOT PASSWORD
   ════════════════════════════ -->
-  <div class="screen" id="screen-forgotpass">
+    <div class="screen" id="screen-forgotpass">
 
-    <!-- Form panel (left) -->
-    <div class="form-panel">
+      <!-- Form panel (left) -->
+      <div class="form-panel">
 
-      <div class="panel-logo">
-        <div class="logo-icon">
-          <img src="../assets/logo.png" alt="DocsEase" />
-        </div>
-        <span class="logo-wordmark"><img src="../assets/docsease_text.png" alt="DocsEase" style="height:20px; width:auto; object-fit:contain;" /></span>
-      </div>
-
-      <div class="panel-heading">
-        <h2>Enter Email Address</h2>
-        <p>Input your registered email address below so we can verify your identity.</p>
-      </div>
-
-      <div class="form-body">
-        <div class="field-group">
-          <label class="field-label">Email Address</label>
-          <div class="input-wrap">
-            <input type="email" id="recovery-email" placeholder="Enter your registered email" autocomplete="email" />
+        <div class="panel-logo">
+          <div class="logo-icon">
+            <img src="../assets/logo.png" alt="DocsEase" />
           </div>
+          <span class="logo-wordmark"><img src="../assets/docsease_text.png" alt="DocsEase"
+              style="height:20px; width:auto; object-fit:contain;" /></span>
         </div>
 
-        <button type="button" class="btn-main" onclick="handleForgotPassword()">NEXT</button>
+        <div class="panel-heading">
+          <h2>Enter Email Address</h2>
+          <p>Input your registered email address below so we can verify your identity.</p>
+        </div>
+
+        <div class="form-body">
+          <div class="field-group">
+            <label class="field-label">Email Address</label>
+            <div class="input-wrap">
+              <input type="email" id="recovery-email" placeholder="Enter your registered email" autocomplete="email" />
+            </div>
+          </div>
+
+          <button type="button" class="btn-main" onclick="handleForgotPassword()">NEXT</button>
+        </div>
+
+        <p class="panel-footer">
+          Remember your password? <a href="#" onclick="goSignin(event)">Back to Sign in</a>
+        </p>
+
       </div>
 
-      <p class="panel-footer">
-        Remember your password? <a href="#" onclick="goSignin(event)">Back to Sign in</a>
-      </p>
+      <!-- Photo panel (right) -->
+      <div class="photo-panel">
+        <img class="bg" src="../assets/bg_cityhall2.jpg" alt="City Hall" />
+        <div class="photo-text">
+          <h1><span class="accent" id="typewriter3"></span> your <br>password?</h1>
+          <p>We'll help you regain access to your administrator dashboard safely and securely.</p>
+        </div>
+      </div>
 
     </div>
 
-    <!-- Photo panel (right) -->
-    <div class="photo-panel">
-      <img class="bg" src="../assets/bg_cityhall2.jpg" alt="City Hall" />
-      <div class="photo-text">
-        <h1><span class="accent" id="typewriter3"></span> your <br>password?</h1>
-        <p>We'll help you regain access to your administrator dashboard safely and securely.</p>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- ════════════════════════════
+    <!-- ════════════════════════════
        SCREEN 4 — RECOVERY CODE
   ════════════════════════════ -->
-  <div class="screen" id="screen-recoverycode">
+    <div class="screen" id="screen-recoverycode">
 
 
-    <!-- Form panel (left) -->
-    <div class="form-panel">
+      <!-- Form panel (left) -->
+      <div class="form-panel">
 
-      <div class="panel-logo">
-        <div class="logo-icon">
-          <img src="../assets/logo.png" alt="DocsEase" />
-        </div>
-        <span class="logo-wordmark"><img src="../assets/docsease_text.png" alt="DocsEase" style="height:20px; width:auto; object-fit:contain;" /></span>
-      </div>
-
-      <div class="panel-heading">
-        <h2>Enter Recovery Code</h2>
-        <p>Please type the 6-digit verification code sent to your registered email address.</p>
-      </div>
-
-      <div class="form-body">
-        <div class="field-group">
-          <label class="field-label">Recovery Code</label>
-          <div class="input-wrap">
-            <input type="text" id="recovery-code" placeholder="Enter 6-digit code" maxlength="6" autocomplete="one-time-code" />
+        <div class="panel-logo">
+          <div class="logo-icon">
+            <img src="../assets/logo.png" alt="DocsEase" />
           </div>
+          <span class="logo-wordmark"><img src="../assets/docsease_text.png" alt="DocsEase"
+              style="height:20px; width:auto; object-fit:contain;" /></span>
         </div>
 
-        <button type="button" class="btn-main" onclick="handleVerifyCode()">Verify</button>
-        <button type="button" class="btn-resend" id="btn-resend" disabled onclick="handleResendCode()">Resend Code (<span id="resend-timer">30</span>s)</button>
+        <div class="panel-heading">
+          <h2>Enter Recovery Code</h2>
+          <p>Please type the 6-digit verification code sent to your registered email address.</p>
+        </div>
+
+        <div class="form-body">
+          <div class="field-group">
+            <label class="field-label">Recovery Code</label>
+            <div class="input-wrap">
+              <input type="text" id="recovery-code" placeholder="Enter 6-digit code" maxlength="6"
+                autocomplete="one-time-code" />
+            </div>
+          </div>
+
+          <button type="button" class="btn-main" onclick="handleVerifyCode()">Verify</button>
+          <button type="button" class="btn-resend" id="btn-resend" disabled onclick="handleResendCode()">Resend Code
+            (<span id="resend-timer">30</span>s)</button>
+        </div>
+
+        <p class="panel-footer">
+          Wrong email? <a href="#" onclick="goForgotPass(event)">Go back</a>
+        </p>
+
       </div>
 
-      <p class="panel-footer">
-        Wrong email? <a href="#" onclick="goForgotPass(event)">Go back</a>
-      </p>
+      <!-- Photo panel (right) -->
+      <div class="photo-panel">
+        <img class="bg" src="../assets/bg_cityhall2.jpg" alt="City Hall" />
+        <div class="photo-text">
+          <h1><span class="accent" id="typewriter3b"></span> your <br>password?</h1>
+          <p>We'll help you regain access to your administrator dashboard safely and securely.</p>
+        </div>
+      </div>
 
     </div>
 
-    <!-- Photo panel (right) -->
-    <div class="photo-panel">
-      <img class="bg" src="../assets/bg_cityhall2.jpg" alt="City Hall" />
-      <div class="photo-text">
-        <h1><span class="accent" id="typewriter3b"></span> your <br>password?</h1>
-        <p>We'll help you regain access to your administrator dashboard safely and securely.</p>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- ════════════════════════════
+    <!-- ════════════════════════════
        SCREEN 5 — RESET PASSWORD
   ════════════════════════════ -->
-  <div class="screen" id="screen-resetpass">
+    <div class="screen" id="screen-resetpass">
 
-    <!-- Form panel (left) -->
-    <div class="form-panel">
+      <!-- Form panel (left) -->
+      <div class="form-panel">
 
-      <div class="panel-logo">
-        <div class="logo-icon">
-          <img src="../assets/logo.png" alt="DocsEase" />
-        </div>
-        <span class="logo-wordmark"><img src="../assets/docsease_text.png" alt="DocsEase" style="height:20px; width:auto; object-fit:contain;" /></span>
-      </div>
-
-      <div class="panel-heading">
-        <h2>Reset Password</h2>
-        <p>Create a new password for your account. Make sure it's strong and secure.</p>
-      </div>
-
-      <div class="form-body">
-        <div class="field-group">
-          <label class="field-label">New Password</label>
-          <div class="input-wrap">
-            <input type="password" id="new-password" placeholder="Enter new password" autocomplete="new-password" />
-            <button type="button" class="eye-btn" onclick="toggleEye('new-password','eye-np')" aria-label="Toggle password">
-              <img id="eye-np" src="../assets/eyeHide.png" alt="Show password" />
-            </button>
+        <div class="panel-logo">
+          <div class="logo-icon">
+            <img src="../assets/logo.png" alt="DocsEase" />
           </div>
+          <span class="logo-wordmark"><img src="../assets/docsease_text.png" alt="DocsEase"
+              style="height:20px; width:auto; object-fit:contain;" /></span>
         </div>
 
-        <div class="field-group">
-          <label class="field-label">Confirm Password</label>
-          <div class="input-wrap">
-            <input type="password" id="confirm-new-password" placeholder="Re-enter new password" autocomplete="new-password" />
-            <button type="button" class="eye-btn" onclick="toggleEye('confirm-new-password','eye-cnp')" aria-label="Toggle password">
-              <img id="eye-cnp" src="../assets/eyeHide.png" alt="Show password" />
-            </button>
+        <div class="panel-heading">
+          <h2>Reset Password</h2>
+          <p>Create a new password for your account. Make sure it's strong and secure.</p>
+        </div>
+
+        <div class="form-body">
+          <div class="field-group">
+            <label class="field-label">New Password</label>
+            <div class="input-wrap">
+              <input type="password" id="new-password" placeholder="Enter new password" autocomplete="new-password" />
+              <button type="button" class="eye-btn" onclick="toggleEye('new-password','eye-np')"
+                aria-label="Toggle password">
+                <img id="eye-np" src="../assets/eyeHide.png" alt="Show password" />
+              </button>
+            </div>
           </div>
+
+          <div class="field-group">
+            <label class="field-label">Confirm Password</label>
+            <div class="input-wrap">
+              <input type="password" id="confirm-new-password" placeholder="Re-enter new password"
+                autocomplete="new-password" />
+              <button type="button" class="eye-btn" onclick="toggleEye('confirm-new-password','eye-cnp')"
+                aria-label="Toggle password">
+                <img id="eye-cnp" src="../assets/eyeHide.png" alt="Show password" />
+              </button>
+            </div>
+          </div>
+
+          <button type="button" class="btn-main" onclick="handleResetPassword()">Reset Password</button>
         </div>
 
-        <button type="button" class="btn-main" onclick="handleResetPassword()">Reset Password</button>
+        <p class="panel-footer">
+          Remember your password? <a href="#" onclick="goSignin(event)">Back to Sign in</a>
+        </p>
+
       </div>
 
-      <p class="panel-footer">
-        Remember your password? <a href="#" onclick="goSignin(event)">Back to Sign in</a>
-      </p>
+      <!-- Photo panel (right) -->
+      <div class="photo-panel">
+        <img class="bg" src="../assets/bg_cityhall2.jpg" alt="City Hall" />
+        <div class="photo-text">
+          <h1><span class="accent" id="typewriter3c"></span> your <br>password?</h1>
+          <p>We'll help you regain access to your administrator dashboard safely and securely.</p>
+        </div>
+      </div>
 
     </div>
-
-    <!-- Photo panel (right) -->
-    <div class="photo-panel">
-      <img class="bg" src="../assets/bg_cityhall2.jpg" alt="City Hall" />
-      <div class="photo-text">
-        <h1><span class="accent" id="typewriter3c"></span> your <br>password?</h1>
-        <p>We'll help you regain access to your administrator dashboard safely and securely.</p>
-      </div>
-    </div>
-
-  </div>
   </div>
 
   <script>
-    // Initialize EmailJS before module script
     emailjs.init({ publicKey: 'sNwiz0smyu1zo-ozX' });
 
-    // Toast notification system
     let toastCallback = null;
     function showToast(type, title, msg, btnText, callback) {
       const overlay = document.getElementById('toast-overlay');
@@ -1078,13 +1153,11 @@
     let recoveryEmail = null;
     let codeExpiry = null;
 
-    // --- SIGN IN ---
-    window.handleSignIn = async function() {
+    window.handleSignIn = async function () {
       const email = document.getElementById('si-email').value.trim();
       const password = document.getElementById('si-password').value;
       if (!email || !password) { showToast('error', 'Missing Fields', 'Please fill in all fields.'); return; }
 
-      // Show loading toast
       showToast('info', 'Signing In...', 'Please wait while we verify your credentials.', '');
       const btn = document.getElementById('toast-btn');
       btn.disabled = true;
@@ -1113,8 +1186,7 @@
       }
     };
 
-    // --- SIGN UP ---
-    window.handleSignUp = async function() {
+    window.handleSignUp = async function () {
       const name = document.getElementById('su-name').value.trim();
       const email = document.getElementById('su-email').value.trim();
       const password = document.getElementById('su-password').value;
@@ -1126,7 +1198,6 @@
       if (!/[0-9]/.test(password)) { showToast('error', 'Weak Password', 'Password must include at least one number.'); return; }
       if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) { showToast('error', 'Weak Password', 'Password must include at least one special character.'); return; }
 
-      // Show loading toast
       showToast('info', 'Creating Account...', 'Please wait while we set up your account.', '');
       const loadBtn = document.getElementById('toast-btn');
       loadBtn.disabled = true;
@@ -1145,11 +1216,11 @@
         });
         document.getElementById('toast-overlay').classList.remove('show');
         showToast('success', 'Account Created!', 'Welcome to DocsEase, ' + name + '.', 'Go to Dashboard', async () => {
-          // Show loading state on button
+
           const btn = document.getElementById('toast-btn');
           btn.disabled = true;
           btn.innerHTML = '<div class="toast-spinner" style="display:block"></div>';
-          // Wait for admin claim to be set by Cloud Function
+
           await new Promise(resolve => setTimeout(resolve, 3000));
           await userCredential.user.getIdToken(true);
           window.location.href = '../Sidebar/dashboard.html';
@@ -1157,7 +1228,7 @@
       } catch (error) {
         document.getElementById('toast-overlay').classList.remove('show');
         let msg = 'Something went wrong. Please try again.';
-        if (error.code === 'auth/email-already-in-use') msg = 'This email is already registered. Please sign in using the Google button.';
+        if (error.code === 'auth/email-already-in-use') msg = 'This email is already registered. Please sign in using the email or continue with Google.';
         else if (error.code === 'auth/invalid-email') msg = 'Please enter a valid email address.';
         else if (error.code === 'auth/weak-password') msg = 'Your password is too weak. Use at least 6 characters.';
         else if (error.code === 'auth/network-request-failed') msg = 'No internet connection. Please check your network.';
@@ -1165,9 +1236,8 @@
       }
     };
 
-    // --- GOOGLE SIGN IN ---
-    window.handleGoogleSignIn = async function() {
-      // Show loading toast
+    window.handleGoogleSignIn = async function () {
+      
       showToast('info', 'Signing In...', 'Please wait while we connect to Google.', '');
       const loadBtn = document.getElementById('toast-btn');
       loadBtn.disabled = true;
@@ -1177,7 +1247,6 @@
         const result = await signInWithPopup(auth, googleProvider);
         const user = result.user;
 
-        // Check if this user exists in the 'users' collection (mobile app user)
         const userDoc = await getDoc(doc(db, 'users', user.uid));
         if (userDoc.exists()) {
           await auth.signOut();
@@ -1186,7 +1255,6 @@
           return;
         }
 
-        // Check if already an admin, if not create record
         const adminDoc = await getDoc(doc(db, 'admin', user.uid));
         if (adminDoc.exists()) {
           const adminData = adminDoc.data();
@@ -1222,16 +1290,14 @@
       }
     };
 
-    // --- FORGOT PASSWORD: Send 6-digit code via EmailJS ---
-    window.handleForgotPassword = async function() {
+    window.handleForgotPassword = async function () {
       const email = document.getElementById('recovery-email').value.trim();
       if (!email) { showToast('error', 'Missing Email', 'Please enter your email.'); return; }
 
-      // Generate 6-digit code
       recoveryCode = Math.floor(100000 + Math.random() * 900000).toString();
       recoveryEmail = email;
       sessionStorage.setItem('recoveryEmail', email);
-      codeExpiry = Date.now() + 5 * 60 * 1000; // 5 minutes
+      codeExpiry = Date.now() + 5 * 60 * 1000;
 
       try {
         await emailjs.send('service_77esocf', 'template_0lhosxe', {
@@ -1239,7 +1305,7 @@
           passcode: recoveryCode
         });
         document.getElementById('recovery-code').value = '';
-        // Show success toast then navigate
+
         showToast('success', 'Check your Email', 'A recovery code has been sent to your email. Please check your inbox.', 'Continue', () => {
           const wrapper = document.getElementById('wrapper');
           wrapper.style.transition = 'none';
@@ -1253,14 +1319,12 @@
       }
     };
 
-    // --- VERIFY RECOVERY CODE ---
-    window.handleVerifyCode = function() {
+    window.handleVerifyCode = function () {
       const input = document.getElementById('recovery-code').value.trim();
       if (!input) { showToast('error', 'Missing Code', 'Please enter the code.'); return; }
       if (Date.now() > codeExpiry) { showToast('error', 'Code Expired', 'Your code has expired. Please resend.'); return; }
       if (input !== recoveryCode) { showToast('error', 'Invalid Code', 'The code you entered is incorrect. Try again.'); return; }
 
-      // Code verified — show success then go to reset password screen
       showToast('success', 'Code Verified', 'Your identity has been confirmed. You can now set a new password.', 'Continue', () => {
         const wrapper = document.getElementById('wrapper');
         wrapper.style.transition = 'none';
@@ -1269,8 +1333,7 @@
       });
     };
 
-    // --- RESEND CODE ---
-    window.handleResendCode = async function() {
+    window.handleResendCode = async function () {
       recoveryCode = Math.floor(100000 + Math.random() * 900000).toString();
       codeExpiry = Date.now() + 5 * 60 * 1000;
 
@@ -1287,8 +1350,7 @@
       }
     };
 
-    // --- RESET PASSWORD: Call Cloud Function to update password ---
-    window.handleResetPassword = async function() {
+    window.handleResetPassword = async function () {
       const pw = document.getElementById('new-password').value;
       const cpw = document.getElementById('confirm-new-password').value;
       if (!pw || !cpw) { showToast('error', 'Missing Fields', 'Please fill in all fields.'); return; }
@@ -1342,7 +1404,6 @@
       e.preventDefault();
       wrapper.style.transition = 'none';
       wrapper.className = 'wrapper recoverycode-mode';
-      // Re-enable transition after navigation
       setTimeout(() => { wrapper.style.transition = ''; }, 50);
       startResendTimer();
     }
@@ -1360,14 +1421,12 @@
       const cpw = document.getElementById('confirm-new-password').value;
       if (!pw || !cpw) return;
       if (pw !== cpw) { alert('Passwords do not match'); return; }
-      // TODO: Connect to backend to reset password
       alert('Password reset successfully!');
       goSignin(e);
     }
 
-    // Resend timer
     let resendInterval = null;
-    window.startResendTimer = function() {
+    window.startResendTimer = function () {
       const btn = document.getElementById('btn-resend');
       let seconds = 30;
       btn.disabled = true;
@@ -1388,7 +1447,6 @@
 
     function resendCode(e) {
       e.preventDefault();
-      // TODO: Connect to backend to resend code
       startResendTimer();
     }
 
@@ -1400,7 +1458,7 @@
       const word = words[wi];
       tw.textContent = deleting ? word.substring(0, ci--) : word.substring(0, ci++);
       if (!deleting && ci > word.length) { deleting = true; setTimeout(type, 1800); return; }
-      if (deleting && ci < 0)            { deleting = false; wi = (wi + 1) % words.length; }
+      if (deleting && ci < 0) { deleting = false; wi = (wi + 1) % words.length; }
       setTimeout(type, deleting ? 60 : 100);
     }
     type();
@@ -1413,12 +1471,11 @@
       const word = words2[wi2];
       tw2.textContent = deleting2 ? word.substring(0, ci2--) : word.substring(0, ci2++);
       if (!deleting2 && ci2 > word.length) { deleting2 = true; setTimeout(type2, 1800); return; }
-      if (deleting2 && ci2 < 0)            { deleting2 = false; wi2 = (wi2 + 1) % words2.length; }
+      if (deleting2 && ci2 < 0) { deleting2 = false; wi2 = (wi2 + 1) % words2.length; }
       setTimeout(type2, deleting2 ? 60 : 100);
     }
     type2();
 
-    // Typewriter 3 — Forgot Password + Recovery Code screens (synced)
     const words3 = ['Forgot', 'Recover', 'Lost'];
     let wi3 = 0, ci3 = 0, deleting3 = false;
     const tw3 = document.getElementById('typewriter3');
@@ -1432,20 +1489,21 @@
       tw3b.textContent = text;
       tw3c.textContent = text;
       if (!deleting3 && ci3 > word.length) { deleting3 = true; setTimeout(type3, 1800); return; }
-      if (deleting3 && ci3 < 0)            { deleting3 = false; wi3 = (wi3 + 1) % words3.length; }
+      if (deleting3 && ci3 < 0) { deleting3 = false; wi3 = (wi3 + 1) % words3.length; }
       setTimeout(type3, deleting3 ? 60 : 100);
     }
     type3();
 
     function toggleEye(inputId, iconId) {
       const input = document.getElementById(inputId);
-      const img   = document.getElementById(iconId);
+      const img = document.getElementById(iconId);
       const isHidden = input.type === 'password';
       input.type = isHidden ? 'text' : 'password';
       img.src = isHidden ? '../assets/eyeShow.png' : '../assets/eyeHide.png';
       img.alt = isHidden ? 'Hide password' : 'Show password';
     }
-  </script>       
+  </script>
 
 </body>
+
 </html>
