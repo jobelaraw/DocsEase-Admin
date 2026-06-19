@@ -46,7 +46,6 @@
       overflow: hidden;
     }
 
-    /* ── SIDEBAR ── */
     .sidebar {
       width: 310px;
       min-width: 310px;
@@ -204,7 +203,6 @@
       color: var(--navy);
     }
 
-    /* ── MAIN ── */
     .main {
       flex: 1;
       display: flex;
@@ -325,7 +323,6 @@
       object-fit: cover;
     }
 
-    /* ── CONTENT AREA ── */
     .form-wrapper {
       flex: 1;
       overflow-y: auto;
@@ -426,7 +423,6 @@
       grid-column: 1 / -1;
     }
 
-    /* ── COMBO BOX (Inputs with Dropdowns) ── */
     .combo-box {
       position: relative;
       display: flex;
@@ -496,7 +492,6 @@
       font-weight: 600;
     }
 
-    /* ── TAB BAR ── */
     .tab-bar {
       display: flex;
       margin-bottom: 16px;
@@ -622,7 +617,6 @@
       }
     }
 
-    /* ── REQUIREMENTS & STEPS ── */
     .btn-delete {
       background: transparent;
       border: 2px dashed #cbd5e1;
@@ -744,7 +738,6 @@
       display: block;
     }
 
-    /* ── ACTIONS BAR ── */
     .actions-bar {
       display: flex;
       justify-content: flex-end;
@@ -1005,6 +998,7 @@
   <script type="module">
     import { auth, db } from '../Firebase/firebase-config.js';
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { collection, getDocs, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     window.handleSignOut = async function(e) {
       e.stopPropagation();
@@ -1014,10 +1008,7 @@
       await signOut(auth);
       window.location.href = '../Authentication/auth.html';
     };
-    // 1. Swapped addDoc for doc and setDoc
-    import { collection, getDocs, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-
-    // A map to store Office Names and their exact Document IDs
+    
     let officesMap = {}; 
 
     onAuthStateChanged(auth, async (user) => {
@@ -1039,7 +1030,6 @@
       }
     });
 
-    // 1. POPULATE THE OFFICE DROPDOWN
     async function loadOffices() {
       const officeMenu = document.getElementById('office-menu');
       try {
@@ -1066,13 +1056,11 @@
       }
     }
 
-    // 2. PARSE THE FORM AND SAVE TO FIRESTORE
     window.saveService = async function() {
       const serviceName = document.getElementById('service-name-input').value.trim();
       const officeName = document.getElementById('office-input').value.trim();
       const description = document.getElementById('service-desc-input').value.trim();
 
-      // Simple error handling to ensure required fields are filled for now
       const allTextField = document.querySelectorAll('.combo-box input, input[type="text"], textarea');
       let emptyFields = false;
       allTextField.forEach(field => {
@@ -1125,10 +1113,7 @@
         return;
       }
 
-      // 3. Generate the Custom Document ID
-      // Converts "New Business Application" to "NEW-BUSINESS-APPLICATION"
       const formattedServiceName = serviceName.toUpperCase().replace(/\s+/g, '-');
-      // Combines it with the Office ID (e.g., "BPLO-NEW-BUSINESS-APPLICATION")
       const customServiceId = `${officeId}-${formattedServiceName}`;
 
       const channels = [];
@@ -1182,7 +1167,6 @@
         });
       });
 
-      // The structure matches your screenshots exactly
       const serviceData = {
         service_name: serviceName,
         description: description,
@@ -1196,11 +1180,9 @@
         saveBtn.textContent = "Saving...";
         saveBtn.disabled = true;
 
-        // 4. Point to the specific document ID and set the data
         const serviceRef = doc(db, "offices", officeId, "services", customServiceId);
         await setDoc(serviceRef, serviceData);
         
-        // Show success notification then redirect
         const successOverlay = document.createElement('div');
         successOverlay.innerHTML = `
           <div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999;">
@@ -1256,7 +1238,6 @@
       }
     });
 
-    // --- CUSTOM COMBOBOX LOGIC ---
     document.addEventListener('click', function (e) {
       if (!e.target.closest('.combo-box')) {
         document.querySelectorAll('.combo-menu.show').forEach(m => m.classList.remove('show'));
@@ -1277,7 +1258,6 @@
       if (input.hasAttribute('oninput')) updateStepTitle(input);
     }
 
-    // --- TAB LOGIC ---
     let tabCounter = 1;
 
     function switchTab(tabId, tabElement) {
@@ -1338,11 +1318,8 @@
       const allTabs = document.querySelectorAll('.tab-btn');
       const index = Array.from(allTabs).indexOf(tabBtn);
       const panes = document.querySelectorAll('.tab-pane');
-      // Remove the pane
       if (panes[index]) panes[index].remove();
-      // Remove the tab
       tabBtn.remove();
-      // Switch to first tab
       const firstTab = document.querySelector('.tab-btn');
       const firstPane = document.querySelector('.tab-pane');
       if (firstTab && firstPane) {
@@ -1351,7 +1328,6 @@
       }
     }
 
-    // --- REQUIREMENTS LOGIC ---
     function addRequirement(containerId) {
       const container = document.getElementById(containerId);
       const reqHTML = `
@@ -1377,7 +1353,6 @@
       container.insertAdjacentHTML('beforeend', reqHTML);
     }
 
-    // --- STEP-BY-STEP LOGIC ---
     function toggleStep(header) {
       header.closest('.step-card').classList.toggle('open');
     }
@@ -1453,7 +1428,6 @@
       initDragAndDrop(container);
     }
 
-    // --- DRAG AND DROP REORDERING ---
     let draggedItem = null;
 
     function initDragAndDrop(container) {

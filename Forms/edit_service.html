@@ -46,7 +46,6 @@
       overflow: hidden;
     }
 
-    /* ── SIDEBAR ── */
     .sidebar {
       width: 310px;
       min-width: 310px;
@@ -220,7 +219,6 @@
       color: var(--navy);
     }
 
-    /* ── MAIN ── */
     .main {
       flex: 1;
       display: flex;
@@ -337,7 +335,6 @@
       object-fit: cover;
     }
 
-    /* ── TAB BAR ── */
     .tab-bar {
       display: flex;
       margin: 0 40px 16px 40px;
@@ -369,7 +366,6 @@
       box-shadow: 0 2px 8px rgba(10, 30, 80, 0.10);
     }
 
-    /* ── SCROLLABLE CONTENT ── */
     .content {
       flex: 1;
       padding: 0 40px 0 40px;
@@ -393,7 +389,6 @@
       background: rgba(13, 31, 60, 0.3);
     }
 
-    /* ── FORM SECTIONS ── */
     .form-section {
       background: var(--card-bg);
       border-radius: 16px;
@@ -454,7 +449,6 @@
       min-height: 76px;
     }
 
-    /* ── TAB/SUB-SERVICE ── */
     .tab-chips {
       display: flex;
       flex-wrap: wrap;
@@ -530,7 +524,6 @@
       height: 17px;
     }
 
-    /* ── REQUIREMENTS ── */
     .req-group {
       background: #f0f4fb;
       border-radius: 12px;
@@ -622,7 +615,6 @@
       background: #f5f7fa;
     }
 
-    /* ── STEP CARD ── */
     .step-card {
       background: #f0f4fb;
       border-radius: 12px;
@@ -657,7 +649,6 @@
       height: 17px;
     }
 
-    /* ── ACTIONS BAR ── */
     .actions-bar {
       display: flex;
       justify-content: flex-end;
@@ -1000,7 +991,6 @@ Rosemarie Umali</textarea>
   </div>
 
   <script type="module">
-    // Import your setup and the specific Firebase Auth functions
     import { auth, db } from '../Firebase/firebase-config.js';
     import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
@@ -1030,8 +1020,6 @@ Rosemarie Umali</textarea>
         document.querySelector('.user-role').textContent = 'Admin ✓';
       }
     });
-    
-    // --- SCRIPT RELATED TO FIREBASE BELOW ---
 
     const params = new URLSearchParams(window.location.search);
     const currentService = params.get('service');

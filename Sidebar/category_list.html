@@ -44,7 +44,6 @@
       overflow: hidden;
     }
 
-    /* ── SIDEBAR AREA ── */
     .sidebar {
       width: 310px;
       min-width: 310px;
@@ -206,7 +205,6 @@
       color: var(--navy);
     }
 
-    /* ── MAIN WORKSPACE PANEL ── */
     .main {
       flex: 1;
       display: flex;
@@ -316,7 +314,6 @@
       object-fit: cover;
     }
 
-    /* ── WORKSPACE CONTENT ── */
     .content {
       flex: 1;
       padding: 24px 40px;
@@ -432,7 +429,6 @@
       object-fit: contain;
     }
 
-    /* ── OFFICE PANEL CARD ── */
     .panel-card {
       flex: 1;
       background: var(--card-bg);
@@ -445,7 +441,6 @@
       gap: 28px;
     }
 
-    /* ── SCROLLABLE SERVICE GRID ── */
     .services-scroll {
       flex: 1;
       overflow-y: auto;
@@ -627,9 +622,6 @@
       }
     });
 
-    // --- SCRIPTS RELATED TO FIREBASE BELOW ---
-
-    // Function for getting the services based on the office name in the URL query parameter
     const params = new URLSearchParams(window.location.search);
     const currentOffice = params.get('office');
 
@@ -659,10 +651,8 @@
           return;
         }
 
-        // Grab the auto-generated ID from the first result
         const actualOfficeId = officeSnapshot.docs[0].id;
         
-        // Path: offices -> [Current Office Name] -> services
         const servicesRef = collection(db, "offices", actualOfficeId, "services");
         const querySnapshot = await getDocs(servicesRef);
 
@@ -673,7 +663,6 @@
           loadingText.style.display = 'none';
         }
 
-        // Loop through the database results and build the HTML
         querySnapshot.forEach((doc) => {
           const serviceData = doc.data();
           const serviceId = doc.id; 

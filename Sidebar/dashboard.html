@@ -48,7 +48,6 @@
       overflow: hidden;
     }
 
-    /* ── SIDEBAR AREA ── */
     .sidebar {
       width: 310px;
       min-width: 310px;
@@ -126,7 +125,6 @@
       margin-top: auto;
     }
 
-    /* Logo Styling */
     .sidebar-logo {
       display: flex;
       align-items: center;
@@ -162,7 +160,6 @@
       display: block;
     }
 
-    /* Pushes navigation panel and leaves dynamic room for logout block */
     .sidebar-nav-container {
       flex: 1;
       display: flex;
@@ -214,7 +211,6 @@
       color: var(--navy);
     }
 
-    /* ─────────────── MAIN ─────────────── */
     .main {
       flex: 1;
       display: flex;
@@ -222,7 +218,6 @@
       overflow-y: auto;
     }
 
-    /* Top bar */
     .topbar {
       display: flex;
       justify-content: flex-end;
@@ -319,7 +314,6 @@
       object-fit: cover;
     }
 
-    /* Content area */
     .content {
       flex: 1;
       padding: 24px 32px 32px 32px;
@@ -328,7 +322,6 @@
       gap: 24px;
     }
 
-    /* Welcome banner */
     .welcome-banner {
       background: linear-gradient(135deg, var(--banner-from) 0%, var(--banner-to) 100%);
       border-radius: 20px;
@@ -404,7 +397,6 @@
       object-fit: contain;
     }
 
-    /* Stats row */
     .stats-row {
       display: flex;
       gap: 20px;
@@ -468,7 +460,6 @@
       color: #e74c3c;
     }
 
-    /* Bottom two-col */
     .bottom-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -565,7 +556,6 @@
       text-align: right;
     }
 
-    /* Recent activity */
     .activity-list {
       display: flex;
       flex-direction: column;
@@ -840,7 +830,7 @@
 
     window.handleSignOut = async function(e) {
       e.stopPropagation();
-      // Show loading overlay
+      
       const overlay = document.createElement('div');
       overlay.id = 'signout-overlay';
       overlay.innerHTML = `
@@ -861,7 +851,7 @@
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) { window.location.href = '../Authentication/auth.html'; return; }
-      // Retry token check for newly created accounts (claim may take a moment)
+      
       let token = await user.getIdTokenResult();
       if (!token.claims.admin) {
         await new Promise(resolve => setTimeout(resolve, 2000));
@@ -876,20 +866,15 @@
         document.querySelector('.user-role').textContent = 'Admin ✓';
       }
     });
-    
-    // --- SCRIPT RELATED TO FIREBASE BELOW ---
 
     async function loadDashboardCounts() {
       try {
-        // Count Offices
         const officesSnap = await getCountFromServer(collection(db, "offices"));
         document.getElementById('total-offices-count').innerText = officesSnap.data().count;
 
-        // Count ALL Services (across all offices)
         const servicesSnap = await getCountFromServer(collectionGroup(db, "services"));
         document.getElementById('total-services-count').innerText = servicesSnap.data().count;
 
-        // Count Users
         const usersSnap = await getCountFromServer(collection(db, "users"));
         document.getElementById('total-users-count').innerText = usersSnap.data().count;
 
