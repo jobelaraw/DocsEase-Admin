@@ -6,494 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DocsEase – Category List</title>
   <link rel="icon" type="image/png" href="../assets/logo_whitebg.png" />
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  <link rel="stylesheet" href="../css/category_list.css" />
+  <link rel="stylesheet" href="../css/sidebar.css" />
+  <link rel="stylesheet" href="../css/profile.css" />
+  <script src="../functions/profile.js"></script>
 
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    :root {
-      --navy: #002D62;
-      --sidebar-bg: #ffffff;
-      --main-bg: #dce8f5;
-      --card-bg: #ffffff;
-      --text-dark: #0d1f3c;
-      --text-muted: #6b7a99;
-      --active-bg: #e8eef8;
-      --shadow: 0 8px 24px rgba(10, 30, 80, 0.08);
-      --btn-blue: #406AAF;
-    }
-
-    body,
-    input,
-    button,
-    a {
-      font-family: 'Inter', sans-serif;
-    }
-
-    body {
-      height: 100vh;
-      max-height: 100vh;
-      display: flex;
-      background: var(--main-bg);
-      overflow: hidden;
-    }
-
-    .sidebar {
-      width: 310px;
-      min-width: 310px;
-      background: var(--sidebar-bg);
-      display: flex;
-      flex-direction: column;
-      padding: 28px 0 24px 0;
-      box-shadow: 2px 0 12px rgba(10, 30, 80, 0.07);
-      z-index: 10;
-      height: 100%;
-      transition: width 0.25s ease, min-width 0.25s ease;
-      overflow: hidden;
-    }
-
-    .sidebar.collapsed {
-      width: 72px;
-      min-width: 72px;
-    }
-
-    .sidebar.collapsed .sidebar-logo {
-      padding: 0 0 32px 0;
-      justify-content: center;
-    }
-
-    .sidebar.collapsed .nav-item {
-      justify-content: center;
-      padding: 14px;
-    }
-
-    .logo-text,
-    .nav-label {
-      overflow: hidden;
-      white-space: nowrap;
-      opacity: 1;
-      max-width: 200px;
-      transition: opacity 0.25s ease, max-width 0.25s ease;
-    }
-
-    .sidebar.collapsed .logo-text,
-    .sidebar.collapsed .nav-label {
-      opacity: 0;
-      max-width: 0;
-    }
-
-    .btn-collapse {
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      opacity: 0.6;
-      transition: opacity 0.18s;
-    }
-
-    .btn-collapse:hover {
-      opacity: 1;
-    }
-
-    .btn-collapse img {
-      width: 30px;
-      height: 30px;
-      object-fit: contain;
-    }
-
-    .sidebar.collapsed .btn-collapse {
-      margin-left: 0;
-    }
-
-    .sidebar-bottom {
-      padding: 12px 16px;
-      margin-top: auto;
-    }
-
-    .sidebar-logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 0 28px 32px 28px;
-    }
-
-    .sidebar-logo .logo-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 8px;
-      overflow: hidden;
-      flex-shrink: 0;
-    }
-
-    .sidebar-logo .logo-icon img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-
-    .sidebar-logo .logo-text {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      line-height: 1;
-    }
-
-    .sidebar-logo .brand-img {
-      height: 17px;
-      width: auto;
-      object-fit: contain;
-      display: block;
-    }
-
-    .sidebar-nav-container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow-y: auto;
-    }
-
-    .sidebar-nav {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .nav-item {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      padding: 14px 16px;
-      border-radius: 10px;
-      cursor: pointer;
-      text-decoration: none;
-      transition: background 0.18s;
-    }
-
-    .nav-item:hover,
-    .nav-item.active {
-      background: var(--active-bg);
-    }
-
-    .nav-item .nav-icon {
-      width: 26px;
-      height: 26px;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .nav-item .nav-icon img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-
-    .nav-item .nav-label {
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--navy);
-    }
-
-    .main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      overflow: hidden;
-    }
-
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 18px 40px 0 40px;
-      flex-shrink: 0;
-    }
-
-    .btn-back {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: var(--navy);
-      padding: 8px 0;
-      transition: opacity 0.2s;
-      flex-shrink: 0;
-    }
-
-    .btn-back:hover {
-      opacity: 0.6;
-    }
-
-    .user-profile {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      cursor: pointer;
-      position: relative;
-    }
-
-    .profile-dropdown {
-      position: absolute;
-      top: 54px;
-      right: 0;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-      min-width: 180px;
-      padding: 8px 0;
-      display: none;
-      z-index: 100;
-    }
-    .profile-dropdown.show { display: block; }
-    .profile-dropdown .dd-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 20px;
-      font-size: 0.88rem;
-      font-weight: 600;
-      color: var(--text-dark);
-      cursor: pointer;
-      transition: background 0.15s;
-      border: none;
-      background: none;
-      width: 100%;
-      text-align: left;
-    }
-    .profile-dropdown .dd-item:hover { background: #f0f4fb; }
-    .profile-dropdown .dd-item.disabled { opacity: 0.4; cursor: not-allowed; }
-    .profile-dropdown .dd-item.disabled:hover { background: none; }
-    .profile-dropdown .dd-divider { height: 1px; background: #e8eef8; margin: 4px 0; }
-    .profile-dropdown .dd-item.logout { color: #e74c3c; }
-
-    .user-info {
-      text-align: right;
-      line-height: 1.2;
-    }
-
-    .user-info .user-name {
-      font-size: 0.9rem;
-      font-weight: 700;
-      color: var(--text-dark);
-    }
-
-    .user-info .user-role {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      font-weight: 500;
-    }
-
-    .user-avatar {
-      width: 44px;
-      height: 44px;
-      border-radius: 10px;
-      overflow: hidden;
-      background: #d9d9d9;
-      flex-shrink: 0;
-    }
-
-    .user-avatar img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .content {
-      flex: 1;
-      padding: 24px 40px;
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-      overflow: hidden;
-    }
-
-    .header-group {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      width: 100%;
-      flex-shrink: 0;
-    }
-
-    .title-area h2 {
-      font-size: 2.2rem;
-      font-weight: 700;
-      color: #000;
-      letter-spacing: -0.01em;
-      margin-bottom: 4px;
-    }
-
-    .title-area p {
-      font-size: 0.95rem;
-      color: #4a4a4a;
-      font-weight: 500;
-    }
-
-    .actions-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 20px;
-      width: 100%;
-      flex-shrink: 0;
-    }
-
-    .search-input-wrapper {
-      position: relative;
-      width: 100%;
-      max-width: 370px;
-    }
-
-    .search-input-wrapper input {
-      width: 100%;
-      height: 46px;
-      background: #ffffff;
-      border: 1px solid #b5acac;
-      border-radius: 30px;
-      padding: 0 16px 0 65px;
-      font-size: 1rem;
-      font-weight: 600;
-      color: var(--text-dark);
-      outline: none;
-      transition: border-color 0.2s ease, background-color 0.2s ease;
-    }
-
-    .search-input-wrapper input:focus {
-      border-color: #2057CE;
-      background-color: #f0f4fb;
-    }
-
-    .search-input-wrapper input::placeholder {
-      color: #9ba6b9;
-    }
-
-    .search-icon-embed {
-      position: absolute;
-      left: 17px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 25px;
-      height: 25px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .search-icon-embed img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-
-    .btn-add-service {
-      height: 52px;
-      padding: 0 24px;
-      background: linear-gradient(to right, #0a3966, #3b7bb5);
-      border: none;
-      border-radius: 12px;
-      color: #fff;
-      font-size: 1rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(10, 40, 90, 0.15);
-      transition: opacity 0.2s;
-      flex-shrink: 0;
-    }
-
-    .btn-add-service:hover {
-      opacity: 0.90;
-    }
-
-    .btn-add-service img {
-      height: 18px;
-      width: auto;
-      object-fit: contain;
-    }
-
-    .panel-card {
-      flex: 1;
-      background: var(--card-bg);
-      border-radius: 20px;
-      padding: 32px 25px;
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      gap: 28px;
-    }
-
-    .services-scroll {
-      flex: 1;
-      overflow-y: auto;
-      padding-right: 20px;
-    }
-
-    .services-scroll::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .services-scroll::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .services-scroll::-webkit-scrollbar-thumb {
-      background: rgba(13, 31, 60, 0.15);
-      border-radius: 10px;
-    }
-
-    .services-scroll::-webkit-scrollbar-thumb:hover {
-      background: rgba(13, 31, 60, 0.3);
-    }
-
-    .services-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 30px;
-    }
-
-    .service-card {
-      background: var(--btn-blue);
-      border: none;
-      border-radius: 14px;
-      color: #fff;
-      font-size: 1.2rem;
-      font-weight: 500;
-      padding: 44px 40px;
-      text-align: center;
-      cursor: pointer;
-      line-height: 1.4;
-      transition: opacity 0.2s, transform 0.2s;
-      min-height: 150px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .service-card:hover {
-      opacity: 0.88;
-      transform: translateY(-2px);
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-  </style>
 </head>
 
 <body>
@@ -543,20 +60,7 @@
         Back
       </button>
 
-      <div class="user-profile" onclick="toggleDropdown(event)">
-        <div class="user-info">
-          <div class="user-name">Loading...</div>
-          <div class="user-role">Admin ✓</div>
-        </div>
-        <div class="user-avatar">
-          <img src="../assets/user_profile.png" alt="Admin profile" />
-        </div>
-        <div class="profile-dropdown" id="profile-dropdown">
-          <button class="dd-item disabled" onclick="event.stopPropagation()">Edit Profile</button>
-          <div class="dd-divider"></div>
-          <button class="dd-item logout" onclick="handleSignOut(event)">Sign Out</button>
-        </div>
-      </div>
+      <div id="profile-placeholder"></div>
     </header>
 
     <div class="content">
@@ -593,7 +97,7 @@
 
   <script type="module">
     import { auth, db } from '../Firebase/firebase-config.js';
-    import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { collection, query, where, getDocs, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
     window.handleSignOut = async function(e) {
@@ -606,19 +110,28 @@
     };
 
     onAuthStateChanged(auth, async (user) => {
-      if (!user) { window.location.href = '../Authentication/auth.html'; return; }
-      let token = await user.getIdTokenResult();
-      if (!token.claims.admin) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        await user.getIdToken(true);
-        token = await user.getIdTokenResult();
-      }
-      if (!token.claims.admin) {
-        await auth.signOut();
+      if (!user) {
         window.location.href = '../Authentication/auth.html';
-      } else {
-        document.querySelector('.user-name').textContent = user.displayName || user.email;
-        document.querySelector('.user-role').textContent = 'Admin ✓';
+        return;
+      }
+
+      try {
+        const adminDoc = await getDoc(doc(db, 'admin', user.uid));
+
+        if (!adminDoc.exists()) {
+          await signOut(auth);
+          window.location.href = '../Authentication/auth.html';
+          return;
+        }
+
+        const userNameEl = document.querySelector('.user-name');
+        const userRoleEl = document.querySelector('.user-role');
+        if (userNameEl) userNameEl.textContent = user.displayName || user.email;
+        if (userRoleEl) userRoleEl.textContent = 'Admin ✓';
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        await signOut(auth);
+        window.location.href = '../Authentication/auth.html';
       }
     });
 
@@ -652,7 +165,8 @@
         }
 
         const actualOfficeId = officeSnapshot.docs[0].id;
-        
+        window.currentOfficeId = actualOfficeId; // exposed so openService() (outside the module) can read it
+
         const servicesRef = collection(db, "offices", actualOfficeId, "services");
         const querySnapshot = await getDocs(servicesRef);
 
@@ -667,8 +181,9 @@
           const serviceData = doc.data();
           const serviceId = doc.id; 
           
+          const safeId = serviceId.replace(/'/g, "\\'");
           const serviceHTML = `
-            <div class="service-card" onclick="openService('${serviceData.service_name || serviceId}')">
+            <div class="service-card" onclick="openService('${safeId}')">
               <p class="card-title">${serviceData.service_name || serviceId}</p>
             </div>
           `;
@@ -694,14 +209,6 @@
       icon.alt = collapsed ? 'Expand' : 'Collapse';
     }
 
-    function toggleDropdown(e) {
-      e.stopPropagation();
-      document.getElementById('profile-dropdown').classList.toggle('show');
-    }
-    document.addEventListener('click', () => {
-      document.getElementById('profile-dropdown').classList.remove('show');
-    });
-
     function filterServices(query) {
       const q = query.trim().toLowerCase();
       const cards = document.querySelectorAll('#services-grid .service-card');
@@ -715,10 +222,23 @@
       document.getElementById('no-results').style.display = visible === 0 ? 'block' : 'none';
     }
     
-    function openService(name) {
-      window.location.href = '../Forms/edit_service.html?service=' + encodeURIComponent(name);
+    function openService(serviceId) {
+      if (!window.currentOfficeId) {
+        console.error('Office ID not resolved yet.');
+        return;
+      }
+      window.location.href = '../Forms/edit_service.html?officeId=' + encodeURIComponent(window.currentOfficeId) + '&serviceId=' + encodeURIComponent(serviceId);
     }
   </script>
+
+  <script>
+    fetch('../Authentication/profile.html')
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById('profile-placeholder').innerHTML = html;
+        if (window.currentUser) updateProfileDisplay(window.currentUser);
+      });
+</script>
 
 </body>
 </html>

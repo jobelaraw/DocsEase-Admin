@@ -1,0 +1,14 @@
+    <div class="user-profile" onclick="toggleDropdown(event)">
+    <div class="user-info">
+        <div class="user-name">Loading...</div>
+        <div class="user-role">Admin ✓</div>
+    </div>
+    <div class="user-avatar">
+        <img src="../assets/user_profile.png" alt="Admin profile" />
+    </div>
+    <div class="profile-dropdown" id="profile-dropdown">
+        <button class="dd-item disabled" onclick="event.stopPropagation()">Edit Profile</button>
+        <div class="dd-divider"></div>
+        <button class="dd-item logout" onclick="handleSignOut(event)">Sign Out</button>
+    </div>
+    </div>
