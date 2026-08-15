@@ -594,8 +594,7 @@ window.handleSignIn = async function () {
       if (!emailToReset) { showToast('error', 'Session Expired', 'Your session has expired. Please start the password reset process again.'); return; }
 
       try {
-        const response = await fetch('https://resetuserpassword-bshowuzioa-uc.a.run.app', {
-          method: 'POST',
+        const response = await fetch('https://us-central1-docsease-efacc.cloudfunctions.net/adminResetUserPassword', {          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: emailToReset, newPassword: pw })
         });

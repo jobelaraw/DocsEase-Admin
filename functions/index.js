@@ -4,7 +4,7 @@ const cors = require("cors")({ origin: true });
 
 admin.initializeApp();
 
-exports.resetUserPassword = onRequest((req, res) => {
+exports.adminResetUserPassword = onRequest({ invoker: "public" }, (req, res) => {
   cors(req, res, async () => {
     if (req.method !== "POST") {
       return res.status(405).json({ error: "Method not allowed" });
