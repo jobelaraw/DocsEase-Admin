@@ -1,14 +1,347 @@
-    <div class="user-profile" onclick="toggleDropdown(event)">
-    <div class="user-info">
-        <div class="user-name">Loading...</div>
-        <div class="user-role">Admin ✓</div>
+<!-- Hidden until avatar loads -->
+<div class="user-profile" id="profile-container" onclick="toggleDropdown(event)" style="opacity: 0; transition: opacity 0.15s ease-in;">
+  <div class="user-info">
+      <div class="user-name">Loading...</div>
+      <div class="user-role">Admin ✓</div>
+  </div>
+  <div class="user-avatar">
+      <!-- No default src, avoids flicker -->
+      <img src="" alt="Admin profile" id="topbar-avatar-img" />
+  </div>
+  <div class="profile-dropdown" id="profile-dropdown">
+      <button class="dd-item" onclick="openEditProfile(event)">Edit Profile</button>
+      <div class="dd-divider"></div>
+      <button class="dd-item logout" onclick="triggerSignOut(event)">Sign Out</button>
+  </div>
+</div>
+
+<div class="edit-modal-overlay" id="edit-profile-modal">
+  <div class="edit-modal-box" onclick="event.stopPropagation()">
+    <div class="edit-modal-header">
+      <h2>EDIT PROFILE</h2>
+      <button class="btn-close-modal" onclick="attemptCloseModal()">✕</button>
     </div>
-    <div class="user-avatar">
-        <img src="../assets/user_profile.png" alt="Admin profile" />
+    
+    <div class="modal-avatar-large">
+      <img id="modal-current-avatar" src="../assets/user_profile.png" alt="Current Avatar" />
     </div>
-    <div class="profile-dropdown" id="profile-dropdown">
-        <button class="dd-item disabled" onclick="event.stopPropagation()">Edit Profile</button>
-        <div class="dd-divider"></div>
-        <button class="dd-item logout" onclick="handleSignOut(event)">Sign Out</button>
+    <div class="modal-email" id="modal-user-email">Loading...</div>
+    <div class="modal-office" id="modal-user-office"></div>
+    
+    <div class="avatar-grid" id="avatar-selection-grid">
+      <img src="../assets/profileimage_male1.jpg" class="avatar-option" onclick="selectAvatar(this)" />
+      <img src="../assets/profileimage_male2.jpg" class="avatar-option" onclick="selectAvatar(this)" />
+      <img src="../assets/profileimage_male3.jpg" class="avatar-option" onclick="selectAvatar(this)" />
+      <img src="../assets/profileimage_male4.jpg" class="avatar-option" onclick="selectAvatar(this)" />
+      <img src="../assets/profileimage_female1.jpg" class="avatar-option" onclick="selectAvatar(this)" />
+      <img src="../assets/profileimage_female2.jpg" class="avatar-option" onclick="selectAvatar(this)" />
+      <img src="../assets/profileimage_female3.jpg" class="avatar-option" onclick="selectAvatar(this)" />
+      <img src="../assets/profileimage_female4.jpg" class="avatar-option" onclick="selectAvatar(this)" />
     </div>
+
+    <div class="edit-field-group">
+      <label>FULL NAME</label>
+      <input type="text" id="modal-full-name" placeholder="Enter your full name" oninput="checkChanges()" />
     </div>
+
+    <div class="edit-actions">
+      <button type="button" class="btn-modal-confirmleave" onclick="attemptCloseModal()">Cancel</button>
+      <button type="button" class="btn-modal-save" id="btn-save-profile" onclick="saveProfileChanges()" disabled>Save Changes</button>
+    </div>
+
+    <hr class="modal-divider" />
+
+    <div class="delete-prompt">
+      Do you want to delete your admin account? <a onclick="handleDeleteAccount()">Delete Account</a>
+    </div>
+  </div>
+</div>
+
+<script>
+// Cached load
+(function() {
+  const cachedAvatar = localStorage.getItem('docsEase_avatar') || '../assets/user_profile.png';
+  const cachedName = localStorage.getItem('docsEase_name');
+  const cachedRole = localStorage.getItem('docsEase_role');
+  
+  const imgEl = document.getElementById('topbar-avatar-img');
+  const nameEl = document.querySelector('.user-name');
+  const roleEl = document.querySelector('.user-role');
+  const profileContainer = document.getElementById('profile-container');
+
+  if (imgEl) {
+    imgEl.src = cachedAvatar;
+    if (cachedRole === 'super_admin') imgEl.classList.add('avatar-super-admin');
+  }
+  
+  if (nameEl) {
+    nameEl.textContent = cachedRole === 'super_admin' ? 'Super Admin' : (cachedName || 'Loading...');
+  }
+  
+  if (roleEl) {
+    roleEl.textContent = cachedRole === 'super_admin' ? 'Profile' : 'Admin ✓';
+  }
+  
+  if (profileContainer) profileContainer.style.opacity = '1';
+})();
+
+let initialName = '';
+let initialAvatarFile = '';
+let selectedAvatarFile = '';
+
+function toggleDropdown(e) {
+  e.stopPropagation();
+  document.getElementById('profile-dropdown')?.classList.toggle('show');
+}
+
+document.addEventListener('click', () => {
+  document.getElementById('profile-dropdown')?.classList.remove('show');
+});
+
+function getFileName(url) {
+  if (!url) return 'user_profile.png';
+  return url.split('/').pop().split('?')[0];
+}
+
+function openEditProfile(e) {
+  e.stopPropagation();
+  document.getElementById('profile-dropdown').classList.remove('show');
+  
+  Promise.all([
+    import('../Firebase/firebase-config.js'),
+    import('https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js')
+  ]).then(async ([{ auth, db }, { doc, getDoc }]) => {
+    const activeUser = window.currentUser || auth.currentUser;
+    if (activeUser) {
+      initialName = activeUser.displayName || '';
+      initialAvatarFile = getFileName(activeUser.photoURL || '../assets/user_profile.png');
+      selectedAvatarFile = initialAvatarFile;
+
+      document.getElementById('modal-user-email').textContent = activeUser.email || 'No email found';
+      document.getElementById('modal-full-name').value = initialName;
+      document.getElementById('modal-current-avatar').src = activeUser.photoURL || '../assets/user_profile.png';
+
+      // Hide office label for super admins
+      const officeEl = document.getElementById('modal-user-office');
+      try {
+        const adminSnap = await getDoc(doc(db, 'admin', activeUser.uid));
+        const adminData = adminSnap.exists() ? adminSnap.data() : {};
+        if (adminData.role === 'super_admin' || !adminData.admin_office) {
+          officeEl.textContent = '';
+          officeEl.style.display = 'none';
+        } else {
+          officeEl.textContent = adminData.admin_office;
+          officeEl.style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Error fetching admin office:', error);
+        officeEl.textContent = '';
+        officeEl.style.display = 'none';
+      }
+
+      document.querySelectorAll('.avatar-option').forEach(opt => {
+        opt.classList.remove('selected');
+        if (getFileName(opt.src) === initialAvatarFile) {
+          opt.classList.add('selected');
+          document.getElementById('modal-current-avatar').src = opt.src;
+        }
+      });
+    }
+    checkChanges();
+    document.getElementById('edit-profile-modal').classList.add('show');
+  });
+}
+
+function selectAvatar(element) {
+  document.querySelectorAll('.avatar-option').forEach(opt => opt.classList.remove('selected'));
+  element.classList.add('selected');
+  selectedAvatarFile = getFileName(element.src);
+  document.getElementById('modal-current-avatar').src = element.src;
+  checkChanges();
+}
+
+function checkChanges() {
+  const currentName = document.getElementById('modal-full-name').value.trim();
+  const saveBtn = document.getElementById('btn-save-profile');
+  
+  const hasNameChange = currentName !== initialName;
+  const hasAvatarChange = selectedAvatarFile !== initialAvatarFile;
+  const hasChanges = hasNameChange || hasAvatarChange;
+  
+  saveBtn.disabled = !(hasChanges && currentName.length > 0);
+  return hasChanges;
+}
+
+function attemptCloseModal() {
+  if (checkChanges()) {
+    window.showConfirmToast({
+      type: 'warning',
+      title: 'Unsaved Changes',
+      msg: 'You have unsaved changes. Are you sure you want to leave without saving?',
+      confirmText: 'Leave',
+      cancelText: 'Stay',
+      onConfirm: () => {
+        document.getElementById('edit-profile-modal').classList.remove('show');
+      }
+    });
+  } else {
+    document.getElementById('edit-profile-modal').classList.remove('show');
+  }
+}
+
+window.saveProfileChanges = async function() {
+  const newName = document.getElementById('modal-full-name').value.trim();
+  if (!newName) return;
+
+  const btn = document.getElementById('btn-save-profile');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  try {
+    const { auth, db } = await import('../Firebase/firebase-config.js');
+    const { updateProfile } = await import('https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js');
+    const { doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js');
+
+    const user = auth.currentUser;
+    if (!user) throw new Error('No authenticated user found.');
+
+    const finalPhotoURL = document.getElementById('modal-current-avatar').src;
+
+    await updateProfile(user, { displayName: newName, photoURL: finalPhotoURL });
+    
+    await updateDoc(doc(db, 'admin', user.uid), {
+      full_name: newName,
+      updatedAt: new Date()
+    });
+
+    window.currentUser = user;
+    window.updateProfileDisplay(user);
+    
+    initialName = newName;
+    initialAvatarFile = getFileName(finalPhotoURL);
+    checkChanges();
+
+    document.getElementById('edit-profile-modal').classList.remove('show');
+    if (window.showToast) window.showToast('success', 'Profile Updated', 'Your changes have been saved.', 'OK');
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    if (window.showToast) window.showToast('error', 'Update Failed', 'Could not update profile.', 'OK');
+  } finally {
+    btn.textContent = 'Save Changes';
+    checkChanges();
+  }
+};
+
+window.handleDeleteAccount = function() {
+  window.showConfirmToast({
+    type: 'error',
+    title: 'Delete Account?',
+    msg: 'This action is irreversible. You will lose your credentials and completely delete your admin account.',
+    confirmText: 'Yes, Delete',
+    cancelText: 'Cancel',
+    onConfirm: async () => {
+      if (window.showToast) {
+        window.showToast('loading', 'Deleting Account', 'Please wait while we delete your account...', '');
+      }
+      try {
+        const { auth, db } = await import('../Firebase/firebase-config.js');
+        const { deleteUser } = await import('https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js');
+        const { doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js');
+
+        const user = auth.currentUser;
+        if (user) {
+          await deleteDoc(doc(db, 'admin', user.uid));
+          await deleteUser(user);
+          localStorage.removeItem('docsEase_avatar');
+          localStorage.removeItem('docsEase_name');
+          window.location.href = '../Authentication/auth.html?accountDeleted=true';
+        }
+      } catch (error) {
+        console.error('Error deleting account:', error);
+        if (error.code === 'auth/requires-recent-login') {
+            if (window.showToast) window.showToast('error', 'Re-authentication Required', 'Please log out and log back in to delete your account.', 'OK');
+        } else {
+            if (window.showToast) window.showToast('error', 'Delete Failed', 'Failed to delete account.', 'OK');
+        }
+      }
+    }
+  });
+};
+
+window.triggerSignOut = function (e) {
+  if (e) e.stopPropagation();
+  window.showConfirmToast({
+    type: 'warning',
+    title: 'Sign out?',
+    msg: 'Are you sure you want to sign out?',
+    confirmText: 'Yes, Sign Out',
+    cancelText: 'No',
+    onConfirm: async () => {
+      try {
+        localStorage.removeItem('docsEase_avatar');
+        localStorage.removeItem('docsEase_name');
+        
+        const { auth } = await import('../Firebase/firebase-config.js');
+        const { signOut } = await import('https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js');
+        await signOut(auth);
+        window.location.href = '../Authentication/auth.html';
+      } catch (error) {
+        console.error('Sign out failed:', error);
+      }
+    }
+  });
+};
+
+// Avatar & role updater
+window.updateProfileDisplay = async function (user) {
+  window.currentUser = user;
+  const nameEl = document.querySelector('.user-name');
+  const roleEl = document.querySelector('.user-role');
+  const avatarImg = document.getElementById('topbar-avatar-img');
+  
+  const displayName = user.displayName || user.email;
+
+  // Check user role
+  try {
+    const { db } = await import('../Firebase/firebase-config.js');
+    const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js');
+    
+    const adminDoc = await getDoc(doc(db, 'admin', user.uid));
+    if (adminDoc.exists() && adminDoc.data().role === 'super_admin') {
+      localStorage.setItem('docsEase_role', 'super_admin');
+      if (nameEl) nameEl.textContent = 'Super Admin';
+      if (roleEl) roleEl.textContent = 'Profile';
+      if (avatarImg) avatarImg.classList.add('avatar-super-admin');
+    } else {
+      localStorage.setItem('docsEase_role', 'admin');
+      if (nameEl) nameEl.textContent = displayName;
+      if (roleEl) roleEl.textContent = 'Admin ✓';
+      if (avatarImg) avatarImg.classList.remove('avatar-super-admin');
+    }
+  } catch (error) {
+    console.error("Error fetching role:", error);
+  }
+  
+  if (avatarImg && user.photoURL) {
+      avatarImg.src = user.photoURL;
+      localStorage.setItem('docsEase_avatar', user.photoURL);
+  }
+  if (displayName) {
+      localStorage.setItem('docsEase_name', displayName);
+  }
+
+  const profileContainer = document.getElementById('profile-container');
+  if (profileContainer) profileContainer.style.opacity = '1';
+};
+
+// Fallback auth listener
+import('../Firebase/firebase-config.js').then(({ auth }) => {
+  import('https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js').then(({ onAuthStateChanged }) => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        window.updateProfileDisplay(user);
+      }
+    });
+  });
+});
+</script>

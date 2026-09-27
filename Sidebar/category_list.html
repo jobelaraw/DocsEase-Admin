@@ -9,7 +9,9 @@
   <link rel="stylesheet" href="../css/category_list.css" />
   <link rel="stylesheet" href="../css/sidebar.css" />
   <link rel="stylesheet" href="../css/profile.css" />
-  <script src="../functions/profile.js"></script>
+  <link rel="stylesheet" href="../css/toast.css" />
+  <script src="../functions/toast.js"></script>
+  <script type="module" src="../functions/role-guard.js"></script>
 
 </head>
 
@@ -36,9 +38,24 @@
           <span class="nav-label">Service Management</span>
         </a>
 
+        <a href="map_management.html" class="nav-item" title="Map Management">
+          <div class="nav-icon"><img src="../assets/map_mngment.png" alt="Map Management" /></div>
+          <span class="nav-label">Map Management</span>
+        </a>
+
         <a href="../Sidebar/analytics.html" class="nav-item">
           <div class="nav-icon"><img src="../assets/analytics.png" alt="Analytics" /></div>
           <span class="nav-label">Analytics</span>
+        </a>
+
+        <a href="review_queue.html" class="nav-item" title="Review Queue">
+        <div class="nav-icon"><img src="../assets/review_queue.png" alt="Review Queue" /></div>
+        <span class="nav-label">Review Queue</span>
+      </a>
+
+      <a href="activity_log.html" class="nav-item" title="Activity Log">
+      <div class="nav-icon"><img src="../assets/activity_log.png" alt="Activity Log" /></div>
+        <span class="nav-label">Activity Log</span>
         </a>
       </nav>
     </div>
@@ -100,15 +117,6 @@
     import { collection, query, where, getDocs, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-    window.handleSignOut = async function(e) {
-      e.stopPropagation();
-      const overlay = document.createElement('div');
-      overlay.innerHTML = '<div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999;"><div style="background:#fff;border-radius:20px;padding:40px 36px 32px;text-align:center;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2);"><div style="width:48px;height:48px;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;"><div style="width:48px;height:48px;border:4px solid rgba(42,125,225,0.2);border-top-color:#2a7de1;border-radius:50%;animation:spin 0.7s linear infinite;"></div></div><div style="font-size:1.3rem;font-weight:800;color:#1a2540;margin-bottom:8px;">Signing Out...</div><div style="font-size:0.88rem;color:#555;">Please wait.</div></div></div>';
-      document.body.appendChild(overlay);
-      await signOut(auth);
-      window.location.href = '../Authentication/auth.html';
-    };
-
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
         window.location.href = '../Authentication/auth.html';
@@ -165,7 +173,7 @@
         }
 
         const actualOfficeId = officeSnapshot.docs[0].id;
-        window.currentOfficeId = actualOfficeId; // exposed so openService() (outside the module) can read it
+        window.currentOfficeId = actualOfficeId; // used by openService()
 
         const servicesRef = collection(db, "offices", actualOfficeId, "services");
         const querySnapshot = await getDocs(servicesRef);
@@ -235,7 +243,16 @@
     fetch('../Authentication/profile.html')
       .then(res => res.text())
       .then(html => {
-        document.getElementById('profile-placeholder').innerHTML = html;
+        const template = document.createElement('template');
+        template.innerHTML = html;
+        const script = template.content.querySelector('script');
+        const profilePlaceholder = document.getElementById('profile-placeholder');
+        profilePlaceholder.replaceChildren(template.content);
+        if (script) {
+          const executableScript = document.createElement('script');
+          executableScript.textContent = script.textContent;
+          document.body.appendChild(executableScript);
+        }
         if (window.currentUser) updateProfileDisplay(window.currentUser);
       });
 </script>

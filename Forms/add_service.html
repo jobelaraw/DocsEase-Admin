@@ -7,6 +7,9 @@
   <title>DocsEase – Add Service</title>
   <link rel="icon" type="image/png" href="../assets/logo_whitebg.png" />
   <link rel="stylesheet" href="../css/add_service.css" />
+  <link rel="stylesheet" href="../css/toast.css" />
+  <script src="../functions/toast.js"></script>
+  <script type="module" src="../functions/role-guard.js"></script>
 </head>
 
 <body>
@@ -26,9 +29,21 @@
           <div class="nav-icon"><img src="../assets/service_mngment.png" alt="Service Management" /></div>
           <span class="nav-label">Service Management</span>
         </a>
+         <a href="../Sidebar/map_management.html" class="nav-item" title="Map Management">
+          <div class="nav-icon"><img src="../assets/map_mngment.png" alt="Map Management" /></div>
+          <span class="nav-label">Map Management</span>
+        </a>
         <a href="../Sidebar/analytics.html" class="nav-item">
           <div class="nav-icon"><img src="../assets/analytics.png" alt="Analytics" /></div>
           <span class="nav-label">Analytics</span>
+        </a>
+        <a href="../Sidebar/review_queue.html" class="nav-item" title="Review Queue">
+          <div class="nav-icon"><img src="../assets/review_queue.png" alt="Review Queue" /></div>
+          <span class="nav-label">Review Queue</span>
+        </a>
+      <a href="../Sidebar/activity_log.html" class="nav-item" title="Activity Log">
+      <div class="nav-icon"><img src="../assets/activity_log.png" alt="Activity Log" /></div>
+        <span class="nav-label">Activity Log</span>
         </a>
       </nav>
     </div>
@@ -42,7 +57,7 @@
   <div class="main">
     <header class="topbar">
       <div class="topbar-left">
-        <button class="btn-back" onclick="history.back()">
+        <button class="btn-back" onclick="window.confirmLeavePage()">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
             stroke-linecap="round" stroke-linejoin="round">
             <polyline points="15 18 9 12 15 6" />
@@ -50,20 +65,7 @@
         </button>
         <h1 class="page-title">Add Service</h1>
       </div>
-      <div class="user-profile" onclick="toggleDropdown(event)">
-        <div class="user-info">
-          <div class="user-name">Loading...</div>
-          <div class="user-role">Admin ✓</div>
-        </div>
-        <div class="user-avatar">
-          <img src="../assets/user_profile.png" alt="Admin profile" />
-        </div>
-        <div class="profile-dropdown" id="profile-dropdown">
-          <button class="dd-item disabled" onclick="event.stopPropagation()">Edit Profile</button>
-          <div class="dd-divider"></div>
-          <button class="dd-item logout" onclick="handleSignOut(event)">Sign Out</button>
-        </div>
-      </div>
+      <div id="profile-placeholder"></div>
     </header>
 
     <div class="form-wrapper">
@@ -94,8 +96,8 @@
           <div class="form-group">
             <label>Office</label>
             <div class="combo-box">
-              <input type="text" id="office-input" placeholder="Select an office..."
-                onclick="toggleCombo(this.nextElementSibling)" />
+              <input type="text" id="office-input" placeholder="Select or search an office..."
+                onclick="toggleCombo(this.nextElementSibling)" oninput="filterOfficeMenu(this)" autocomplete="off" />
               <button type="button" class="btn-drop" onclick="toggleCombo(this)">▼</button>
               <div class="combo-menu" id="office-menu">
                 <div class="combo-item">Loading offices...</div>
@@ -250,7 +252,7 @@
     </div>
     
     <div class="actions-bar">
-      <button class="btn-cancel" onclick="history.back()">Cancel</button>
+      <button class="btn-cancel" onclick="window.cancelAddService()">Cancel</button>
       <button class="btn-save" onclick="saveService()">Add Service</button>
     </div>
   </div>
@@ -258,18 +260,47 @@
   <script type="module">
     import { auth, db } from '../Firebase/firebase-config.js';
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { collection, getDocs, getDoc, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { collection, getDocs, getDoc, doc, setDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    // ---- Activity log helper ----
+    let _logActor = null;
+    async function logActivity(type, details = {}) {
+      try {
+        const user = auth.currentUser;
+        if (!user) return;
 
-    window.handleSignOut = async function(e) {
-      e.stopPropagation();
-      const overlay = document.createElement('div');
-      overlay.innerHTML = '<div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999;"><div style="background:#fff;border-radius:20px;padding:40px 36px 32px;text-align:center;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2);"><div style="width:48px;height:48px;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;"><div style="width:48px;height:48px;border:4px solid rgba(42,125,225,0.2);border-top-color:#2a7de1;border-radius:50%;animation:spin 0.7s linear infinite;"></div></div><div style="font-size:1.3rem;font-weight:800;color:#1a2540;margin-bottom:8px;">Signing Out...</div><div style="font-size:0.88rem;color:#555;">Please wait.</div></div></div>';
-      document.body.appendChild(overlay);
-      await signOut(auth);
-      window.location.href = '../Authentication/auth.html';
-    };
-    
-    let officesMap = {}; 
+        if (!_logActor || _logActor.uid !== user.uid) {
+          let name = user.displayName || user.email || 'Admin';
+          let role = 'admin';
+          try {
+            const snap = await getDoc(doc(db, 'admin', user.uid));
+            if (snap.exists()) {
+              const data = snap.data();
+              name = data.full_name || name;
+              role = data.role || 'admin';
+            }
+          } catch (err) {
+            console.error('[activity-log] could not read actor profile:', err);
+          }
+          _logActor = { uid: user.uid, name, role };
+        }
+
+        await addDoc(collection(db, 'activity_logs'), {
+          type,
+          actor_uid: _logActor.uid,
+          actor_name: details.actor_name || _logActor.name,
+          actor_role: _logActor.role,
+          office_name: details.office_name || '',
+          service_name: details.service_name || '',
+          target_name: details.target_name || '',
+          createdAt: serverTimestamp()
+        });
+      } catch (err) {
+        console.error('[activity-log] failed to log', type, err);
+      }
+    }
+
+    let officesMap = {};
+    let officesLoadPromise;
 
     function sanitizeForFirestore(value) {
       if (Array.isArray(value)) {
@@ -314,7 +345,7 @@
         if (userNameEl) userNameEl.textContent = user.displayName || user.email;
         if (userRoleEl) userRoleEl.textContent = 'Admin ✓';
 
-        loadOffices();
+        officesLoadPromise = loadOffices();
       } catch (error) {
         console.error('Auth check failed:', error);
         await signOut(auth);
@@ -337,7 +368,7 @@
           const data = doc.data();
           const officeName = data.office_name || doc.id;
           
-          officesMap[officeName] = doc.id; 
+          officesMap[officeName.toLowerCase()] = doc.id;
           
           const itemHTML = `<div class="combo-item" onclick="selectCombo(this)">${officeName}</div>`;
           officeMenu.insertAdjacentHTML('beforeend', itemHTML);
@@ -349,6 +380,8 @@
     }
 
     window.saveService = async function() {
+      if (officesLoadPromise) await officesLoadPromise;
+
       const serviceName = document.getElementById('service-name-input').value.trim();
       const officeName = document.getElementById('office-input').value.trim();
       const description = document.getElementById('service-desc-input').value.trim();
@@ -389,23 +422,13 @@
         return;
       }
 
-      const officeId = officesMap[officeName];
+      // Office must already exist (created via Service Management)
+      const officeId = officesMap[officeName.toLowerCase()];
       if (!officeId) {
-        const successOverlay = document.createElement('div');
-        successOverlay.innerHTML = `
-          <div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999;">
-            <div style="background:#fff;border-radius:20px;padding:40px 36px 32px;text-align:center;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
-              <div style="width:64px;height:64px;border:3px solid #e74c3c;border-radius:50%;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;position:relative;">
-                <div style="position:absolute;width:3.5px;height:26px;background:#e74c3c;border-radius:2px;transform:rotate(45deg);"></div>
-                <div style="position:absolute;width:3.5px;height:26px;background:#e74c3c;border-radius:2px;transform:rotate(-45deg);"></div>
-              </div>
-              <div style="font-size:1.3rem;font-weight:800;color:#1a2540;margin-bottom:8px;">Invalid Office</div>
-              <div style="font-size:0.88rem;color:#555;line-height:1.5;margin-bottom:24px;">Please select a valid office from the dropdown list.</div>
-              <button onclick="this.closest('div[style]').parentElement.remove()" style="width:100%;padding:14px;border:none;border-radius:50px;background:#4a7cff;color:#fff;font-size:0.95rem;font-weight:700;cursor:pointer;">OK</button>
-            </div>
-          </div>
-        `;
-        document.body.appendChild(successOverlay);
+        const officeInput = document.getElementById('office-input');
+        officeInput.style.borderColor = 'red';
+        officeInput.parentElement.style.borderColor = 'red';
+        window.showToast('error', 'Office Not Found', "Please choose an office from the dropdown list. If it isn't listed, ask the Super Admin to add it first.", 'OK');
         return;
       }
 
@@ -478,9 +501,19 @@
         const saveBtn = document.querySelector('.btn-save');
         saveBtn.textContent = "Saving...";
         saveBtn.disabled = true;
+        showToast('loading', 'Adding Service', 'The service is currently being processed. Please wait.', '');
 
         const serviceRef = doc(db, "offices", officeId, "services", customServiceId);
         await setDoc(serviceRef, serviceData);
+
+        await addDoc(collection(db, "notifications"), {
+          title: "Hi Citizen! A new service added.",
+          body: `A new service (${serviceName}) is available at the ${officeName}. Come and check it out.`,
+          service_id: customServiceId,
+          timestamp: serverTimestamp()
+        });
+
+        await logActivity('service_added', { office_name: officeName, service_name: serviceName });
         
         const successOverlay = document.createElement('div');
         successOverlay.innerHTML = `
@@ -548,7 +581,43 @@
       const menu = btn.nextElementSibling;
       const isShowing = menu.classList.contains('show');
       document.querySelectorAll('.combo-menu.show').forEach(m => m.classList.remove('show'));
-      if (!isShowing) menu.classList.add('show');
+      if (!isShowing) {
+        if (menu.id === 'office-menu') resetOfficeFilter();
+        menu.classList.add('show');
+      }
+    }
+
+    // Office box: search only, must pick from list
+    function filterOfficeMenu(input) {
+      const menu = document.getElementById('office-menu');
+      const q = input.value.trim().toLowerCase();
+      const items = menu.querySelectorAll('.combo-item[onclick]');
+      let visible = 0;
+      items.forEach(item => {
+        const match = item.textContent.toLowerCase().includes(q);
+        item.style.display = match ? '' : 'none';
+        if (match) visible++;
+      });
+
+      let empty = menu.querySelector('.combo-empty');
+      if (!empty) {
+        empty = document.createElement('div');
+        empty.className = 'combo-item combo-empty';
+        empty.style.cursor = 'default';
+        empty.textContent = 'No matching office. Ask the Super Admin to add it.';
+        menu.appendChild(empty);
+      }
+      empty.style.display = (items.length && visible === 0) ? '' : 'none';
+
+      document.querySelectorAll('.combo-menu.show').forEach(m => { if (m !== menu) m.classList.remove('show'); });
+      menu.classList.add('show');
+    }
+
+    function resetOfficeFilter() {
+      const menu = document.getElementById('office-menu');
+      menu.querySelectorAll('.combo-item[onclick]').forEach(item => { item.style.display = ''; });
+      const empty = menu.querySelector('.combo-empty');
+      if (empty) empty.style.display = 'none';
     }
 
     function selectCombo(item) {
@@ -557,6 +626,143 @@
       item.parentElement.classList.remove('show');
       if (input.hasAttribute('oninput')) updateStepTitle(input);
     }
+
+    function normalizeText(value) {
+      return (value || '').trim();
+    }
+
+    function isDefaultTabName(value) {
+      return ['Walk-In', 'New Tab'].includes(normalizeText(value));
+    }
+
+    function hasAddedInformation() {
+      const mainFields = [
+        document.getElementById('service-name-input'),
+        document.getElementById('office-input'),
+        document.getElementById('service-desc-input'),
+        document.getElementById('location-input'),
+        document.getElementById('contact-input'),
+        document.getElementById('website-input')
+      ];
+
+      const mainHasData = mainFields.some(field => field && normalizeText(field.value) !== '');
+      if (mainHasData) return true;
+
+      const tabInputs = [...document.querySelectorAll('.tab-btn input')];
+      if (tabInputs.some(input => normalizeText(input.value) !== '' && !isDefaultTabName(input.value))) {
+        return true;
+      }
+
+      const nestedInputs = [
+        ...document.querySelectorAll('.req-item input'),
+        ...document.querySelectorAll('.step-card input'),
+        ...document.querySelectorAll('.step-card textarea'),
+        ...document.querySelectorAll('.tab-pane textarea')
+      ];
+
+      return nestedInputs.some(input => normalizeText(input.value) !== '');
+    }
+
+    const previousPageUrl = function() {
+      if (document.referrer && document.referrer.includes(window.location.origin)) {
+        return document.referrer;
+      }
+      return '../Sidebar/service_management.html';
+    };
+
+    window.navigateAway = function(targetUrl) {
+      if (targetUrl) {
+        window.location.href = targetUrl;
+        return;
+      }
+
+      window.location.href = previousPageUrl();
+    };
+
+    window.cancelAddService = function() {
+      if (!window.hasAddedInformation()) {
+        window.navigateAway();
+        return;
+      }
+
+      showConfirmToast({
+        type: 'warning',
+        title: 'Cancel and leave?',
+        msg: 'This service will not be saved and you will return to the previous page.',
+        confirmText: 'Leave',
+        cancelText: 'Stay',
+        onConfirm: () => {
+          window.navigateAway();
+        },
+        onCancel: () => {}
+      });
+    };
+
+    window.confirmLeavePage = function(targetUrl) {
+      if (!window.hasAddedInformation()) {
+        window.navigateAway(targetUrl);
+        return;
+      }
+
+      showConfirmToast({
+        type: 'warning',
+        title: 'Leave without saving?',
+        msg: 'Your form data will not be saved if you leave this page.',
+        confirmText: 'Leave',
+        cancelText: 'Stay',
+        onConfirm: () => {
+          window.navigateAway(targetUrl);
+        },
+        onCancel: () => {}
+      });
+    };
+
+    function confirmLeavePage(targetUrl) {
+      return window.confirmLeavePage(targetUrl);
+    }
+
+    window.hasAddedInformation = hasAddedInformation;
+
+    window.history.pushState({ docsEaseAddServiceLeaveGuard: true }, '', window.location.href);
+    window.addEventListener('popstate', function () {
+      if (!window.hasAddedInformation()) {
+        return;
+      }
+
+      window.history.pushState({ docsEaseAddServiceLeaveGuard: true }, '', window.location.href);
+      showConfirmToast({
+        type: 'warning',
+        title: 'Leave without saving?',
+        msg: 'Your form data will not be saved if you leave this page.',
+        confirmText: 'Leave',
+        cancelText: 'Stay',
+        onConfirm: function () {
+          window.location.href = previousPageUrl();
+        },
+        onCancel: function () {
+          window.history.pushState({ docsEaseAddServiceLeaveGuard: true }, '', window.location.href);
+        }
+      });
+    });
+
+    document.querySelectorAll('.sidebar-nav a.nav-item').forEach(link => {
+      link.addEventListener('click', function (event) {
+        const targetUrl = this.getAttribute('href');
+        if (!targetUrl) return;
+
+        const currentPath = window.location.pathname.split('/').pop();
+        if (targetUrl === currentPath || targetUrl === './' + currentPath || targetUrl === window.location.pathname) return;
+
+        event.preventDefault();
+
+        if (!window.hasAddedInformation()) {
+          window.location.href = targetUrl;
+          return;
+        }
+
+        window.confirmLeavePage(targetUrl);
+      });
+    });
 
     let tabCounter = 1;
 

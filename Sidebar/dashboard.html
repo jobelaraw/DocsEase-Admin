@@ -9,8 +9,12 @@
   <link rel="stylesheet" href="../css/dashboard.css" />
   <link rel="stylesheet" href="../css/sidebar.css" />
   <link rel="stylesheet" href="../css/profile.css" />
-  <script src="../functions/profile.js"></script>
-
+  <link rel="stylesheet" href="../css/toast.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.js"
+    integrity="sha384-tgbB5AKnszdcfwcZtTfuhR3Ko1XZdlDfsLtkxiiAZiVkkXCkFmp+FQFh+V/UTo54"
+    crossorigin="anonymous"></script>
+  <script src="../functions/toast.js"></script>
+  <script type="module" src="../functions/role-guard.js"></script>
 </head>
 
 <body>
@@ -38,9 +42,24 @@
           <span class="nav-label">Service Management</span>
         </a>
 
+        <a href="map_management.html" class="nav-item" title="Map Management">
+          <div class="nav-icon"><img src="../assets/map_mngment.png" alt="Map Management" /></div>
+          <span class="nav-label">Map Management</span>
+        </a>
+
         <a href="analytics.html" class="nav-item" title="Analytics">
           <div class="nav-icon"><img src="../assets/analytics.png" alt="Analytics" /></div>
           <span class="nav-label">Analytics</span>
+        </a>
+
+        <a href="review_queue.html" class="nav-item" title="Review Queue">
+          <div class="nav-icon"><img src="../assets/review_queue.png" alt="Review Queue" /></div>
+          <span class="nav-label">Review Queue</span>
+        </a>
+
+      <a href="activity_log.html" class="nav-item" title="Activity Log">
+      <div class="nav-icon"><img src="../assets/activity_log.png" alt="Activity Log" /></div>
+        <span class="nav-label">Activity Log</span>
         </a>
       </nav>
     </div>
@@ -70,9 +89,14 @@
       </div>
 
       <div>
-        <button type="button" class="btn-add-service" onclick="window.location.href='../Forms/add_service.html'">
+        <!-- Label set once role is known -->
+        <button type="button" id="btn-add-service" class="btn-add-service" style="display:none;" onclick="window.location.href='../Forms/add_service.html'">
           <img src="../assets/add_service.png" alt="Plus Icon" />
           <span>Add New Service</span>
+        </button>
+        <button type="button" id="btn-add-office" class="btn-add-service" style="display:none;" onclick="openAddOffice()">
+          <img src="../assets/add_service.png" alt="Plus Icon" />
+          <span>Add New Office</span>
         </button>
       </div>
 
@@ -82,7 +106,7 @@
             <div class="stat-icon"><img src="../assets/map_mngment.png" alt="Total Services" /></div>
             <div class="stat-label">Total Offices</div>
           </div>
-          <div class="stat-value" id="total-offices-count">1</div>
+          <div class="stat-value" id="total-offices-count">-</div>
         </div>
 
         <div class="stat-card">
@@ -90,7 +114,7 @@
             <div class="stat-icon"><img src="../assets/total_completed.png" alt="Total Users" /></div>
             <div class="stat-label">Total Services</div>
           </div>
-          <div class="stat-value" id="total-services-count">1</div>
+          <div class="stat-value" id="total-services-count">-</div>
         </div>
 
         <div class="stat-card">
@@ -98,7 +122,7 @@
             <div class="stat-icon"><img src="../assets/total_users.png" alt="Active Users" /></div>
             <div class="stat-label">Total Users</div>
           </div>
-          <div class="stat-value" id="total-users-count">1</div>
+          <div class="stat-value" id="total-users-count">-</div>
         </div>
       </div>
 
@@ -109,92 +133,19 @@
             <div class="card-title">Most Used Services</div>
             <a href="analytics.html" class="card-link">View Analytics →</a>
           </div>
-          <div class="service-rank-list">
-            <div class="service-rank-item">
-              <div class="rank-num">1</div>
-              <div class="rank-bar-wrap">
-                <div class="rank-service-name">New Business Application</div>
-                <div class="rank-bar-bg">
-                  <div class="rank-bar-fill" style="width:90%"></div>
-                </div>
-              </div>
-              <div class="rank-count">452</div>
-            </div>
-            <div class="service-rank-item">
-              <div class="rank-num">2</div>
-              <div class="rank-bar-wrap">
-                <div class="rank-service-name">Renewal of Business Application</div>
-                <div class="rank-bar-bg">
-                  <div class="rank-bar-fill" style="width:72%"></div>
-                </div>
-              </div>
-              <div class="rank-count">361</div>
-            </div>
-            <div class="service-rank-item">
-              <div class="rank-num">3</div>
-              <div class="rank-bar-wrap">
-                <div class="rank-service-name">Building Permit Application</div>
-                <div class="rank-bar-bg">
-                  <div class="rank-bar-fill" style="width:55%"></div>
-                </div>
-              </div>
-              <div class="rank-count">275</div>
-            </div>
-            <div class="service-rank-item">
-              <div class="rank-num">4</div>
-              <div class="rank-bar-wrap">
-                <div class="rank-service-name">Community Tax Certificate</div>
-                <div class="rank-bar-bg">
-                  <div class="rank-bar-fill" style="width:40%"></div>
-                </div>
-              </div>
-              <div class="rank-count">198</div>
-            </div>
-            <div class="service-rank-item">
-              <div class="rank-num">5</div>
-              <div class="rank-bar-wrap">
-                <div class="rank-service-name">Retirement of Business</div>
-                <div class="rank-bar-bg">
-                  <div class="rank-bar-fill" style="width:25%"></div>
-                </div>
-              </div>
-              <div class="rank-count">124</div>
-            </div>
+          <div class="service-rank-list" id="mostUsedServicesList">
+            <div style="font-size:0.83rem;color:#6b7a99;">Loading…</div>
           </div>
         </div>
 
-        <!-- Recent Activity -->
+        <!-- Completion Trend -->
         <div class="card">
           <div class="card-header">
-            <div class="card-title">Recent Activity</div>
-            <a href="analytics.html" class="card-link">View All →</a>
+            <div class="card-title">Completion Trend</div>
+            <a href="analytics.html" class="card-link">View Analytics →</a>
           </div>
-          <div class="activity-list">
-            <div class="activity-item">
-              <div class="activity-dot green"></div>
-              <div class="activity-text"><span>New Business Application</span> completed by Juan D.</div>
-              <div class="activity-time">10:23 AM</div>
-            </div>
-            <div class="activity-item">
-              <div class="activity-dot blue"></div>
-              <div class="activity-text"><span>Building Permit</span> submitted by Maria S.</div>
-              <div class="activity-time">10:15 AM</div>
-            </div>
-            <div class="activity-item">
-              <div class="activity-dot green"></div>
-              <div class="activity-text"><span>Community Tax Certificate</span> completed by Pedro R.</div>
-              <div class="activity-time">9:58 AM</div>
-            </div>
-            <div class="activity-item">
-              <div class="activity-dot yellow"></div>
-              <div class="activity-text"><span>Renewal of Business</span> pending review by Ana L.</div>
-              <div class="activity-time">9:44 AM</div>
-            </div>
-            <div class="activity-item">
-              <div class="activity-dot red"></div>
-              <div class="activity-text"><span>Birth Certificate Request</span> rejected — incomplete docs.</div>
-              <div class="activity-time">9:30 AM</div>
-            </div>
+          <div class="chart-wrap">
+            <canvas id="completionTrendChart"></canvas>
           </div>
         </div>
       </div>
@@ -202,79 +153,336 @@
     </div>
   </div>
 
+  <!-- Add New Office modal -->
+  <div class="ao-overlay" id="add-office-overlay" aria-hidden="true">
+    <div class="ao-modal" role="dialog" aria-modal="true" aria-labelledby="ao-title">
+      <div class="ao-header">
+        <h2 class="ao-title" id="ao-title">ADD NEW OFFICE</h2>
+        <button type="button" class="ao-close" aria-label="Close" onclick="closeAddOffice()">&times;</button>
+      </div>
+      <label class="ao-label" for="ao-office-name">OFFICE NAME</label>
+      <input type="text" id="ao-office-name" class="ao-input" placeholder="Enter office name..." maxlength="100" autocomplete="off" />
+      <div class="ao-error" id="ao-error"></div>
+      <div class="ao-actions">
+        <button type="button" class="ao-btn ao-btn-cancel" onclick="closeAddOffice()">Cancel</button>
+        <button type="button" class="ao-btn ao-btn-add" id="ao-submit" onclick="submitAddOffice()">Add new office</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     import { auth, db } from '../Firebase/firebase-config.js';
-    import { collection, collectionGroup, getCountFromServer, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { collection, collectionGroup, getDocs, doc, getDoc, setDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    // ---- Activity log helper ----
+    let _logActor = null;
+    async function logActivity(type, details = {}) {
+      try {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        if (!_logActor || _logActor.uid !== user.uid) {
+          let name = user.displayName || user.email || 'Admin';
+          let role = 'admin';
+          try {
+            const snap = await getDoc(doc(db, 'admin', user.uid));
+            if (snap.exists()) {
+              const data = snap.data();
+              name = data.full_name || name;
+              role = data.role || 'admin';
+            }
+          } catch (err) {
+            console.error('[activity-log] could not read actor profile:', err);
+          }
+          _logActor = { uid: user.uid, name, role };
+        }
+
+        await addDoc(collection(db, 'activity_logs'), {
+          type,
+          actor_uid: _logActor.uid,
+          actor_name: details.actor_name || _logActor.name,
+          actor_role: _logActor.role,
+          office_name: details.office_name || '',
+          service_name: details.service_name || '',
+          target_name: details.target_name || '',
+          createdAt: serverTimestamp()
+        });
+      } catch (err) {
+        console.error('[activity-log] failed to log', type, err);
+      }
+    }
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-    window.handleSignOut = async function(e) {
-      e.stopPropagation();
-      
-      const overlay = document.createElement('div');
-      overlay.id = 'signout-overlay';
-      overlay.innerHTML = `
-        <div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999;">
-          <div style="background:#fff;border-radius:20px;padding:40px 36px 32px;text-align:center;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
-            <div style="width:48px;height:48px;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;">
-              <div style="width:48px;height:48px;border:4px solid rgba(42,125,225,0.2);border-top-color:#2a7de1;border-radius:50%;animation:spin 0.7s linear infinite;"></div>
-            </div>
-            <div style="font-size:1.3rem;font-weight:800;color:#1a2540;margin-bottom:8px;">Signing Out...</div>
-            <div style="font-size:0.88rem;color:#555;line-height:1.5;">Please wait.</div>
-          </div>
-        </div>
-      `;
-      document.body.appendChild(overlay);
-      await signOut(auth);
-      window.location.href = '../Authentication/auth.html';
-    };
-
     onAuthStateChanged(auth, async (user) => {
-  if (!user) { 
-    window.location.href = '../Authentication/auth.html'; 
-    return; 
-  }
+      if (!user) {
+        window.location.href = '../Authentication/auth.html';
+        return;
+      }
 
-  try {
-    // Verify user exists in the admin Firestore collection
-    const adminDoc = await getDoc(doc(db, 'admin', user.uid));
+      try {
+        // Verify admin record
+        const adminDoc = await getDoc(doc(db, 'admin', user.uid));
 
-    if (!adminDoc.exists()) {
-      // User is authenticated, but not registered as an admin
-      await signOut(auth);
-      window.location.href = '../Authentication/auth.html';
-      return;
+        if (!adminDoc.exists()) {
+          // Not a registered admin
+          await signOut(auth);
+          window.location.href = '../Authentication/auth.html';
+          return;
+        }
+
+        // Admin verified
+        const userNameEl = document.querySelector('.user-name');
+        const userRoleEl = document.querySelector('.user-role');
+        if (userNameEl) userNameEl.textContent = user.displayName || user.email;
+        if (userRoleEl) userRoleEl.textContent = 'Admin ✓';
+
+        // Set label by role
+        const adminData = adminDoc.data();
+        const isSuperAdmin = adminData.role === 'super_admin' && adminData.status === 'active';
+        document.getElementById(isSuperAdmin ? 'btn-add-office' : 'btn-add-service').style.display = '';
+
+      } catch (error) {
+        console.error("Auth check failed:", error);
+        await signOut(auth);
+        window.location.href = '../Authentication/auth.html';
+      }
+    });
+
+    function toDate(ts) {
+      if (!ts) return null;
+      return typeof ts.toDate === 'function' ? ts.toDate() : new Date(ts);
     }
 
-    // Admin verified successfully
-    const userNameEl = document.querySelector('.user-name');
-    const userRoleEl = document.querySelector('.user-role');
-    if (userNameEl) userNameEl.textContent = user.displayName || user.email;
-    if (userRoleEl) userRoleEl.textContent = 'Admin ✓';
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str == null ? '' : String(str);
+      return div.innerHTML;
+    }
 
-  } catch (error) {
-    console.error("Auth check failed:", error);
-    await signOut(auth);
-    window.location.href = '../Authentication/auth.html';
-  }
-});
+    function renderRankList(containerId, items, maxCount) {
+      const container = document.getElementById(containerId);
+      if (!items.length) {
+        container.innerHTML = '<div style="font-size:0.83rem;color:#6b7a99;">No data yet.</div>';
+        return;
+      }
+      container.innerHTML = items.map((item, i) => `
+        <div class="service-rank-item">
+          <div class="rank-num">${i + 1}</div>
+          <div class="rank-bar-wrap">
+            <div class="rank-service-name">${escapeHtml(item.name)}</div>
+            <div class="rank-bar-bg">
+              <div class="rank-bar-fill" style="width:${maxCount ? Math.max(4, (item.count / maxCount) * 100) : 0}%"></div>
+            </div>
+          </div>
+          <div class="rank-count">${item.count.toLocaleString()}</div>
+        </div>
+      `).join('');
+    }
+
+    // ---------- Add New Office ----------
+    const aoOverlay = document.getElementById('add-office-overlay');
+    const aoInput = document.getElementById('ao-office-name');
+    const aoError = document.getElementById('ao-error');
+    const aoSubmit = document.getElementById('ao-submit');
+
+    function showAoError(message) {
+      aoError.textContent = message;
+      aoInput.classList.toggle('error', !!message);
+    }
+
+    window.openAddOffice = function() {
+      aoInput.value = '';
+      showAoError('');
+      aoOverlay.classList.add('show');
+      aoOverlay.setAttribute('aria-hidden', 'false');
+      setTimeout(() => aoInput.focus(), 0);
+    };
+
+    window.closeAddOffice = function() {
+      aoOverlay.classList.remove('show');
+      aoOverlay.setAttribute('aria-hidden', 'true');
+    };
+
+    window.submitAddOffice = async function() {
+      const officeName = aoInput.value.replace(/\s+/g, ' ').trim();
+
+      if (!officeName) { showAoError('Please enter an office name.'); return; }
+      if (officeName.includes('/')) { showAoError('Office name cannot contain "/".'); return; }
+      showAoError('');
+
+      aoSubmit.disabled = true;
+      aoSubmit.textContent = 'Adding...';
+
+      try {
+        // Same id convention as add_service.html
+        const officeId = officeName.toUpperCase().replace(/\s+/g, '-');
+
+        const existing = await getDocs(collection(db, 'offices'));
+        const duplicate = existing.docs.some(d =>
+          d.id === officeId ||
+          String(d.data().office_name || d.id).trim().toLowerCase() === officeName.toLowerCase()
+        );
+        if (duplicate) {
+          showAoError('An office with this name already exists.');
+          return;
+        }
+
+        await setDoc(doc(db, 'offices', officeId), {
+          office_name: officeName,
+          created_at: serverTimestamp()
+        });
+
+        // Citizen-app notification
+        try {
+          await addDoc(collection(db, 'notifications'), {
+            title: 'Hi Citizen! A new office added',
+            body: `A new office, ${officeName}, is now available on DocsEase.`,
+            service_id: '',
+            timestamp: serverTimestamp()
+          });
+        } catch (notifError) {
+          console.error('Office notification failed:', notifError);
+        }
+
+        await logActivity('office_added', { office_name: officeName });
+
+        window.closeAddOffice();
+        window.showToast('success', 'Office Added', `"${officeName}" has been added.`, 'OK');
+        await loadDashboardCounts();
+      } catch (error) {
+        console.error('Error adding office:', error);
+        window.showToast('error', 'Add Failed', 'The office could not be added. Please try again.', 'OK');
+      } finally {
+        aoSubmit.disabled = false;
+        aoSubmit.textContent = 'Add new office';
+      }
+    };
+
+    aoInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') window.submitAddOffice(); });
+    aoInput.addEventListener('input', () => showAoError(''));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && aoOverlay.classList.contains('show')) window.closeAddOffice(); });
 
     async function loadDashboardCounts() {
       try {
-        const officesSnap = await getCountFromServer(collection(db, "offices"));
-        document.getElementById('total-offices-count').innerText = officesSnap.data().count;
+        const officesSnap = await getDocs(collection(db, "offices"));
+        document.getElementById('total-offices-count').innerText = officesSnap.size;
 
-        const servicesSnap = await getCountFromServer(collectionGroup(db, "services"));
-        document.getElementById('total-services-count').innerText = servicesSnap.data().count;
+        let totalServices = 0;
+        for (const officeDoc of officesSnap.docs) {
+          const servicesSnap = await getDocs(collection(db, 'offices', officeDoc.id, 'services'));
+          totalServices += servicesSnap.size;
+        }
+        document.getElementById('total-services-count').innerText = totalServices;
 
-        const usersSnap = await getCountFromServer(collection(db, "users"));
-        document.getElementById('total-users-count').innerText = usersSnap.data().count;
+        const usersSnap = await getDocs(collection(db, "users"));
+        document.getElementById('total-users-count').innerText = usersSnap.size;
 
       } catch (error) {
         console.error("Error fetching counts: ", error);
       }
     }
 
+    let completionChart = null;
+
+    async function loadMostUsedAndCompletionTrend() {
+      try {
+        const historySnap = await getDocs(collectionGroup(db, 'service_history'));
+
+        const countByService = new Map();
+        const completionDates = [];
+        const inProgressDates = [];
+
+        historySnap.forEach(d => {
+          const data = d.data() || {};
+          const step = data.completed_steps || {};
+          const status = String(data.status || step.status || data.progress_status || '').trim();
+          const name = String(data.service_name || step.service_name || data.serviceName || 'Unknown Service').trim() || 'Unknown Service';
+          const historyDate = toDate(data.last_updated || step.last_updated || data.updatedAt || data.createdAt);
+
+          countByService.set(name, (countByService.get(name) || 0) + 1);
+
+          if (status.toLowerCase() === 'completed' || status.toLowerCase() === 'done') {
+            if (historyDate) completionDates.push(historyDate);
+          }
+
+          if (
+            status.toLowerCase().includes('in progress') ||
+            status.toLowerCase().includes('in_progress') ||
+            status.toLowerCase() === 'pending' ||
+            status.toLowerCase() === 'processing'
+          ) {
+            if (historyDate) inProgressDates.push(historyDate);
+          }
+        });
+
+        const mostUsed = Array.from(countByService.entries())
+          .map(([name, count]) => ({ name, count }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 5);
+        const maxUsedCount = mostUsed.length ? mostUsed[0].count : 0;
+        renderRankList('mostUsedServicesList', mostUsed, maxUsedCount);
+
+        // Completion trend, last 12 months
+        const now = new Date();
+        const labels = [];
+        const completedData = [];
+        const inProgressData = [];
+
+        for (let i = 11; i >= 0; i--) {
+          const m = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const mEnd = new Date(m.getFullYear(), m.getMonth() + 1, 1);
+          labels.push(m.toLocaleDateString('en-US', { month: 'short' }));
+          completedData.push(completionDates.filter(d => d >= m && d < mEnd).length);
+          inProgressData.push(inProgressDates.filter(d => d >= m && d < mEnd).length);
+        }
+
+        const ctx = document.getElementById('completionTrendChart').getContext('2d');
+        completionChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Completed',
+                data: completedData,
+                borderColor: '#002D62',
+                backgroundColor: 'rgba(0,45,98,0.12)',
+                borderWidth: 2.5,
+                pointBackgroundColor: '#002D62',
+                pointRadius: 4,
+                tension: 0.35,
+                fill: false
+              },
+              {
+                label: 'In Progress',
+                data: inProgressData,
+                borderColor: '#2f7cf6',
+                backgroundColor: 'rgba(47,124,246,0.10)',
+                borderWidth: 2.5,
+                pointBackgroundColor: '#2f7cf6',
+                pointRadius: 4,
+                tension: 0.35,
+                fill: false
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: true, position: 'top' } },
+            scales: {
+              y: { grid: { color: '#f0f4fb' }, ticks: { font: { size: 11 }, precision: 0 } },
+              x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+            }
+          }
+        });
+
+      } catch (error) {
+        console.error('Failed to load most-used services / completion trend:', error);
+      }
+    }
+
     loadDashboardCounts();
+    loadMostUsedAndCompletionTrend();
   </script>
 
   <script>
@@ -295,10 +503,19 @@
     fetch('../Authentication/profile.html')
       .then(res => res.text())
       .then(html => {
-        document.getElementById('profile-placeholder').innerHTML = html;
+        const template = document.createElement('template');
+        template.innerHTML = html;
+        const script = template.content.querySelector('script');
+        const profilePlaceholder = document.getElementById('profile-placeholder');
+        profilePlaceholder.replaceChildren(template.content);
+        if (script) {
+          const executableScript = document.createElement('script');
+          executableScript.textContent = script.textContent;
+          document.body.appendChild(executableScript);
+        }
         if (window.currentUser) updateProfileDisplay(window.currentUser);
       });
-</script>
+  </script>
 </body>
 
 </html>

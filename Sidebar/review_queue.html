@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DocsEase – Review Queue</title>
+  <link rel="icon" type="image/png" href="../assets/logo_whitebg.png" />
+  <link rel="stylesheet" href="../css/dashboard.css" />
+  <link rel="stylesheet" href="../css/sidebar.css" />
+  <link rel="stylesheet" href="../css/profile.css" />
+  <link rel="stylesheet" href="../css/toast.css" />
+  <link rel="stylesheet" href="../css/review_queue.css" />
+  <script src="../functions/toast.js"></script>
+  <script type="module" src="../functions/role-guard.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js"
+    integrity="sha384-SALc35EccAf6RzGw4iNsyj7kTPr33K7RoGzYu+7heZhT8s0GZouafRiCg1qy44AS"
+    crossorigin="anonymous"></script>
+</head>
+
+<body>
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">
+        <img src="../assets/logo.png" alt="DocsEase Logo" />
+      </div>
+      <div class="logo-text">
+        <img src="../assets/docsease_text.png" alt="DocsEase" class="brand-img" />
+      </div>
+    </div>
+
+    <div class="sidebar-nav-container">
+      <nav class="sidebar-nav">
+        <a href="dashboard.html" class="nav-item" title="Dashboard">
+          <div class="nav-icon"><img src="../assets/dashboard.png" alt="Dashboard" /></div>
+          <span class="nav-label">Dashboard</span>
+        </a>
+        <a href="service_management.html" class="nav-item" title="Service Management">
+          <div class="nav-icon"><img src="../assets/service_mngment.png" alt="Service Management" /></div>
+          <span class="nav-label">Service Management</span>
+        </a>
+        <a href="map_management.html" class="nav-item" title="Map Management">
+          <div class="nav-icon"><img src="../assets/map_mngment.png" alt="Map Management" /></div>
+          <span class="nav-label">Map Management</span>
+        </a>
+        <a href="analytics.html" class="nav-item" title="Analytics">
+          <div class="nav-icon"><img src="../assets/analytics.png" alt="Analytics" /></div>
+          <span class="nav-label">Analytics</span>
+        </a>
+        <a href="review_queue.html" class="nav-item active" title="Review Queue">
+          <div class="nav-icon"><img src="../assets/review_queue.png" alt="Review Queue" /></div>
+          <span class="nav-label">Review Queue</span>
+        </a>
+        <a href="activity_log.html" class="nav-item" title="Activity Log">
+          <div class="nav-icon"><img src="../assets/activity_log.png" alt="Activity Log" /></div>
+          <span class="nav-label">Activity Log</span>
+        </a>
+      </nav>
+    </div>
+
+    <div class="sidebar-bottom">
+      <button class="btn-collapse" onclick="toggleSidebar()" title="Collapse sidebar">
+        <img src="../assets/collapse.png" alt="Collapse" />
+      </button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+      <div class="rq-banner-tabs">
+        <button type="button" class="rq-maintab active" id="tab-pending" onclick="setMainTab('pending')">Pending Request</button>
+        <button type="button" class="rq-maintab" id="tab-completed" onclick="setMainTab('completed')">Completed Request</button>
+      </div>
+
+      <div id="profile-placeholder"></div>
+    </header>
+
+    <div class="content">
+      <div class="rq-banner">
+        
+        <div class="rq-banner-body">
+          <div>
+            <h1>Review Request</h1>
+            <p>Manage request, accept or decline request admin.</p>
+          </div>
+          <div class="rq-date-filters">
+            <button type="button" class="rq-datechip active" data-range="today" onclick="setDateFilter('today')">Today</button>
+            <button type="button" class="rq-datechip" data-range="week" onclick="setDateFilter('week')">This Week</button>
+            <button type="button" class="rq-datechip" data-range="earlier" onclick="setDateFilter('earlier')">Earlier</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="rq-type-filters" id="rq-type-filters">
+        <button type="button" class="rq-typechip active" data-type="all" onclick="setTypeFilter('all')">All</button>
+        <button type="button" class="rq-typechip" data-type="new_admin" onclick="setTypeFilter('new_admin')">Pending Admin Account</button>
+        <button type="button" class="rq-typechip" data-type="delete_admin" onclick="setTypeFilter('delete_admin')">Pending Admin Deleted Account</button>
+        <button type="button" class="rq-typechip" data-type="delete_service" onclick="setTypeFilter('delete_service')">Pending Deleted Service</button>
+      </div>
+
+      <div class="rq-grid" id="rq-grid">
+        <div class="rq-empty">Loading requests…</div>
+      </div>
+
+    </div>
+  </div>
+
+  <script type="module">
+    import { auth, db } from '../Firebase/firebase-config.js';
+    import { collection, query, orderBy, onSnapshot, doc, getDoc, deleteDoc, writeBatch, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    
+    // ---- Activity log helper ----
+    let _logActor = null;
+    async function logActivity(type, details = {}) {
+      try {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        if (!_logActor || _logActor.uid !== user.uid) {
+          let name = user.displayName || user.email || 'Admin';
+          let role = 'admin';
+          try {
+            const snap = await getDoc(doc(db, 'admin', user.uid));
+            if (snap.exists()) {
+              const data = snap.data();
+              name = data.full_name || name;
+              role = data.role || 'admin';
+            }
+          } catch (err) {
+            console.error('[activity-log] could not read actor profile:', err);
+          }
+          _logActor = { uid: user.uid, name, role };
+        }
+
+        await addDoc(collection(db, 'activity_logs'), {
+          type,
+          actor_uid: _logActor.uid,
+          actor_name: details.actor_name || _logActor.name,
+          actor_role: _logActor.role,
+          office_name: details.office_name || '',
+          service_name: details.service_name || '',
+          target_name: details.target_name || '',
+          target_uid: details.target_uid || '',
+          recipient_uid: details.recipient_uid || '',
+          createdAt: serverTimestamp()
+        });
+      } catch (err) {
+        console.error('[activity-log] failed to log', type, err);
+      }
+    }
+
+    emailjs.init({ publicKey: 'sNwiz0smyu1zo-ozX' });
+
+    // Decline email not active yet; template vars: to_email, admin_name, reason
+    const EMAILJS_SERVICE_ID = 'service_77esocf';
+    const EMAILJS_DECLINE_TEMPLATE_ID = 'template_declined';
+
+    // TODO: create this Cloud Function (like adminResetUserPassword, calling admin.auth().deleteUser(uid))
+    const DELETE_AUTH_USER_ENDPOINT = 'https://us-central1-docsease-efacc.cloudfunctions.net/adminDeleteAuthUser';
+
+    console.log('[review_queue] v2 loaded (batch accept/decline)');
+
+    // Loading toast helper
+    function showLoadingToast(title, msg) {
+      showToast('info', title, msg, '');
+      const toastIcon = document.getElementById('toast-icon');
+      if (toastIcon) {
+        toastIcon.className = 'toast-icon loading';
+        toastIcon.innerHTML = '<div class="toast-loading-spinner"></div>';
+      }
+      const toastButton = document.getElementById('toast-btn');
+      if (toastButton) toastButton.disabled = true;
+    }
+
+
+    let currentSuperAdmin = null;
+    let allRequests = [];
+    let pendingRequests = []; // from 'requests'
+    let completedRequests = []; // from 'completed_requests'
+    let mainTab = 'pending'; // 'pending' | 'completed'
+    let typeFilter = 'all'; // 'all' | 'new_admin' | 'delete_admin' | 'delete_service'
+    let dateFilter = 'today'; // 'today' | 'week' | 'earlier'
+
+    const TYPE_LABELS = {
+      new_admin: { pending: 'Pending Admin Account', completed: 'Completed Admin Account' },
+      delete_admin: { pending: 'Pending Admin Deleted Account', completed: 'Completed Admin Deleted Account' },
+      delete_service: { pending: 'Pending Deleted Service', completed: 'Completed Deleted Service' }
+    };
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = '../Authentication/auth.html';
+        return;
+      }
+      try {
+        const adminSnap = await getDoc(doc(db, 'admin', user.uid));
+        if (!adminSnap.exists()) {
+          await signOut(auth);
+          window.location.href = '../Authentication/auth.html';
+          return;
+        }
+        const adminData = adminSnap.data();
+        if (adminData.role !== 'super_admin') {
+          // Super Admin-only page
+          window.location.href = 'dashboard.html';
+          return;
+        }
+        currentSuperAdmin = { uid: user.uid, name: adminData.full_name || user.email };
+
+        const userNameEl = document.querySelector('.user-name');
+        const userRoleEl = document.querySelector('.user-role');
+        if (userNameEl) userNameEl.textContent = adminData.full_name || user.email;
+        if (userRoleEl) userRoleEl.textContent = 'Super Admin ✓';
+
+        listenToRequests();
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        await signOut(auth);
+        window.location.href = '../Authentication/auth.html';
+      }
+    });
+
+    function rebuildAndRender() {
+      allRequests = [...pendingRequests, ...completedRequests];
+      render();
+    }
+
+    function onListenError(error) {
+      console.error('Failed to load requests:', error);
+      document.getElementById('rq-grid').innerHTML = '<div class="rq-empty">Couldn\'t load requests. Please refresh.</div>';
+    }
+
+    function listenToRequests() {
+      // Pending tab
+      onSnapshot(query(collection(db, 'requests'), orderBy('createdAt', 'desc')), (snap) => {
+        pendingRequests = snap.docs.map(d => ({ id: d.id, ...d.data({ serverTimestamps: 'estimate' }) }));
+        rebuildAndRender();
+      }, onListenError);
+
+      // Completed tab
+      onSnapshot(query(collection(db, 'completed_requests'), orderBy('resolvedAt', 'desc')), (snap) => {
+        completedRequests = snap.docs.map(d => ({ id: d.id, ...d.data({ serverTimestamps: 'estimate' }) }));
+        rebuildAndRender();
+      }, onListenError);
+    }
+
+    function toDate(ts) {
+      if (!ts) return null;
+      return typeof ts.toDate === 'function' ? ts.toDate() : new Date(ts);
+    }
+
+    function dateBucket(d) {
+      if (!d) return 'earlier';
+      const now = new Date();
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const startOfWeek = new Date(startOfToday.getTime() - 6 * 24 * 60 * 60 * 1000);
+      if (d >= startOfToday) return 'today';
+      if (d >= startOfWeek) return 'week';
+      return 'earlier';
+    }
+
+    function timeAgo(d) {
+      if (!d) return '';
+      const diffMs = Date.now() - d.getTime();
+      const mins = Math.floor(diffMs / 60000);
+      if (mins < 1) return 'Just now';
+      if (mins < 60) return mins + (mins === 1 ? ' minute ago' : ' minutes ago');
+      const hrs = Math.floor(mins / 60);
+      if (hrs < 24) return hrs + (hrs === 1 ? ' hour ago' : ' hours ago');
+      const days = Math.floor(hrs / 24);
+      if (days < 7) return days + (days === 1 ? ' day ago' : ' days ago');
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str == null ? '' : String(str);
+      return div.innerHTML;
+    }
+
+    function descriptionFor(req) {
+      switch (req.type) {
+        case 'new_admin':
+          return `A new admin account for the ${escapeHtml(req.office_name || 'office')} is waiting. Come and check it out.`;
+        case 'delete_admin':
+          return `${escapeHtml(req.requested_by_name || 'This admin')} requested to delete their own admin account.`;
+        case 'delete_service':
+          return `Requested to delete ${req.service_name ? '"' + escapeHtml(req.service_name) + '"' : 'a service'} in the office ${escapeHtml(req.office_name || '')}, still waiting to accept request.`;
+        default:
+          return 'A new request is waiting for review.';
+      }
+    }
+
+    window.setMainTab = function (tab) {
+      mainTab = tab;
+      document.getElementById('tab-pending').classList.toggle('active', tab === 'pending');
+      document.getElementById('tab-completed').classList.toggle('active', tab === 'completed');
+      document.querySelectorAll('#rq-type-filters .rq-typechip').forEach(chip => {
+        const type = chip.dataset.type;
+        if (type === 'all') { chip.textContent = 'All'; return; }
+        chip.textContent = TYPE_LABELS[type][tab === 'completed' ? 'completed' : 'pending'];
+      });
+      render();
+    };
+
+    window.setTypeFilter = function (type) {
+      typeFilter = type;
+      document.querySelectorAll('#rq-type-filters .rq-typechip').forEach(chip => {
+        chip.classList.toggle('active', chip.dataset.type === type);
+      });
+      render();
+    };
+
+    window.setDateFilter = function (range) {
+      dateFilter = range;
+      document.querySelectorAll('.rq-datechip').forEach(chip => {
+        chip.classList.toggle('active', chip.dataset.range === range);
+      });
+      render();
+    };
+
+    function render() {
+      const wantStatus = mainTab === 'completed' ? 'completed' : 'pending';
+      let items = allRequests.filter(r => (r.status || 'pending') === wantStatus);
+
+      if (typeFilter !== 'all') items = items.filter(r => r.type === typeFilter);
+
+      items = items.filter(r => {
+        const d = toDate(wantStatus === 'completed' ? r.resolvedAt : r.createdAt);
+        return dateBucket(d) === dateFilter;
+      });
+
+      const grid = document.getElementById('rq-grid');
+      if (!items.length) {
+        grid.innerHTML = `<div class="rq-empty">No ${wantStatus} requests here.</div>`;
+        return;
+      }
+
+    grid.innerHTML = items.map(req => {
+        const d = toDate(wantStatus === 'completed' ? req.resolvedAt : req.createdAt);
+        const statusBadge = wantStatus === 'completed'
+          ? '<span class="rq-status-badge completed">COMPLETED</span>'
+          : '<span class="rq-status-badge pending">PENDING</span>';
+
+        const actions = wantStatus === 'pending' ? `
+          <div class="rq-card-actions">
+            <button type="button" class="rq-btn decline" data-action="decline" data-id="${req.id}" data-type="${req.type}">Decline</button>
+            <button type="button" class="rq-btn accept" data-action="accept" data-id="${req.id}" data-type="${req.type}">Accept</button>
+          </div>` : '';
+
+        const deleteBtn = wantStatus === 'completed'
+          ? `<button type="button" class="btn-delete-record" title="Delete this record" aria-label="Delete this record" data-action="delete" data-id="${req.id}">
+              <img src="../assets/delete.png" alt="" />
+            </button>`
+          : '';
+
+        return `
+          <div class="rq-card">
+            <div class="rq-card-top">
+              <div class="rq-avatar">${escapeHtml((req.requested_by_name || '?').charAt(0).toUpperCase())}</div>
+              <div class="rq-card-who">
+                <div class="rq-name">${escapeHtml(req.requested_by_name || 'Unknown')}</div>
+                <div class="rq-role">Admin</div>
+              </div>
+              <div class="rq-card-meta">
+                <div class="rq-time">${escapeHtml(timeAgo(d))}</div>
+                ${statusBadge}
+              </div>
+            </div>
+            <div class="rq-card-desc">${descriptionFor(req)}</div>
+            <div class="rq-office-badge-row">
+              <div class="rq-office-badge">
+                <span>${escapeHtml(req.office_name || 'No office')}</span>
+                ${deleteBtn}
+              </div>
+            </div>
+            ${actions}
+          </div>`;
+      }).join('');
+    }
+
+    document.getElementById('rq-grid').addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn) return;
+      const { action, id, type } = btn.dataset;
+      console.log('[review_queue] click', action, id, type);
+      if (action === 'accept') acceptRequest(id, type);
+      if (action === 'decline') declineRequest(id, type);
+      if (action === 'delete') deleteCompletedRequest(id);
+    });
+
+    // Permanently deletes a completed_requests record (Super Admin only)
+    async function deleteCompletedRequest(reqId) {
+      showConfirmToast({
+        type: 'warning',
+        title: 'Delete Record',
+        msg: 'This will permanently remove this record from history. This cannot be undone.',
+        confirmText: 'Yes, Delete',
+        cancelText: 'Cancel',
+        onConfirm: async () => {
+          showLoadingToast('Deleting...', 'Removing the record.');
+          try {
+            await deleteDoc(doc(db, 'completed_requests', reqId));
+            showToast('success', 'Deleted', 'The record has been removed.');
+          } catch (error) {
+            console.error('Could not delete completed request:', error);
+            showToast('error', 'Delete Failed', 'Could not delete this record (' + (error.code || error.message) + ').');
+          }
+        }
+      });
+    }
+
+    function declineReasonFor(type) {
+      switch (type) {
+        case 'new_admin': return 'Your admin account request was not approved.';
+        case 'delete_admin': return 'Your account deletion request was not approved.';
+        case 'delete_service': return 'Your service deletion request was not approved.';
+        default: return 'Your request was not approved.';
+      }
+    }
+
+    // Deletes the Auth login via Cloud Function; returns true/false, never throws
+    async function deleteAuthUser(uid) {
+      try {
+        const token = await auth.currentUser.getIdToken();
+        const res = await fetch(DELETE_AUTH_USER_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({ uid })
+        });
+        return res.ok;
+      } catch (err) {
+        console.error('deleteAuthUser failed:', err);
+        return false;
+      }
+    }
+
+    async function acceptRequest(reqId, type) {
+      const reqRef = doc(db, 'requests', reqId);
+      let reqData;
+      try {
+        const reqSnap = await getDoc(reqRef);
+        if (!reqSnap.exists()) {
+          showToast('error', 'Request Not Found', 'This request no longer exists. Please refresh the page.');
+          return;
+        }
+        reqData = reqSnap.data();
+      } catch (error) {
+        console.error('Could not read request:', error);
+        showToast('error', 'Action Failed', 'Could not load this request (' + (error.code || error.message) + ').');
+        return;
+      }
+
+      showConfirmToast({
+        type: 'info',
+        title: 'Accept Request',
+        msg: 'Are you sure you want to accept this request?',
+        confirmText: 'Yes, Accept',
+        cancelText: 'Cancel',
+        onConfirm: async () => {
+          showLoadingToast('Processing...', 'Applying the request.');
+          try {
+            // Atomic batch: apply, copy to completed_requests, remove from requests
+            const batch = writeBatch(db);
+
+            if (type === 'new_admin' && reqData.target_admin_uid) {
+              // pending -> active
+              batch.update(doc(db, 'admin', reqData.target_admin_uid), {
+                status: 'active',
+                approvedAt: serverTimestamp(),
+                approvedBy_uid: currentSuperAdmin.uid,
+                updatedAt: serverTimestamp()
+              });
+            } else if (type === 'delete_admin' && reqData.target_admin_uid) {
+              batch.delete(doc(db, 'admin', reqData.target_admin_uid));
+            } else if (type === 'delete_service' && reqData.office_id && reqData.service_id) {
+              batch.delete(doc(db, 'offices', reqData.office_id, 'services', reqData.service_id));
+            }
+
+            batch.set(doc(db, 'completed_requests', reqId), {
+              ...reqData,
+              status: 'completed',
+              resolvedAt: serverTimestamp(),
+              resolvedBy_uid: currentSuperAdmin.uid,
+              resolvedBy_name: currentSuperAdmin.name
+            });
+            batch.delete(reqRef);
+
+            await batch.commit();
+
+            const acceptedLog = { new_admin: 'admin_account_accepted', delete_service: 'service_delete_accepted' }[type];
+            if (acceptedLog) {
+              await logActivity(acceptedLog, {
+                office_name: reqData.office_name || '',
+                service_name: reqData.service_name || '',
+                target_name: reqData.requested_by_name || '',
+                // Notify the admin
+                recipient_uid: reqData.requested_by_uid || reqData.target_admin_uid || ''
+              });
+            }
+
+            // Also removes the Auth login
+            let authRemoved = true;
+            if (type === 'delete_admin' && reqData.target_admin_uid) {
+              authRemoved = await deleteAuthUser(reqData.target_admin_uid);
+            }
+
+            document.getElementById('toast-overlay')?.classList.remove('show');
+            showToast(
+              'success',
+              'Request Accepted',
+              type === 'new_admin'
+                ? 'The admin account is now active and can sign in.'
+                : 'The request has been processed successfully.' + (authRemoved ? '' : ' The login account could not be removed automatically.'),
+              'OK'
+            );
+          } catch (error) {
+            console.error('Accept failed:', error);
+            document.getElementById('toast-overlay')?.classList.remove('show');
+            showToast('error', 'Action Failed', 'Could not process this request (' + (error.code || error.message) + ').');
+          }
+        }
+      });
+    }
+
+    async function declineRequest(reqId, type) {
+      const reqRef = doc(db, 'requests', reqId);
+      let reqData;
+      try {
+        const reqSnap = await getDoc(reqRef);
+        if (!reqSnap.exists()) {
+          showToast('error', 'Request Not Found', 'This request no longer exists. Please refresh the page.');
+          return;
+        }
+        reqData = reqSnap.data();
+      } catch (error) {
+        console.error('Could not read request:', error);
+        showToast('error', 'Action Failed', 'Could not load this request (' + (error.code || error.message) + ').');
+        return;
+      }
+
+      showConfirmToast({
+        type: 'warning',
+        title: 'Decline Request',
+        msg: 'This request will be permanently removed. Continue?',
+        confirmText: 'Yes, Decline',
+        cancelText: 'Cancel',
+        onConfirm: async () => {
+          showLoadingToast('Declining...', 'Removing the request.');
+          try {
+            // 1. Remove Auth login
+            let authRemoved = true;
+            if (type === 'new_admin' && reqData.target_admin_uid) {
+              authRemoved = await deleteAuthUser(reqData.target_admin_uid);
+            }
+
+            // 2. Delete admin doc + request doc
+            const batch = writeBatch(db);
+            if (type === 'new_admin' && reqData.target_admin_uid) {
+              batch.delete(doc(db, 'admin', reqData.target_admin_uid));
+            }
+            batch.delete(reqRef);
+            await batch.commit();
+
+            const declinedLog = { new_admin: 'admin_account_declined', delete_service: 'service_delete_declined' }[type];
+            if (declinedLog) {
+              await logActivity(declinedLog, {
+                office_name: reqData.office_name || '',
+                service_name: reqData.service_name || '',
+                target_name: reqData.requested_by_name || '',
+                // No one to notify
+                recipient_uid: type === 'delete_service' ? (reqData.requested_by_uid || '') : ''
+              });
+            }
+
+            document.getElementById('toast-overlay')?.classList.remove('show');
+            showToast(
+              'success',
+              'Request Declined',
+              authRemoved
+                ? 'The request has been removed.'
+                : 'The request was removed, but the login account could not be removed automatically.',
+              'OK'
+            );
+          } catch (error) {
+            console.error('Decline failed:', error);
+            document.getElementById('toast-overlay')?.classList.remove('show');
+            showToast('error', 'Action Failed', 'Could not decline this request (' + (error.code || error.message) + ').');
+          }
+        }
+      });
+    }
+  </script>
+
+  <script>
+    function toggleSidebar() {
+      document.querySelector('.sidebar').classList.toggle('collapsed');
+    }
+  </script>
+
+  <script>
+    fetch('../Authentication/profile.html')
+      .then(res => res.text())
+      .then(html => {
+        const template = document.createElement('template');
+        template.innerHTML = html;
+        const script = template.content.querySelector('script');
+        const profilePlaceholder = document.getElementById('profile-placeholder');
+        profilePlaceholder.replaceChildren(template.content);
+        if (script) {
+          const executableScript = document.createElement('script');
+          executableScript.textContent = script.textContent;
+          document.body.appendChild(executableScript);
+        }
+        if (window.currentUser) updateProfileDisplay(window.currentUser);
+      });
+  </script>
+</body>
+
+</html>
