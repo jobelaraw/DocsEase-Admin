@@ -9,7 +9,9 @@
   <link rel="stylesheet" href="../css/service_management.css" />
   <link rel="stylesheet" href="../css/sidebar.css" />
   <link rel="stylesheet" href="../css/profile.css" />
-  <script src="../functions/profile.js"></script>
+  <link rel="stylesheet" href="../css/toast.css" />
+  <script src="../functions/toast.js"></script>
+  <script type="module" src="../functions/role-guard.js"></script>
 </head>
 
 <body>
@@ -34,9 +36,21 @@
           <div class="nav-icon"><img src="../assets/service_mngment.png" alt="Service Management" /></div>
           <span class="nav-label">Service Management</span>
         </a>
+        <a href="map_management.html" class="nav-item" title="Map Management">
+          <div class="nav-icon"><img src="../assets/map_mngment.png" alt="Map Management" /></div>
+          <span class="nav-label">Map Management</span>
+        </a>
         <a href="analytics.html" class="nav-item">
           <div class="nav-icon"><img src="../assets/analytics.png" alt="Analytics" /></div>
           <span class="nav-label">Analytics</span>
+        </a>
+        <a href="review_queue.html" class="nav-item" title="Review Queue">
+      <div class="nav-icon"><img src="../assets/review_queue.png" alt="Review Queue" /></div>
+        <span class="nav-label">Review Queue</span>
+      </a>
+      <a href="activity_log.html" class="nav-item" title="Activity Log">
+      <div class="nav-icon"><img src="../assets/activity_log.png" alt="Activity Log" /></div>
+        <span class="nav-label">Activity Log</span>
         </a>
       </nav>
     </div>
@@ -69,9 +83,14 @@
           <input type="text" id="search-input" placeholder="Search office..." aria-label="Search city office updates" oninput="filterOffices(this.value)" />
         </div>
 
-        <button type="button" class="btn-add-service" onclick="window.location.href='../Forms/add_service.html'">
+        <!-- Label set once role is known -->
+        <button type="button" id="btn-add-service" class="btn-add-service" style="display:none;" onclick="window.location.href='../Forms/add_service.html'">
           <img src="../assets/add_service.png" alt="Plus Icon" />
           <span>Add New Service</span>
+        </button>
+        <button type="button" id="btn-add-office" class="btn-add-service" style="display:none;" onclick="openAddOffice()">
+          <img src="../assets/add_service.png" alt="Plus Icon" />
+          <span>Add New Office</span>
         </button>
       </div>
 
@@ -84,19 +103,66 @@
     </div>
   </div>
 
+  <!-- Add New Office modal -->
+  <div class="ao-overlay" id="add-office-overlay" aria-hidden="true">
+    <div class="ao-modal" role="dialog" aria-modal="true" aria-labelledby="ao-title">
+      <div class="ao-header">
+        <h2 class="ao-title" id="ao-title">ADD NEW OFFICE</h2>
+        <button type="button" class="ao-close" aria-label="Close" onclick="closeAddOffice()">&times;</button>
+      </div>
+      <label class="ao-label" for="ao-office-name">OFFICE NAME</label>
+      <input type="text" id="ao-office-name" class="ao-input" placeholder="Enter office name..." maxlength="100" autocomplete="off" />
+      <div class="ao-error" id="ao-error"></div>
+      <div class="ao-actions">
+        <button type="button" class="ao-btn ao-btn-cancel" onclick="closeAddOffice()">Cancel</button>
+        <button type="button" class="ao-btn ao-btn-add" id="ao-submit" onclick="submitAddOffice()">Add new office</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     import { auth, db } from '../Firebase/firebase-config.js';
-    import { collection, getDocs, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { collection, getDocs, getDoc, doc, deleteDoc, setDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    // ---- Activity log helper ----
+    let _logActor = null;
+    async function logActivity(type, details = {}) {
+      try {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        if (!_logActor || _logActor.uid !== user.uid) {
+          let name = user.displayName || user.email || 'Admin';
+          let role = 'admin';
+          try {
+            const snap = await getDoc(doc(db, 'admin', user.uid));
+            if (snap.exists()) {
+              const data = snap.data();
+              name = data.full_name || name;
+              role = data.role || 'admin';
+            }
+          } catch (err) {
+            console.error('[activity-log] could not read actor profile:', err);
+          }
+          _logActor = { uid: user.uid, name, role };
+        }
+
+        await addDoc(collection(db, 'activity_logs'), {
+          type,
+          actor_uid: _logActor.uid,
+          actor_name: details.actor_name || _logActor.name,
+          actor_role: _logActor.role,
+          office_name: details.office_name || '',
+          service_name: details.service_name || '',
+          target_name: details.target_name || '',
+          createdAt: serverTimestamp()
+        });
+      } catch (err) {
+        console.error('[activity-log] failed to log', type, err);
+      }
+    }
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-    window.handleSignOut = async function(e) {
-      e.stopPropagation();
-      const overlay = document.createElement('div');
-      overlay.innerHTML = '<div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999;"><div style="background:#fff;border-radius:20px;padding:40px 36px 32px;text-align:center;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2);"><div style="width:48px;height:48px;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;"><div style="width:48px;height:48px;border:4px solid rgba(42,125,225,0.2);border-top-color:#2a7de1;border-radius:50%;animation:spin 0.7s linear infinite;"></div></div><div style="font-size:1.3rem;font-weight:800;color:#1a2540;margin-bottom:8px;">Signing Out...</div><div style="font-size:0.88rem;color:#555;">Please wait.</div></div></div>';
-      document.body.appendChild(overlay);
-      await signOut(auth);
-      window.location.href = '../Authentication/auth.html';
-    };
+    let isSuperAdmin = false;
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -117,6 +183,14 @@
         const userRoleEl = document.querySelector('.user-role');
         if (userNameEl) userNameEl.textContent = user.displayName || user.email;
         if (userRoleEl) userRoleEl.textContent = 'Admin ✓';
+
+        // Set label by role
+        const adminData = adminDoc.data();
+        isSuperAdmin = adminData.role === 'super_admin' && adminData.status === 'active';
+        document.getElementById(isSuperAdmin ? 'btn-add-office' : 'btn-add-service').style.display = '';
+
+        // Load offices after role is known
+        loadOffices();
       } catch (error) {
         console.error('Auth check failed:', error);
         await signOut(auth);
@@ -131,8 +205,10 @@
     async function loadOffices() {
       const grid = document.getElementById('office-grid');
       const loadingText = document.getElementById('loading');
-      
+
       try {
+        grid.innerHTML = '';
+        loadingText.innerText = 'Loading offices...';
         loadingText.style.display = 'block';
 
         const querySnapshot = await getDocs(collection(db, "offices"));
@@ -144,11 +220,16 @@
           loadingText.style.display = 'none';
         }
 
-        querySnapshot.forEach((doc) => {
-          const officeData = doc.data();
+        querySnapshot.forEach((officeDoc) => {
+          const officeData = officeDoc.data();
+          const officeName = officeData.office_name || officeDoc.id;
           const cardHTML = `
-            <div class="office-card" onclick="openOffice('${officeData.office_name}')">
-              <h3 class="card-title" style="color: var(--navy);">${officeData.office_name}</h3>
+            <div class="office-card" data-office-name="${escapeHtml(officeName)}">
+              ${isSuperAdmin ? `
+              <button class="btn-delete-office" type="button" title="Delete office category" aria-label="Delete ${escapeHtml(officeName)}" onclick="deleteOffice('${officeDoc.id}', this, event)">
+                <img src="../assets/delete.png" alt="" />
+              </button>` : ''}
+              <h3 class="card-title" style="color: var(--navy);">${escapeHtml(officeName)}</h3>
             </div>
           `;
           grid.insertAdjacentHTML('beforeend', cardHTML);
@@ -160,7 +241,127 @@
       }
     }
 
-    loadOffices();
+    window.escapeHtml = function(value) {
+      return String(value).replace(/[&<>'"]/g, character => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+      }[character]));
+    };
+
+    // ---------- Add New Office ----------
+    const aoOverlay = document.getElementById('add-office-overlay');
+    const aoInput = document.getElementById('ao-office-name');
+    const aoError = document.getElementById('ao-error');
+    const aoSubmit = document.getElementById('ao-submit');
+
+    function showAoError(message) {
+      aoError.textContent = message;
+      aoInput.classList.toggle('error', !!message);
+    }
+
+    window.openAddOffice = function() {
+      aoInput.value = '';
+      showAoError('');
+      aoOverlay.classList.add('show');
+      aoOverlay.setAttribute('aria-hidden', 'false');
+      setTimeout(() => aoInput.focus(), 0);
+    };
+
+    window.closeAddOffice = function() {
+      aoOverlay.classList.remove('show');
+      aoOverlay.setAttribute('aria-hidden', 'true');
+    };
+
+    window.submitAddOffice = async function() {
+      const officeName = aoInput.value.replace(/\s+/g, ' ').trim();
+
+      if (!officeName) { showAoError('Please enter an office name.'); return; }
+      if (officeName.includes('/')) { showAoError('Office name cannot contain "/".'); return; }
+      showAoError('');
+
+      aoSubmit.disabled = true;
+      aoSubmit.textContent = 'Adding...';
+
+      try {
+        // Same id convention as add_service.html
+        const officeId = officeName.toUpperCase().replace(/\s+/g, '-');
+
+        const existing = await getDocs(collection(db, 'offices'));
+        const duplicate = existing.docs.some(d =>
+          d.id === officeId ||
+          String(d.data().office_name || d.id).trim().toLowerCase() === officeName.toLowerCase()
+        );
+        if (duplicate) {
+          showAoError('An office with this name already exists.');
+          return;
+        }
+
+        await setDoc(doc(db, 'offices', officeId), {
+          office_name: officeName,
+          created_at: serverTimestamp()
+        });
+
+        // Citizen-app notification
+        try {
+          await addDoc(collection(db, 'notifications'), {
+            title: 'Hi Citizen! A new office added',
+            body: `A new office, ${officeName}, is now available on DocsEase.`,
+            service_id: '',
+            timestamp: serverTimestamp()
+          });
+        } catch (notifError) {
+          console.error('Office notification failed:', notifError);
+        }
+
+        await logActivity('office_added', { office_name: officeName });
+
+        window.closeAddOffice();
+        window.showToast('success', 'Office Added', `"${officeName}" has been added.`, 'OK');
+        await loadOffices();
+      } catch (error) {
+        console.error('Error adding office:', error);
+        window.showToast('error', 'Add Failed', 'The office could not be added. Please try again.', 'OK');
+      } finally {
+        aoSubmit.disabled = false;
+        aoSubmit.textContent = 'Add new office';
+      }
+    };
+
+    aoInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') window.submitAddOffice(); });
+    aoInput.addEventListener('input', () => showAoError(''));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && aoOverlay.classList.contains('show')) window.closeAddOffice(); });
+
+    window.deleteOffice = async function(officeId, button, event) {
+      event.stopPropagation();
+      if (!isSuperAdmin) return;
+
+      const officeCard = button.closest('.office-card');
+      const officeName = officeCard.querySelector('.card-title').textContent;
+      window.showConfirmToast({
+        type: 'warning',
+        title: 'Delete Office Category?',
+        msg: `This will permanently delete "${officeName}" and all of its services.`,
+        confirmText: 'Yes, Delete',
+        cancelText: 'No',
+        onConfirm: async () => {
+          button.disabled = true;
+          window.showToast('loading', 'Deleting Office Category', 'The office category and its services are being deleted.', '');
+
+          try {
+            const servicesRef = collection(db, 'offices', officeId, 'services');
+            const servicesSnapshot = await getDocs(servicesRef);
+            await Promise.all(servicesSnapshot.docs.map(serviceDoc => deleteDoc(serviceDoc.ref)));
+            await deleteDoc(doc(db, 'offices', officeId));
+            await logActivity('office_deleted', { office_name: officeName });
+            officeCard.remove();
+            window.showToast('success', 'Deletion Successful', `"${officeName}" and all of its services have been deleted.`, 'OK');
+          } catch (error) {
+            console.error('Error deleting office category:', error);
+            button.disabled = false;
+            window.showToast('error', 'Delete Failed', 'The office category could not be deleted. Please try again.', 'OK');
+          }
+        }
+      });
+    };
   </script>
   
   <script>
@@ -188,13 +389,29 @@
     function openOffice(name) {
       window.location.href = 'category_list.html?office=' + encodeURIComponent(name);
     }
+
+    document.getElementById('office-grid').addEventListener('click', event => {
+      if (!event.target.closest('.btn-delete-office')) {
+        const card = event.target.closest('.office-card');
+        if (card) openOffice(card.dataset.officeName);
+      }
+    });
   </script>
 
   <script>
     fetch('../Authentication/profile.html')
       .then(res => res.text())
       .then(html => {
-        document.getElementById('profile-placeholder').innerHTML = html;
+        const template = document.createElement('template');
+        template.innerHTML = html;
+        const script = template.content.querySelector('script');
+        const profilePlaceholder = document.getElementById('profile-placeholder');
+        profilePlaceholder.replaceChildren(template.content);
+        if (script) {
+          const executableScript = document.createElement('script');
+          executableScript.textContent = script.textContent;
+          document.body.appendChild(executableScript);
+        }
         if (window.currentUser) updateProfileDisplay(window.currentUser);
       });
 </script>

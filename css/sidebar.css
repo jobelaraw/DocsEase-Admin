@@ -162,3 +162,8 @@
       font-weight: 700;
       color: var(--navy);
     }
+
+    html:not(.is-super-admin) .sidebar a.nav-item[href$="map_management.html"],
+    html:not(.is-super-admin) .sidebar a.nav-item[href$="review_queue.html"] {
+      display: none !important;
+    }

@@ -793,7 +793,7 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-/* --- edit_service.html-only additions (not present in add_service) --- */
+/* Edit-service-only additions */
 
 .btn-discard {
   padding: 12px 32px;
@@ -868,4 +868,9 @@
     flex: 1;
     min-width: 0;
   }
+}
+
+html:not(.is-super-admin) .sidebar a.nav-item[href$="map_management.html"],
+html:not(.is-super-admin) .sidebar a.nav-item[href$="review_queue.html"] {
+  display: none !important;
 }

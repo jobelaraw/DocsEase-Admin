@@ -1,4 +1,4 @@
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
     *,
     *::before,
@@ -203,6 +203,7 @@
     }
 
     .office-card {
+      position: relative;
       background: var(--card-bg);
       border-radius: 20px;
       min-height: 150px;
@@ -220,6 +221,34 @@
     .office-card:hover {
       transform: translateY(-2px);
       box-shadow: 0 12px 28px rgba(10, 30, 80, 0.12);
+    }
+
+    .btn-delete-office {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border: 0;
+      border-radius: 8px;
+      background: #fff0f0;
+      cursor: pointer;
+    }
+
+    .btn-delete-office:hover {
+      background: #ffdcdc;
+    }
+
+    .btn-delete-office:disabled {
+      cursor: wait;
+      opacity: 0.55;
+    }
+
+    .btn-delete-office img {
+      width: 18px;
+      height: 18px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -271,5 +300,164 @@
 
   .office-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Add New Office modal */
+.ao-overlay 
+{ 
+  position: fixed; 
+  inset: 0; 
+  background: rgba(0,0,0,0.45); 
+  display: none; 
+  align-items: center; 
+  justify-content: center; 
+  z-index: 9000; 
+  padding: 16px; 
+}
+
+.ao-overlay.show 
+{ 
+  display: flex; 
+}
+
+.ao-modal 
+{ 
+  background: #fff; 
+  border-radius: 20px; 
+  width: 100%; 
+  max-width: 520px; 
+  padding: 30px 36px 36px; 
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25); 
+}
+
+.ao-header 
+{ 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  margin-bottom: 34px; 
+}
+
+.ao-title 
+{ 
+  font-size: 1.15rem; 
+  font-weight: 800; 
+  letter-spacing: 0.02em; 
+  color: #000; 
+  margin: 0; 
+}
+
+.ao-close 
+{ 
+  background: none; 
+  border: none; 
+  font-size: 1.9rem; 
+  line-height: 1; 
+  cursor: pointer; 
+  color: #222; 
+  padding: 0 4px; 
+}
+
+.ao-label 
+{ 
+  display: block; 
+  font-size: 0.68rem; 
+  font-weight: 700; 
+  letter-spacing: 0.06em; 
+  color: #333; 
+  margin-bottom: 8px; 
+}
+
+.ao-input 
+{ 
+  width: 100%; 
+  box-sizing: border-box; 
+  padding: 11px 12px; 
+  border: 1px solid #9aa3b2; 
+  border-radius: 6px; 
+  font: inherit; 
+  font-size: 0.85rem; 
+}
+
+.ao-input:focus 
+{ 
+  outline: none; 
+  border-color: var(--navy, #002D62); 
+}
+
+.ao-input.error 
+{ 
+  border-color: #e74c3c; 
+}
+
+.ao-error 
+{ 
+  color: #e74c3c; 
+  font-size: 0.75rem; 
+  margin-top: 6px; 
+  min-height: 1em; 
+}
+
+.ao-actions 
+{ 
+  display: flex; 
+  justify-content: center; 
+  gap: 14px; 
+  margin-top: 24px; 
+}
+
+.ao-btn 
+{ 
+  min-width: 130px; 
+  padding: 12px 24px; 
+  border-radius: 6px; 
+  font: inherit; 
+  font-size: 0.78rem; 
+  font-weight: 700; 
+  cursor: pointer; 
+  border: 1px solid transparent; 
+  box-shadow: 0 2px 6px rgba(0,0,0,0.18); 
+}
+
+.ao-btn-cancel 
+{ 
+  background: #fff; 
+  color: var(--navy, #002D62); 
+  border-color: #d5d9e2; 
+}
+
+.ao-btn-add 
+{ 
+  background: var(--navy, #002D62); 
+  color: #fff; 
+}
+
+.ao-btn:disabled 
+{ 
+  opacity: 0.6; 
+  cursor: not-allowed; 
+}
+
+/* Delete-office button, shows on hover */
+.office-grid .office-card .btn-delete-office 
+{ 
+  opacity: 0 !important; 
+  pointer-events: none; 
+  transition: opacity 0.15s ease; 
+}
+
+.office-grid .office-card:hover .btn-delete-office,
+.office-grid .office-card .btn-delete-office:focus-visible 
+{ 
+  opacity: 1 !important; 
+  pointer-events: auto; 
+}
+
+/* Always visible on touch */
+@media (hover: none) {
+  .office-grid .office-card .btn-delete-office 
+  { opacity: 1 !important; 
+    pointer-events: auto; 
   }
 }

@@ -1,4 +1,4 @@
-   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
     *,
     *::before,
@@ -829,4 +829,9 @@
     flex: 1;
     min-width: 0;
   }
+}
+
+html:not(.is-super-admin) .sidebar a.nav-item[href$="map_management.html"],
+html:not(.is-super-admin) .sidebar a.nav-item[href$="review_queue.html"] {
+  display: none !important;
 }

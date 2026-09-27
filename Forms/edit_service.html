@@ -7,6 +7,9 @@
   <title>DocsEase – Edit Service</title>
   <link rel="icon" type="image/png" href="../assets/logo_whitebg.png" />
   <link rel="stylesheet" href="../css/edit_service.css" />
+  <link rel="stylesheet" href="../css/toast.css" />
+  <script src="../functions/toast.js"></script>
+  <script type="module" src="../functions/role-guard.js"></script>
 </head>
 
 <body>
@@ -26,9 +29,22 @@
           <div class="nav-icon"><img src="../assets/service_mngment.png" alt="Service Management" /></div>
           <span class="nav-label">Service Management</span>
         </a>
+         <a href="../Sidebar/map_management.html" class="nav-item" title="Map Management">
+          <div class="nav-icon"><img src="../assets/map_mngment.png" alt="Map Management" /></div>
+          <span class="nav-label">Map Management</span>
+        </a>
         <a href="../Sidebar/analytics.html" class="nav-item">
           <div class="nav-icon"><img src="../assets/analytics.png" alt="Analytics" /></div>
           <span class="nav-label">Analytics</span>
+        </a>
+        <a href="../Sidebar/review_queue.html" class="nav-item" title="Review Queue">
+          <div class="nav-icon"><img src="../assets/review_queue.png" alt="Review Queue" /></div>
+          <span class="nav-label">Review Queue</span>
+        </a>
+
+      <a href="../Sidebar/activity_log.html" class="nav-item" title="Activity Log">
+      <div class="nav-icon"><img src="../assets/activity_log.png" alt="Activity Log" /></div>
+        <span class="nav-label">Activity Log</span>
         </a>
       </nav>
     </div>
@@ -42,7 +58,7 @@
   <div class="main">
     <header class="topbar">
       <div class="topbar-left">
-        <button class="btn-back" onclick="history.back()">
+        <button class="btn-back" onclick="window.confirmLeavePage()">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
             stroke-linecap="round" stroke-linejoin="round">
             <polyline points="15 18 9 12 15 6" />
@@ -50,25 +66,12 @@
         </button>
         <h1 class="page-title" id="page-title">Edit Service</h1>
       </div>
-      <div class="user-profile" onclick="toggleDropdown(event)">
-        <div class="user-info">
-          <div class="user-name">Loading...</div>
-          <div class="user-role">Admin ✓</div>
-        </div>
-        <div class="user-avatar">
-          <img src="../assets/user_profile.png" alt="Admin profile" />
-        </div>
-        <div class="profile-dropdown" id="profile-dropdown">
-          <button class="dd-item disabled" onclick="event.stopPropagation()">Edit Profile</button>
-          <div class="dd-divider"></div>
-          <button class="dd-item logout" onclick="handleSignOut(event)">Sign Out</button>
-        </div>
-      </div>
+      <div id="profile-placeholder"></div>
     </header>
 
     <div class="form-wrapper">
 
-      <!-- Tab Bar: doubles as tab switcher + tab management, same as add_service -->
+      <!-- Tab Bar -->
       <div class="tab-bar" id="tabs-header"></div>
 
       <p id="loading-msg" style="text-align:center;color:#6b7a99;font-weight:600;margin:40px 0;">Loading service...</p>
@@ -152,24 +155,54 @@
         <img src="../assets/delete.png" alt="Delete" />
         Delete Service
       </button>
-      <button class="btn-discard" onclick="history.back()">Discard Changes</button>
+      <button class="btn-discard" onclick="discardChanges()">Discard Changes</button>
       <button class="btn-save" onclick="saveChanges()">Save Changes</button>
     </div>
   </div>
 
   <script type="module">
     import { auth, db } from '../Firebase/firebase-config.js';
-    import { doc, getDoc, setDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { doc, getDoc, setDoc, serverTimestamp, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { deleteOrRequestServiceDeletion } from '../functions/service-delete.js';
 
-    window.handleSignOut = async function(e) {
-      e.stopPropagation();
-      const overlay = document.createElement('div');
-      overlay.innerHTML = '<div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999;"><div style="background:#fff;border-radius:20px;padding:40px 36px 32px;text-align:center;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2);"><div style="width:48px;height:48px;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;"><div style="width:48px;height:48px;border:4px solid rgba(42,125,225,0.2);border-top-color:#2a7de1;border-radius:50%;animation:spin 0.7s linear infinite;"></div></div><div style="font-size:1.3rem;font-weight:800;color:#1a2540;margin-bottom:8px;">Signing Out...</div><div style="font-size:0.88rem;color:#555;">Please wait.</div></div></div>';
-      document.body.appendChild(overlay);
-      await signOut(auth);
-      window.location.href = '../Authentication/auth.html';
-    };
+    // ---- Activity log helper ----
+    let _logActor = null;
+    async function logActivity(type, details = {}) {
+      try {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        if (!_logActor || _logActor.uid !== user.uid) {
+          let name = user.displayName || user.email || 'Admin';
+          let role = 'admin';
+          try {
+            const snap = await getDoc(doc(db, 'admin', user.uid));
+            if (snap.exists()) {
+              const data = snap.data();
+              name = data.full_name || name;
+              role = data.role || 'admin';
+            }
+          } catch (err) {
+            console.error('[activity-log] could not read actor profile:', err);
+          }
+          _logActor = { uid: user.uid, name, role };
+        }
+
+        await addDoc(collection(db, 'activity_logs'), {
+          type,
+          actor_uid: _logActor.uid,
+          actor_name: details.actor_name || _logActor.name,
+          actor_role: _logActor.role,
+          office_name: details.office_name || '',
+          service_name: details.service_name || '',
+          target_name: details.target_name || '',
+          createdAt: serverTimestamp()
+        });
+      } catch (err) {
+        console.error('[activity-log] failed to log', type, err);
+      }
+    }
 
     function sanitizeForFirestore(value) {
       if (Array.isArray(value)) {
@@ -194,18 +227,19 @@
       return value;
     }
 
-    // ---- URL params: which document to edit ----
+    // ---- URL params ----
     const params = new URLSearchParams(window.location.search);
     const officeId = params.get('officeId');
     const serviceId = params.get('serviceId');
 
     // ---- State ----
     let serviceData = null;
+    let isSuperAdmin = false; // role flag
     let currentTabIndex = 0;
     let uidCounter = 0;
     const nextUid = () => 'u' + (++uidCounter) + '-' + Math.random().toString(36).slice(2, 7);
 
-    // ---- Suggestion lists (same options add_service.html offers) ----
+    // ---- Suggestion lists ----
     const SUGGEST = {
       requirement: ['BPLO FORM 001-2: Application Form For Business Permit', 'Occupancy Permit (if applicable)', 'Barangay Clearance', 'Valid ID'],
       stepTitle: ['Application and Assessment', 'Payment', 'Claiming of Permit'],
@@ -285,9 +319,48 @@
       currentTabIndex = 0;
       renderTabBar();
       renderTabPane();
+      captureOriginalFormSnapshot();
     }
 
-    // ---- Tab bar (switcher + inline rename/delete + add, like add_service) ----
+    let originalFormSnapshot = null;
+
+    function serializeEditableServiceState() {
+      if (!serviceData) return JSON.stringify({});
+
+      return JSON.stringify({
+        service_name: document.getElementById('service-name-input').value.trim(),
+        description: document.getElementById('service-desc-input').value.trim(),
+        location: document.getElementById('location-input').value.trim(),
+        contact_phone: document.getElementById('contact-input').value.trim(),
+        contact_email: document.getElementById('email-input').value.trim(),
+        tabs: serviceData.tabs.map(tab => ({
+          tab_name: tab.tab_name || '',
+          requirements: (tab.requirements || []).map(req => ({
+            requirement_name: req.requirement_name || '',
+            secure_at: req.secure_at || ''
+          })),
+          procedures: (tab.procedures || []).map(step => ({
+            __uid: step.__uid || '',
+            process_name: step.process_name || '',
+            fee: step.fee || '',
+            processing_time: step.processing_time || '',
+            process_description: step.process_description || '',
+            person_in_charge: step.person_in_charge || ''
+          }))
+        }))
+      });
+    }
+
+    function captureOriginalFormSnapshot() {
+      originalFormSnapshot = serializeEditableServiceState();
+    }
+
+    window.hasUnsavedChanges = function() {
+      if (!serviceData) return false;
+      return serializeEditableServiceState() !== originalFormSnapshot;
+    };
+
+    // ---- Tab bar ----
     function renderTabBar() {
       const bar = document.getElementById('tabs-header');
       bar.innerHTML = '';
@@ -333,7 +406,7 @@
 
     function deleteTab(i) {
       if (serviceData.tabs.length <= 1) {
-        alert('A service needs at least one tab.');
+        showToast('error', 'At least One Tab', 'A service needs at least one tab.');
         return;
       }
       serviceData.tabs.splice(i, 1);
@@ -342,7 +415,7 @@
       renderTabPane();
     }
 
-    // ---- Requirements + Steps for the active tab ----
+    // ---- Requirements + Steps ----
     function renderTabPane() {
       const container = document.getElementById('tab-contents');
       const tab = serviceData.tabs[currentTabIndex];
@@ -479,7 +552,7 @@
       if (cards.length) cards[cards.length - 1].classList.add('open');
     }
 
-    // ---- Drag & drop reordering (mirrors add_service.html) ----
+    // ---- Drag & drop reordering ----
     let draggedItem = null;
 
     function initDragAndDrop(container, tab) {
@@ -520,7 +593,7 @@
       tab.procedures.sort((a, b) => orderedUids.indexOf(a.__uid) - orderedUids.indexOf(b.__uid));
     }
 
-    // ---- Combo box behavior (same as add_service.html) ----
+    // ---- Combo box behavior ----
     window.toggleCombo = function(btn) {
       const menu = btn.nextElementSibling;
       const isShowing = menu.classList.contains('show');
@@ -541,8 +614,66 @@
       }
     });
 
+    const leaveRedirectUrl = function() {
+      if (document.referrer && document.referrer.includes(window.location.origin)) {
+        return document.referrer;
+      }
+      return '../Sidebar/service_management.html';
+    };
+
+    window.navigateAway = function(targetUrl) {
+      if (targetUrl) {
+        window.location.href = targetUrl;
+        return;
+      }
+      window.location.href = leaveRedirectUrl();
+    };
+
+    window.confirmLeavePage = function(targetUrl) {
+      if (!window.hasUnsavedChanges()) {
+        window.navigateAway(targetUrl);
+        return;
+      }
+
+      showConfirmToast({
+        type: 'warning',
+        title: 'Leave without saving?',
+        msg: 'Your changes will not be saved if you leave this page.',
+        confirmText: 'Leave',
+        cancelText: 'Stay',
+        onConfirm: () => {
+          window.navigateAway(targetUrl);
+        },
+        onCancel: () => {}
+      });
+    };
+
+    function confirmLeavePage(targetUrl) {
+      return window.confirmLeavePage(targetUrl);
+    }
+
+    window.history.pushState({ docsEaseLeaveGuard: true }, '', window.location.href);
+    window.addEventListener('popstate', function () {
+      if (!window.hasUnsavedChanges()) return;
+
+      window.history.pushState({ docsEaseLeaveGuard: true }, '', window.location.href);
+      showConfirmToast({
+        type: 'warning',
+        title: 'Leave without saving?',
+        msg: 'Your changes will not be saved if you leave this page.',
+        confirmText: 'Leave',
+        cancelText: 'Stay',
+        onConfirm: function () {
+          window.location.href = leaveRedirectUrl();
+        },
+        onCancel: function () {
+          window.history.pushState({ docsEaseLeaveGuard: true }, '', window.location.href);
+        }
+      });
+    });
+
     // ---- Save / Delete ----
-    window.saveChanges = async function() {
+    async function performSaveChanges() {
       if (!serviceData) return;
 
       serviceData.service_name = document.getElementById('service-name-input').value.trim();
@@ -561,27 +692,108 @@
       saveBtn.disabled = true;
 
       try {
+        showToast('loading', 'Saving Changes', 'The service changes are currently being processed. Please wait.', '');
         const serviceRef = doc(db, 'offices', officeId, 'services', serviceId);
         await setDoc(serviceRef, payload);
-        window.location.href = '../Sidebar/service_management.html';
+
+        await addDoc(collection(db, "notifications"), {
+          title: "Hi Citizen! There’s some update.",
+          body: `There are new update in the information for ${serviceData.service_name}. Come and check it out.`,
+          service_id: serviceId,
+          timestamp: serverTimestamp()
+        });
+
+        await logActivity('service_updated', {
+          office_name: document.getElementById('office-display').value,
+          service_name: serviceData.service_name
+        });
+
+        showToast('success', 'Saved', 'Service changes have been saved successfully.', 'Continue', () => {
+          window.location.href = '../Sidebar/service_management.html';
+        });
       } catch (error) {
         console.error('Error saving service:', error);
         const message = error && error.message ? error.message : 'Failed to save changes. Please try again.';
-        alert(message);
+        showToast('error', 'Save Failed', message);
         saveBtn.textContent = originalText;
         saveBtn.disabled = false;
       }
+    }
+
+    window.saveChanges = function() {
+      showConfirmToast({
+        type: 'info',
+        title: 'Save Changes?',
+        msg: 'Do you want to save the edited service details?',
+        confirmText: 'Save',
+        cancelText: 'Keep Editing',
+        onConfirm: performSaveChanges,
+        onCancel: () => {}
+      });
     };
 
-    window.deleteService = async function() {
-      if (!confirm('Delete this service? This cannot be undone.')) return;
-      try {
-        await deleteDoc(doc(db, 'offices', officeId, 'services', serviceId));
-        window.location.href = '../Sidebar/service_management.html';
-      } catch (error) {
-        console.error('Error deleting service:', error);
-        alert('Failed to delete service. Please try again.');
-      }
+    window.discardChanges = function() {
+      showConfirmToast({
+        type: 'warning',
+        title: 'Discard Changes?',
+        msg: 'Your unsaved changes will be lost and you will be returned to the service list.',
+        confirmText: 'Discard',
+        cancelText: 'Keep Editing',
+        onConfirm: () => {
+          window.location.href = '../Sidebar/service_management.html';
+        },
+        onCancel: () => {}
+      });
+    };
+
+    window.deleteService = function() {
+      // Normal admins request deletion via Review Queue; Super Admins delete directly
+      const asRequest = !isSuperAdmin;
+      const backToList = () => { window.location.href = '../Sidebar/service_management.html'; };
+
+      showConfirmToast({
+        type: asRequest ? 'warning' : 'error',
+        title: asRequest ? 'Request Service Deletion?' : 'Delete Service?',
+        msg: asRequest
+          ? 'This will send a deletion request to the Super Admin. The service stays in the list until the request is approved.'
+          : 'This service will be permanently removed from the list.',
+        confirmText: asRequest ? 'Send Request' : 'Delete',
+        cancelText: 'Cancel',
+        onConfirm: async () => {
+          try {
+            showToast('loading', asRequest ? 'Sending Request' : 'Deleting Service', 'Please wait while this is being processed.', '');
+            const result = await deleteOrRequestServiceDeletion({
+              officeId,
+              officeName: document.getElementById('office-display').value,
+              serviceId,
+              serviceName: (serviceData && serviceData.service_name) || ''
+            });
+
+            const logDetails = {
+              office_name: document.getElementById('office-display').value,
+              service_name: (serviceData && serviceData.service_name) || ''
+            };
+            if (result.mode === 'deleted') {
+              await logActivity('service_deleted', logDetails);
+            } else if (result.mode === 'requested') {
+              await logActivity('service_delete_requested', logDetails);
+            }
+
+            if (result.mode === 'deleted') {
+              showToast('success', 'Deleted', 'The service has been deleted successfully.', 'Continue', backToList);
+            } else if (result.mode === 'requested') {
+              showToast('success', 'Request Sent', 'Your deletion request was sent to the Super Admin. The service will be removed once it is approved.', 'Continue', backToList);
+            } else {
+              showToast('info', 'Already Requested', 'You already sent a deletion request for this service. It is waiting for the Super Admin.', 'OK');
+            }
+          } catch (error) {
+            console.error('Error deleting / requesting deletion of service:', error);
+            showToast('error', asRequest ? 'Request Failed' : 'Delete Failed',
+              asRequest ? 'Could not send the deletion request. Please try again.' : 'Failed to delete service. Please try again.');
+          }
+        },
+        onCancel: () => {}
+      });
     };
 
     onAuthStateChanged(auth, async (user) => {
@@ -598,6 +810,8 @@
           window.location.href = '../Authentication/auth.html';
           return;
         }
+
+        isSuperAdmin = adminDoc.data().role === 'super_admin';
 
         const userNameEl = document.querySelector('.user-name');
         const userRoleEl = document.querySelector('.user-role');
@@ -618,17 +832,25 @@
       document.querySelector('.sidebar').classList.toggle('collapsed');
     }
 
-    function toggleDropdown(e) {
-      e.stopPropagation();
-      document.getElementById('profile-dropdown').classList.toggle('show');
-    }
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.user-profile')) {
-        document.getElementById('profile-dropdown').classList.remove('show');
-      }
+    document.querySelectorAll('.sidebar-nav a.nav-item').forEach(link => {
+      link.addEventListener('click', function (event) {
+        const targetUrl = this.getAttribute('href');
+        if (!targetUrl) return;
+
+        const currentPath = window.location.pathname.split('/').pop();
+        if (targetUrl === currentPath || targetUrl === './' + currentPath || targetUrl === window.location.pathname) return;
+
+        event.preventDefault();
+
+        if (!window.hasUnsavedChanges()) {
+          window.location.href = targetUrl;
+          return;
+        }
+
+        window.confirmLeavePage(targetUrl);
+      });
     });
   </script>
-
 </body>
 
 </html>
