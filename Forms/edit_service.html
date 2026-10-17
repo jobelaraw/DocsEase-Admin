@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DocsEase – Edit Service</title>
+  <title>GaBayan – Edit Service</title>
   <link rel="icon" type="image/png" href="../assets/logo_whitebg.png" />
   <link rel="stylesheet" href="../css/edit_service.css" />
   <link rel="stylesheet" href="../css/toast.css" />
@@ -16,8 +16,8 @@
 
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <div class="logo-icon"><img src="../assets/logo_whitebg.png" alt="DocsEase Logo" /></div>
-      <div class="logo-text"><img src="../assets/docsease_text.png" alt="DocsEase" class="brand-img" /></div>
+      <div class="logo-icon"><img src="../assets/logo_whitebg.png" alt="GaBayan Logo" /></div>
+      <div class="logo-text"><img src="../assets/docsease_text.png" alt="GaBayan" class="brand-img" /></div>
     </div>
     <div class="sidebar-nav-container">
       <nav class="sidebar-nav">
@@ -135,7 +135,7 @@
             </div>
 
             <div class="form-group">
-              <label>Email</label>
+              <label>Email <span style="font-weight:400;color:#888;">(optional)</span></label>
               <div class="combo-box">
                 <input type="text" id="email-input" placeholder="Enter website or email" />
                 <button type="button" class="btn-drop" onclick="toggleCombo(this)">▼</button>
@@ -345,7 +345,8 @@
             fee: step.fee || '',
             processing_time: step.processing_time || '',
             process_description: step.process_description || '',
-            person_in_charge: step.person_in_charge || ''
+            person_in_charge: step.person_in_charge || '',
+            online_link: step.online_link || ''
           }))
         }))
       });
@@ -514,6 +515,10 @@
               <label>People In-Charge / Office</label>
               <textarea placeholder="List the personnel or office window...">${escapeHtml(step.person_in_charge || '')}</textarea>
             </div>
+            <div class="form-group full-width" style="margin-top: 15px;">
+              <label>Online Link <span style="font-weight:400;color:#888;">(optional)</span></label>
+              <input type="text" class="step-link-input" placeholder="e.g. https://binancitybusinesspermit.online" value="${escapeHtml(step.online_link || '')}" />
+            </div>
           </div>
         `;
 
@@ -534,6 +539,9 @@
         descArea.addEventListener('input', () => { step.process_description = descArea.value; });
         personArea.addEventListener('input', () => { step.person_in_charge = personArea.value; });
 
+        const linkInput = card.querySelector('.step-link-input');
+        linkInput.addEventListener('input', () => { step.online_link = linkInput.value; });
+
         card.querySelector('.btn-delete').onclick = () => {
           tab.procedures.splice(i, 1);
           renderSteps(tab);
@@ -546,7 +554,7 @@
 
     function addStep() {
       const tab = serviceData.tabs[currentTabIndex];
-      tab.procedures.push({ __uid: nextUid(), process_name: '', fee: '', processing_time: '', process_description: '', person_in_charge: '' });
+      tab.procedures.push({ __uid: nextUid(), process_name: '', fee: '', processing_time: '', process_description: '', person_in_charge: '', online_link: '' });
       renderSteps(tab);
       const cards = document.querySelectorAll('#steps-list .step-card');
       if (cards.length) cards[cards.length - 1].classList.add('open');

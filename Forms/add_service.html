@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DocsEase – Add Service</title>
+  <title>GaBayan – Add Service</title>
   <link rel="icon" type="image/png" href="../assets/logo_whitebg.png" />
   <link rel="stylesheet" href="../css/add_service.css" />
   <link rel="stylesheet" href="../css/toast.css" />
@@ -16,8 +16,8 @@
 
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <div class="logo-icon"><img src="../assets/logo_whitebg.png" alt="DocsEase Logo" /></div>
-      <div class="logo-text"><img src="../assets/docsease_text.png" alt="DocsEase" class="brand-img" /></div>
+      <div class="logo-icon"><img src="../assets/logo_whitebg.png" alt="GaBayan Logo" /></div>
+      <div class="logo-text"><img src="../assets/docsease_text.png" alt="GaBayan" class="brand-img" /></div>
     </div>
     <div class="sidebar-nav-container">
       <nav class="sidebar-nav">
@@ -201,6 +201,10 @@
                     <label>People In-Charge / Office</label>
                     <textarea placeholder="List the personnel or office window..."></textarea>
                   </div>
+                  <div class="form-group full-width" style="margin-top: 15px;">
+                    <label>Online Link <span style="font-weight:400;color:#888;">(optional)</span></label>
+                    <input type="text" class="step-link-input" data-optional="true" placeholder="e.g. https://binancitybusinesspermit.online" />
+                  </div>
                 </div>
               </div>
 
@@ -238,9 +242,9 @@
           </div>
 
           <div class="form-group">
-            <label>WEBSITE</label>
+            <label>WEBSITE <span style="font-weight:400;color:#888;">(optional)</span></label>
             <div class="combo-box">
-              <input type="text" id="website-input" placeholder="Enter website or email" />
+              <input type="text" id="website-input" data-optional="true" placeholder="Enter website or email" />
               <button type="button" class="btn-drop" onclick="toggleCombo(this)">▼</button>
               <div class="combo-menu">
                 <div class="combo-item" onclick="selectCombo(this)">bplo@binan.gov.ph</div>
@@ -393,6 +397,7 @@
       const allTextField = document.querySelectorAll('.combo-box input, input[type="text"], textarea');
       let emptyFields = false;
       allTextField.forEach(field => {
+        if (field.dataset.optional === 'true') return; // e.g. the optional Online Link field
         if (field.value.trim() === '') {
           emptyFields = true;
           field.style.borderColor = 'red';
@@ -466,6 +471,8 @@
             const time = textInputs[2].value.trim();
             const desc = textAreas[0].value.trim();
             const person = textAreas[1].value.trim();
+            const linkInput = step.querySelector('.step-link-input');
+            const onlineLink = linkInput ? linkInput.value.trim() : '';
 
             if (stepTitle) {
               steps.push({
@@ -473,7 +480,8 @@
                 fee: fee,
                 processing_time: time,
                 process_description: desc,
-                person_in_charge: person
+                person_in_charge: person,
+                online_link: onlineLink
               });
             }
           }
@@ -926,6 +934,10 @@
             <div class="form-group full-width" style="margin-top: 15px;">
               <label>People In-Charge / Office</label>
               <textarea placeholder="List the personnel or office window..."></textarea>
+            </div>
+            <div class="form-group full-width" style="margin-top: 15px;">
+              <label>Online Link <span style="font-weight:400;color:#888;">(optional)</span></label>
+              <input type="text" class="step-link-input" data-optional="true" placeholder="e.g. https://binancitybusinesspermit.online" />
             </div>
           </div>
         </div>
