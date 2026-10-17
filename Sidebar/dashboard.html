@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DocsEase – Admin Dashboard</title>
+  <title>GaBayan – Admin Dashboard</title>
   <link rel="icon" type="image/png" href="../assets/logo_whitebg.png" />
   <link rel="stylesheet" href="../css/dashboard.css" />
   <link rel="stylesheet" href="../css/sidebar.css" />
@@ -22,10 +22,10 @@
   <aside class="sidebar">
     <div class="sidebar-logo">
       <div class="logo-icon">
-        <img src="../assets/logo.png" alt="DocsEase Logo" />
+        <img src="../assets/logo.png" alt="GaBayan Logo" />
       </div>
       <div class="logo-text">
-        <img src="../assets/docsease_text.png" alt="DocsEase" class="brand-img" />
+        <img src="../assets/docsease_text.png" alt="GaBayan" class="brand-img" />
       </div>
     </div>
 
@@ -335,7 +335,7 @@
         try {
           await addDoc(collection(db, 'notifications'), {
             title: 'Hi Citizen! A new office added',
-            body: `A new office, ${officeName}, is now available on DocsEase.`,
+            body: `A new office, ${officeName}, is now available on GaBayan.`,
             service_id: '',
             timestamp: serverTimestamp()
           });
