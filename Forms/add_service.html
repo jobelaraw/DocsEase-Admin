@@ -514,12 +514,19 @@
         const serviceRef = doc(db, "offices", officeId, "services", customServiceId);
         await setDoc(serviceRef, serviceData);
 
-        await addDoc(collection(db, "notifications"), {
-          title: "Hi Citizen! A new service added.",
-          body: `A new service (${serviceName}) is available at the ${officeName}. Come and check it out.`,
-          service_id: customServiceId,
-          timestamp: serverTimestamp()
-        });
+      //DISTRIBUTE NOTIFICATION TO ALL REGISTERED USERS
+        const usersSnap = await getDocs(collection(db, "users"));
+        
+        const notifPromises = usersSnap.docs.map(userDoc => 
+          addDoc(collection(db, "users", userDoc.id, "notifications"), {
+            title: "New Service Update", 
+            body: `Details about the service update here.`,
+            service_id: customServiceId, 
+            is_read: false,
+            timestamp: serverTimestamp()
+          })
+        );
+        await Promise.all(notifPromises);
 
         await logActivity('service_added', { office_name: officeName, service_name: serviceName });
         
