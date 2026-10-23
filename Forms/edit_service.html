@@ -704,12 +704,19 @@
         const serviceRef = doc(db, 'offices', officeId, 'services', serviceId);
         await setDoc(serviceRef, payload);
 
-        await addDoc(collection(db, "notifications"), {
-          title: "Hi Citizen! There’s some update.",
-          body: `There are new update in the information for ${serviceData.service_name}. Come and check it out.`,
-          service_id: serviceId,
-          timestamp: serverTimestamp()
-        });
+        //DISTRIBUTE NOTIFICATION TO ALL REGISTERED USERS
+        const usersSnap = await getDocs(collection(db, 'users'));
+        
+        const notifPromises = usersSnap.docs.map(userDoc => 
+          addDoc(collection(db, 'users', userDoc.id, 'notifications'), {
+            title: "Hi Citizen! There’s some update.",
+            body: `There are new update in the information for ${serviceData.service_name}. Come and check it out.`,
+            service_id: serviceId,
+            is_read: false, // Track read status inside the document
+            timestamp: serverTimestamp()
+          })
+        );
+        await Promise.all(notifPromises);
 
         await logActivity('service_updated', {
           office_name: document.getElementById('office-display').value,
