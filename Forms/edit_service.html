@@ -777,30 +777,35 @@
         onConfirm: async () => {
           try {
             showToast('loading', asRequest ? 'Sending Request' : 'Deleting Service', 'Please wait while this is being processed.', '');
-            const result = await deleteOrRequestServiceDeletion({
-              officeId,
-              officeName: document.getElementById('office-display').value,
-              serviceId,
-              serviceName: (serviceData && serviceData.service_name) || ''
-            });
-
+            
             const logDetails = {
               office_name: document.getElementById('office-display').value,
               service_name: (serviceData && serviceData.service_name) || ''
             };
-            if (result.mode === 'deleted') {
+
+            if (isSuperAdmin) {
+              //SUPER ADMIN DIRECT DELETION
+              const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js");
+              await deleteDoc(doc(db, 'offices', officeId, 'services', serviceId));
               await logActivity('service_deleted', logDetails);
-            } else if (result.mode === 'requested') {
-              await logActivity('service_delete_requested', logDetails);
+              showToast('success', 'Deleted', 'The service has been deleted successfully.', 'Continue', backToList);
+            } else {
+              //NORMAL ADMIN REQUEST WORKFLOW
+              const result = await deleteOrRequestServiceDeletion({
+                officeId,
+                officeName: document.getElementById('office-display').value,
+                serviceId,
+                serviceName: (serviceData && serviceData.service_name) || ''
+              });
+
+              if (result.mode === 'requested') {
+                await logActivity('service_delete_requested', logDetails);
+                showToast('success', 'Request Sent', 'Your deletion request was sent to the Super Admin. The service will be removed once it is approved.', 'Continue', backToList);
+              } else {
+                showToast('info', 'Already Requested', 'You already sent a deletion request for this service. It is waiting for the Super Admin.', 'OK');
+              }
             }
 
-            if (result.mode === 'deleted') {
-              showToast('success', 'Deleted', 'The service has been deleted successfully.', 'Continue', backToList);
-            } else if (result.mode === 'requested') {
-              showToast('success', 'Request Sent', 'Your deletion request was sent to the Super Admin. The service will be removed once it is approved.', 'Continue', backToList);
-            } else {
-              showToast('info', 'Already Requested', 'You already sent a deletion request for this service. It is waiting for the Super Admin.', 'OK');
-            }
           } catch (error) {
             console.error('Error deleting / requesting deletion of service:', error);
             showToast('error', asRequest ? 'Request Failed' : 'Delete Failed',
