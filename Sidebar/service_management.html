@@ -300,18 +300,6 @@
           created_at: serverTimestamp()
         });
 
-        // Citizen-app notification
-        try {
-          await addDoc(collection(db, 'notifications'), {
-            title: 'Hi Citizen! A new office added',
-            body: `A new office, ${officeName}, is now available on DocsEase.`,
-            service_id: '',
-            timestamp: serverTimestamp()
-          });
-        } catch (notifError) {
-          console.error('Office notification failed:', notifError);
-        }
-
         await logActivity('office_added', { office_name: officeName });
 
         window.closeAddOffice();

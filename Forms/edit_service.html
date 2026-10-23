@@ -162,7 +162,7 @@
 
   <script type="module">
     import { auth, db } from '../Firebase/firebase-config.js';
-    import { doc, getDoc, setDoc, serverTimestamp, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { doc, getDoc, getDocs, setDoc, serverTimestamp, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import { deleteOrRequestServiceDeletion } from '../functions/service-delete.js';
 
@@ -709,8 +709,8 @@
         
         const notifPromises = usersSnap.docs.map(userDoc => 
           addDoc(collection(db, 'users', userDoc.id, 'notifications'), {
-            title: "Hi Citizen! There’s some update.",
-            body: `There are new update in the information for ${serviceData.service_name}. Come and check it out.`,
+            title: "Hi Citizen! Look, there’s some changes.",
+            body: `The ${serviceData.service_name} service has some changes, come check it out.`,
             service_id: serviceId,
             is_read: false, // Track read status inside the document
             timestamp: serverTimestamp()
