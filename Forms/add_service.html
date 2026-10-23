@@ -519,8 +519,8 @@
         
         const notifPromises = usersSnap.docs.map(userDoc => 
           addDoc(collection(db, "users", userDoc.id, "notifications"), {
-            title: "New Service Update", 
-            body: `Details about the service update here.`,
+            title: "Hi Citizen! A new service added.",
+            body: `${serviceName} has been added to the ${officeName}.`,
             service_id: customServiceId, 
             is_read: false,
             timestamp: serverTimestamp()
