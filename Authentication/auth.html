@@ -463,7 +463,7 @@
   </div>
 
   <script>
-    emailjs.init({ publicKey: 'sNwiz0smyu1zo-ozX' });
+    emailjs.init({ publicKey: 'KA-6Zx9c2My5ohVje' });
   </script>
 
   <script>
@@ -1168,9 +1168,9 @@
       codeExpiry = Date.now() + 5 * 60 * 1000;
 
       try {
-        await emailjs.send('service_77esocf', 'template_0lhosxe', {
+        await emailjs.send('service_2qau4rv', 'template_fsgox73', {
           to_email: email,
-          passcode: recoveryCode
+          recovery_code: recoveryCode
         });
         document.getElementById('recovery-code').value = '';
 
@@ -1225,7 +1225,7 @@
       showLoadingToast('Resending Code...', 'Sending a new verification code.');
 
       try {
-        await emailjs.send('service_77esocf', 'template_0lhosxe', {
+        await emailjs.send('service_2qau4rv', 'template_fsgox73', {
           to_email: recoveryEmail,
           passcode: recoveryCode
         });
