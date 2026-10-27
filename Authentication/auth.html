@@ -1164,12 +1164,12 @@
 
       recoveryCode = Math.floor(100000 + Math.random() * 900000).toString();
       recoveryEmail = email;
-      sessionStorage.setItem('recoveryEmail', email);
+      sessionStorage.setItem('recoveryEmail', recoveryEmail);
       codeExpiry = Date.now() + 5 * 60 * 1000;
 
       try {
         await emailjs.send('service_2qau4rv', 'template_fsgox73', {
-          to_email: email,
+          to_email: recoveryEmail,
           recovery_code: recoveryCode
         });
         document.getElementById('recovery-code').value = '';
@@ -1227,7 +1227,7 @@
       try {
         await emailjs.send('service_2qau4rv', 'template_fsgox73', {
           to_email: recoveryEmail,
-          passcode: recoveryCode
+          recovery_code: recoveryCode
         });
         document.getElementById('toast-overlay')?.classList.remove('show');
         showToast('success', 'Code Resent', 'A new recovery code has been sent to your email address.', 'OK');
