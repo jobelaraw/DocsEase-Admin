@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="../css/toast.css" />
   <script src="../functions/toast.js"></script>
   <script type="module" src="../functions/role-guard.js"></script>
+  <script type="module" src="../functions/office-destinations.js"></script>
 </head>
 
 <body>
@@ -29,7 +30,7 @@
           <div class="nav-icon"><img src="../assets/service_mngment.png" alt="Service Management" /></div>
           <span class="nav-label">Service Management</span>
         </a>
-         <a href="../Sidebar/map_management.html" class="nav-item" title="Map Management">
+        <a href="../Sidebar/map_management.html" class="nav-item" title="Map Management">
           <div class="nav-icon"><img src="../assets/map_mngment.png" alt="Map Management" /></div>
           <span class="nav-label">Map Management</span>
         </a>
@@ -42,9 +43,9 @@
           <span class="nav-label">Review Queue</span>
         </a>
 
-      <a href="../Sidebar/activity_log.html" class="nav-item" title="Activity Log">
-      <div class="nav-icon"><img src="../assets/activity_log.png" alt="Activity Log" /></div>
-        <span class="nav-label">Activity Log</span>
+        <a href="../Sidebar/activity_log.html" class="nav-item" title="Activity Log">
+          <div class="nav-icon"><img src="../assets/activity_log.png" alt="Activity Log" /></div>
+          <span class="nav-label">Activity Log</span>
         </a>
       </nav>
     </div>
@@ -99,11 +100,14 @@
               <input type="text" id="office-display" disabled />
             </div>
           </div>
+
+
           <div class="form-group full-width">
             <label>Service Description</label>
             <textarea id="service-desc-input" placeholder="Provide a general description of this service..."></textarea>
           </div>
         </div>
+
 
         <div id="tab-contents"></div>
 
@@ -117,7 +121,8 @@
               <input type="text" id="location-input" placeholder="Enter location" />
               <button type="button" class="btn-drop" onclick="toggleCombo(this)">▼</button>
               <div class="combo-menu">
-                <div class="combo-item" onclick="selectCombo(this)">1st Floor, City Hall Building, Brgy. Zapote, Binan City, Laguna</div>
+                <div class="combo-item" onclick="selectCombo(this)">1st Floor, City Hall Building, Brgy. Zapote, Binan
+                  City, Laguna</div>
               </div>
             </div>
           </div>
@@ -258,12 +263,12 @@
     function comboBoxHTML(value, placeholder, suggestions) {
       const items = suggestions.map(s => `<div class="combo-item" onclick="selectCombo(this)">${escapeHtml(s)}</div>`).join('');
       return `
-        <div class="combo-box">
-          <input type="text" placeholder="${escapeHtml(placeholder)}" value="${escapeHtml(value || '')}" />
-          <button type="button" class="btn-drop" onclick="toggleCombo(this)">▼</button>
-          <div class="combo-menu">${items}</div>
-        </div>
-      `;
+          <div class="combo-box">
+            <input type="text" placeholder="${escapeHtml(placeholder)}" value="${escapeHtml(value || '')}" />
+            <button type="button" class="btn-drop" onclick="toggleCombo(this)">▼</button>
+            <div class="combo-menu">${items}</div>
+          </div>
+        `;
     }
 
     function showFatalError(message) {
@@ -297,7 +302,33 @@
           if (!Array.isArray(tab.requirements)) tab.requirements = [];
           if (!Array.isArray(tab.procedures)) tab.procedures = [];
           tab.procedures.forEach(p => { if (!p.__uid) p.__uid = nextUid(); });
+
+          tab.procedures.forEach(p => {
+            if (!p.__uid) p.__uid = nextUid();
+            if (typeof p.agency_actions === 'string') {
+              p.agency_actions = p.agency_actions.split('\n').map(s => s.trim()).filter(Boolean);
+            } else if (!Array.isArray(p.agency_actions)) {
+              p.agency_actions = [];
+            }
+            if (typeof p.notes !== 'string') p.notes = '';
+          });
         });
+
+        // Migrate legacy service-level details into the first tab if needed.
+        const firstTab = serviceData.tabs[0];
+
+        if (!firstTab.transaction_type) {
+          firstTab.transaction_type = serviceData.transaction_type || '';
+        }
+        if (!firstTab.who_may_avail) {
+          firstTab.who_may_avail = serviceData.who_may_avail || '';
+        }
+        if (!firstTab.total_fee) {
+          firstTab.total_fee = serviceData.total_fee || '';
+        }
+        if (!firstTab.total_processing_time) {
+          firstTab.total_processing_time = serviceData.total_processing_time || '';
+        }
 
         populateForm();
 
@@ -335,18 +366,27 @@
         contact_email: document.getElementById('email-input').value.trim(),
         tabs: serviceData.tabs.map(tab => ({
           tab_name: tab.tab_name || '',
+          transaction_type: tab.transaction_type || '',
+          who_may_avail: tab.who_may_avail || '',
+          total_fee: tab.total_fee || '',
+          total_processing_time: tab.total_processing_time || '',
+
           requirements: (tab.requirements || []).map(req => ({
             requirement_name: req.requirement_name || '',
             secure_at: req.secure_at || ''
           })),
           procedures: (tab.procedures || []).map(step => ({
+            navigate_to: step.navigate_to || '',
+            agency_actions: (step.agency_actions || []).join('\n'),
+            notes: step.notes || '',
             __uid: step.__uid || '',
             process_name: step.process_name || '',
             fee: step.fee || '',
             processing_time: step.processing_time || '',
             process_description: step.process_description || '',
             person_in_charge: step.person_in_charge || '',
-            online_link: step.online_link || ''
+            online_link: step.online_link || '',
+            navigate_to: step.navigate_to || ''
           }))
         }))
       });
@@ -356,7 +396,7 @@
       originalFormSnapshot = serializeEditableServiceState();
     }
 
-    window.hasUnsavedChanges = function() {
+    window.hasUnsavedChanges = function () {
       if (!serviceData) return false;
       return serializeEditableServiceState() !== originalFormSnapshot;
     };
@@ -399,7 +439,16 @@
     }
 
     function addNewTab() {
-      serviceData.tabs.push({ tab_name: 'New Tab', requirements: [], procedures: [] });
+      serviceData.tabs.push({
+        tab_name: 'New Tab',
+        transaction_type: '',
+        who_may_avail: '',
+        total_fee: '',
+        total_processing_time: '',
+        requirements: [],
+        procedures: []
+      });
+
       currentTabIndex = serviceData.tabs.length - 1;
       renderTabBar();
       renderTabPane();
@@ -417,28 +466,112 @@
     }
 
     // ---- Requirements + Steps ----
+
     function renderTabPane() {
       const container = document.getElementById('tab-contents');
       const tab = serviceData.tabs[currentTabIndex];
 
+      // Ensure every tab has its own transaction details.
+      tab.transaction_type ??= '';
+      tab.who_may_avail ??= '';
+      tab.total_fee ??= '';
+      tab.total_processing_time ??= '';
+
       container.innerHTML = `
-        <div class="form-section">
-          <h3 class="section-title">Requirements Checklist</h3>
-          <div id="req-list"></div>
-          <button class="btn-add" id="add-req-btn">+ Click here to add new requirement</button>
+    <div class="form-section">
+      <h3 class="section-title">Transaction Details</h3>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Type of Transaction
+            <span style="font-weight:400;color:#888;">(optional)</span>
+          </label>
+          <div class="combo-box">
+            <input type="text" class="transaction-type-input"
+              placeholder="e.g. G2C – Government to Citizen"
+              value="${escapeHtml(tab.transaction_type)}" />
+            <button type="button" class="btn-drop"
+              onclick="toggleCombo(this)">▼</button>
+            <div class="combo-menu">
+              <div class="combo-item" onclick="selectCombo(this)">G2C – Government to Citizen</div>
+              <div class="combo-item" onclick="selectCombo(this)">G2B – Government to Business</div>
+              <div class="combo-item" onclick="selectCombo(this)">G2G – Government to Government</div>
+            </div>
+          </div>
         </div>
-        <div class="form-section" style="margin-bottom: 0;">
-          <h3 class="section-title">Step-by-Step Guide</h3>
-          <div id="steps-list"></div>
-          <button class="btn-add" id="add-step-btn">+ Click here to add new step</button>
+
+        <div class="form-group">
+          <label>Who May Avail
+            <span style="font-weight:400;color:#888;">(optional)</span>
+          </label>
+          <input type="text" class="who-may-avail-input"
+            placeholder="e.g. Eligible residents"
+            value="${escapeHtml(tab.who_may_avail)}" />
         </div>
-      `;
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Total Fees
+            <span style="font-weight:400;color:#888;">(optional)</span>
+          </label>
+          <input type="text" class="total-fee-input"
+            placeholder="e.g. ₱100"
+            value="${escapeHtml(tab.total_fee)}" />
+        </div>
+
+        <div class="form-group">
+          <label>Total Processing Time
+            <span style="font-weight:400;color:#888;">(optional)</span>
+          </label>
+          <input type="text" class="total-time-input"
+            placeholder="e.g. 25 Minutes"
+            value="${escapeHtml(tab.total_processing_time)}" />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3 class="section-title">Requirements Checklist</h3>
+      <div id="req-list"></div>
+      <button class="btn-add" id="add-req-btn">
+        + Click here to add new requirement
+      </button>
+    </div>
+
+    <div class="form-section" style="margin-bottom: 0;">
+      <h3 class="section-title">Step-by-Step Guide</h3>
+      <div id="steps-list"></div>
+      <button class="btn-add" id="add-step-btn">
+        + Click here to add new step
+      </button>
+    </div>
+  `;
+
+      // Save field changes to the currently selected tab.
+      container.querySelector('.transaction-type-input').addEventListener('input', e => {
+        tab.transaction_type = e.target.value;
+      });
+
+      container.querySelector('.who-may-avail-input').addEventListener('input', e => {
+        tab.who_may_avail = e.target.value;
+      });
+
+      container.querySelector('.total-fee-input').addEventListener('input', e => {
+        tab.total_fee = e.target.value;
+      });
+
+      container.querySelector('.total-time-input').addEventListener('input', e => {
+        tab.total_processing_time = e.target.value;
+      });
+
       document.getElementById('add-req-btn').onclick = addRequirement;
       document.getElementById('add-step-btn').onclick = addStep;
 
       renderRequirements(tab);
       renderSteps(tab);
     }
+
 
     function renderRequirements(tab) {
       const list = document.getElementById('req-list');
@@ -447,16 +580,16 @@
         const row = document.createElement('div');
         row.className = 'req-item';
         row.innerHTML = `
-          <div class="form-group" style="flex: 2;">
-            <label>Requirement Name</label>
-            ${comboBoxHTML(req.requirement_name, 'e.g. Valid ID', SUGGEST.requirement)}
-          </div>
-          <div class="form-group" style="flex: 1;">
-            <label>Secure at</label>
-            <input type="text" placeholder="e.g. Barangay Hall" value="${escapeHtml(req.secure_at || '')}" />
-          </div>
-          <button class="btn-delete"><img src="../assets/delete.png" alt="Delete" /></button>
-        `;
+            <div class="form-group" style="flex: 2;">
+              <label>Requirement Name</label>
+              ${comboBoxHTML(req.requirement_name, 'e.g. Valid ID', SUGGEST.requirement)}
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label>Secure at</label>
+              <input type="text" placeholder="e.g. Barangay Hall" value="${escapeHtml(req.secure_at || '')}" />
+            </div>
+            <button class="btn-delete"><img src="../assets/delete.png" alt="Delete" /></button>
+          `;
         const nameInput = row.querySelector('.combo-box input');
         const secureInput = row.querySelector('.form-group + .form-group input');
         nameInput.addEventListener('input', () => { req.requirement_name = nameInput.value; });
@@ -484,43 +617,62 @@
         card.draggable = true;
         card.dataset.uid = step.__uid;
         card.innerHTML = `
-          <div class="step-header">
-            <span class="drag-handle" title="Drag to reorder">⋮⋮</span>
-            <span class="step-title-display">${escapeHtml(step.process_name || 'New Step')}</span>
-            <span class="toggle-icon">▼</span>
-          </div>
-          <div class="step-body">
-            <div style="display: flex; gap: 16px; align-items: flex-end; margin-bottom: 16px;">
-              <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                <label>Step Title</label>
-                ${comboBoxHTML(step.process_name, 'e.g. Application and Assessment', SUGGEST.stepTitle)}
+            <div class="step-header">
+              <span class="drag-handle" title="Drag to reorder">⋮⋮</span>
+              <span class="step-title-display">${escapeHtml(step.process_name || 'New Step')}</span>
+              <span class="toggle-icon">▼</span>
+            </div>
+            <div class="step-body">
+              <div style="display: flex; gap: 16px; align-items: flex-end; margin-bottom: 16px;">
+                <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                  <label>Step Title</label>
+                  ${comboBoxHTML(step.process_name, 'e.g. Application and Assessment', SUGGEST.stepTitle)}
+                </div>
+                <button class="btn-delete"><img src="../assets/delete.png" alt="Delete" /></button>
               </div>
-              <button class="btn-delete"><img src="../assets/delete.png" alt="Delete" /></button>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label>Fee</label>
-                ${comboBoxHTML(step.fee, 'e.g. None', SUGGEST.fee)}
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Fee</label>
+                  ${comboBoxHTML(step.fee, 'e.g. None', SUGGEST.fee)}
+                </div>
+                <div class="form-group">
+                  <label>Processing Time</label>
+                  ${comboBoxHTML(step.processing_time, 'e.g. 50 Minutes', SUGGEST.processingTime)}
+                </div>
               </div>
-              <div class="form-group">
-                <label>Processing Time</label>
-                ${comboBoxHTML(step.processing_time, 'e.g. 50 Minutes', SUGGEST.processingTime)}
+              <div class="form-group full-width">
+                <label>Description</label>
+                <textarea placeholder="Submit the requirements and accomplish the Application Form...">${escapeHtml(step.process_description || '')}</textarea>
+              </div>
+              
+              <div class="form-group full-width" style="margin-top: 15px;">
+                <label>People In-Charge / Office</label>
+                <textarea placeholder="List the personnel or office window...">${escapeHtml(step.person_in_charge || '')}</textarea>
+              </div>
+              <div class="form-group full-width" style="margin-top: 15px;">
+                  <label>Agency Actions <span style="font-weight:400;color:#888;">(optional, one per line)</span></label>
+                  <textarea class="step-actions-input" placeholder="Verification of documents&#10;Sending of SOA via email.">${escapeHtml((step.agency_actions || []).join('\n'))}</textarea>
+                </div>
+                <div class="form-group full-width" style="margin-top: 15px;">
+                  <label>Notes / Footnote <span style="font-weight:400;color:#888;">(optional)</span></label>
+                  <textarea class="step-notes-input" placeholder="e.g. *Payment will be credited within 1 to 5 working days...">${escapeHtml(step.notes || '')}</textarea>
+                </div>
+              <div class="form-group full-width" style="margin-top: 15px;">
+                <label>Online Link <span style="font-weight:400;color:#888;">(optional)</span></label>
+                <input type="text" class="step-link-input" placeholder="e.g. https://binancitybusinesspermit.online" value="${escapeHtml(step.online_link || '')}" />
+              </div>
+              <div class="form-group full-width" style="margin-top: 15px;">
+                <label>Navigate to <span style="font-weight:400;color:#888;">(optional)</span></label>
+                <div class="combo-box nav-combo">
+                  <input type="text" class="step-navigate-input" autocomplete="off"
+                    placeholder="Type or select an office..." value="${escapeHtml(step.navigate_to || '')}" />
+                  <button type="button" class="btn-drop nav-drop" tabindex="-1">▼</button>
+                  <div class="combo-menu nav-combo-menu"></div>
+                </div>
+                <small style="color:#888;display:block;margin-top:4px;">Fill this in only if this step needs the citizen to go to an office or room inside City Hall. The app will show a "Start Navigation" button.</small>
               </div>
             </div>
-            <div class="form-group full-width">
-              <label>Description</label>
-              <textarea placeholder="Submit the requirements and accomplish the Application Form...">${escapeHtml(step.process_description || '')}</textarea>
-            </div>
-            <div class="form-group full-width" style="margin-top: 15px;">
-              <label>People In-Charge / Office</label>
-              <textarea placeholder="List the personnel or office window...">${escapeHtml(step.person_in_charge || '')}</textarea>
-            </div>
-            <div class="form-group full-width" style="margin-top: 15px;">
-              <label>Online Link <span style="font-weight:400;color:#888;">(optional)</span></label>
-              <input type="text" class="step-link-input" placeholder="e.g. https://binancitybusinesspermit.online" value="${escapeHtml(step.online_link || '')}" />
-            </div>
-          </div>
-        `;
+          `;
 
         card.querySelector('.step-header').addEventListener('click', () => card.classList.toggle('open'));
 
@@ -542,6 +694,17 @@
         const linkInput = card.querySelector('.step-link-input');
         linkInput.addEventListener('input', () => { step.online_link = linkInput.value; });
 
+        const navInput = card.querySelector('.step-navigate-input');
+        navInput.addEventListener('input', () => { step.navigate_to = navInput.value; });
+
+        const actionsArea = card.querySelector('.step-actions-input');
+        actionsArea.addEventListener('input', () => {
+          step.agency_actions = actionsArea.value.split('\n').map(s => s.trim()).filter(Boolean);
+        });
+
+        const notesArea = card.querySelector('.step-notes-input');
+        notesArea.addEventListener('input', () => { step.notes = notesArea.value; });
+
         card.querySelector('.btn-delete').onclick = () => {
           tab.procedures.splice(i, 1);
           renderSteps(tab);
@@ -554,8 +717,7 @@
 
     function addStep() {
       const tab = serviceData.tabs[currentTabIndex];
-      tab.procedures.push({ __uid: nextUid(), process_name: '', fee: '', processing_time: '', process_description: '', person_in_charge: '', online_link: '' });
-      renderSteps(tab);
+      tab.procedures.push({ __uid: nextUid(), process_name: '', fee: '', processing_time: '', process_description: '', person_in_charge: '', online_link: '', navigate_to: '', agency_actions: [], notes: '' }); renderSteps(tab);
       const cards = document.querySelectorAll('#steps-list .step-card');
       if (cards.length) cards[cards.length - 1].classList.add('open');
     }
@@ -566,17 +728,17 @@
     function initDragAndDrop(container, tab) {
       const cards = container.querySelectorAll('.step-card');
       cards.forEach(card => {
-        card.addEventListener('dragstart', function() {
+        card.addEventListener('dragstart', function () {
           draggedItem = this;
           setTimeout(() => this.classList.add('dragging'), 0);
         });
-        card.addEventListener('dragend', function() {
+        card.addEventListener('dragend', function () {
           this.classList.remove('dragging');
           draggedItem = null;
           syncStepOrder(container, tab);
         });
       });
-      container.addEventListener('dragover', function(e) {
+      container.addEventListener('dragover', function (e) {
         e.preventDefault();
         const afterElement = getDragAfterElement(container, e.clientY);
         if (draggedItem) {
@@ -602,34 +764,34 @@
     }
 
     // ---- Combo box behavior ----
-    window.toggleCombo = function(btn) {
+    window.toggleCombo = function (btn) {
       const menu = btn.nextElementSibling;
       const isShowing = menu.classList.contains('show');
       document.querySelectorAll('.combo-menu.show').forEach(m => m.classList.remove('show'));
       if (!isShowing) menu.classList.add('show');
     };
 
-    window.selectCombo = function(item) {
+    window.selectCombo = function (item) {
       const input = item.closest('.combo-box').querySelector('input');
       input.value = item.textContent;
       item.parentElement.classList.remove('show');
       input.dispatchEvent(new Event('input', { bubbles: true }));
     };
 
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
       if (!e.target.closest('.combo-box')) {
         document.querySelectorAll('.combo-menu.show').forEach(m => m.classList.remove('show'));
       }
     });
 
-    const leaveRedirectUrl = function() {
+    const leaveRedirectUrl = function () {
       if (document.referrer && document.referrer.includes(window.location.origin)) {
         return document.referrer;
       }
       return '../Sidebar/service_management.html';
     };
 
-    window.navigateAway = function(targetUrl) {
+    window.navigateAway = function (targetUrl) {
       if (targetUrl) {
         window.location.href = targetUrl;
         return;
@@ -637,7 +799,7 @@
       window.location.href = leaveRedirectUrl();
     };
 
-    window.confirmLeavePage = function(targetUrl) {
+    window.confirmLeavePage = function (targetUrl) {
       if (!window.hasUnsavedChanges()) {
         window.navigateAway(targetUrl);
         return;
@@ -652,7 +814,7 @@
         onConfirm: () => {
           window.navigateAway(targetUrl);
         },
-        onCancel: () => {}
+        onCancel: () => { }
       });
     };
 
@@ -689,6 +851,7 @@
       serviceData.location = document.getElementById('location-input').value.trim();
       serviceData.contact_phone = document.getElementById('contact-input').value.trim();
       serviceData.contact_email = document.getElementById('email-input').value.trim();
+
       serviceData.updated_at = serverTimestamp();
 
       const payload = sanitizeForFirestore(serviceData);
@@ -706,8 +869,8 @@
 
         //DISTRIBUTE NOTIFICATION TO ALL REGISTERED USERS
         const usersSnap = await getDocs(collection(db, 'users'));
-        
-        const notifPromises = usersSnap.docs.map(userDoc => 
+
+        const notifPromises = usersSnap.docs.map(userDoc =>
           addDoc(collection(db, 'users', userDoc.id, 'notifications'), {
             title: "Hi Citizen! Look, there’s some changes.",
             body: `The ${serviceData.service_name} service has some changes, come check it out.`,
@@ -735,7 +898,7 @@
       }
     }
 
-    window.saveChanges = function() {
+    window.saveChanges = function () {
       showConfirmToast({
         type: 'info',
         title: 'Save Changes?',
@@ -743,11 +906,11 @@
         confirmText: 'Save',
         cancelText: 'Keep Editing',
         onConfirm: performSaveChanges,
-        onCancel: () => {}
+        onCancel: () => { }
       });
     };
 
-    window.discardChanges = function() {
+    window.discardChanges = function () {
       showConfirmToast({
         type: 'warning',
         title: 'Discard Changes?',
@@ -757,11 +920,11 @@
         onConfirm: () => {
           window.location.href = '../Sidebar/service_management.html';
         },
-        onCancel: () => {}
+        onCancel: () => { }
       });
     };
 
-    window.deleteService = function() {
+    window.deleteService = function () {
       // Normal admins request deletion via Review Queue; Super Admins delete directly
       const asRequest = !isSuperAdmin;
       const backToList = () => { window.location.href = '../Sidebar/service_management.html'; };
@@ -777,7 +940,7 @@
         onConfirm: async () => {
           try {
             showToast('loading', asRequest ? 'Sending Request' : 'Deleting Service', 'Please wait while this is being processed.', '');
-            
+
             const logDetails = {
               office_name: document.getElementById('office-display').value,
               service_name: (serviceData && serviceData.service_name) || ''
@@ -812,7 +975,7 @@
               asRequest ? 'Could not send the deletion request. Please try again.' : 'Failed to delete service. Please try again.');
           }
         },
-        onCancel: () => {}
+        onCancel: () => { }
       });
     };
 
