@@ -15,6 +15,7 @@
     crossorigin="anonymous"></script>
   <script src="../functions/toast.js"></script>
   <script type="module" src="../functions/role-guard.js"></script>
+  <script src="../functions/sidebar.js"></script>
 </head>
 
 <body>
@@ -66,7 +67,7 @@
 
     <div class="sidebar-bottom">
       <button class="btn-collapse" onclick="toggleSidebar()" title="Collapse sidebar">
-        <img src="../assets/collapse.png" alt="Collapse" />
+        <img id="collapse-icon" src="../assets/collapse.png" alt="Collapse" />
       </button>
     </div>
   </aside>
@@ -486,10 +487,6 @@
   </script>
 
   <script>
-    function toggleSidebar() {
-      document.querySelector('.sidebar').classList.toggle('collapsed');
-    }
-
     function updateClock() {
       const now = new Date();
       document.getElementById('banner-date').textContent = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });

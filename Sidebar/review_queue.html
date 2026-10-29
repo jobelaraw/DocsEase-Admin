@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="../css/review_queue.css" />
   <script src="../functions/toast.js"></script>
   <script type="module" src="../functions/role-guard.js"></script>
+  <script src="../functions/sidebar.js"></script>
 </head>
 
 <body>
@@ -58,7 +59,7 @@
 
     <div class="sidebar-bottom">
       <button class="btn-collapse" onclick="toggleSidebar()" title="Collapse sidebar">
-        <img src="../assets/collapse.png" alt="Collapse" />
+        <img id="collapse-icon" src="../assets/collapse.png" alt="Collapse" />
       </button>
     </div>
   </aside>
@@ -149,6 +150,7 @@
       }
     }
 
+    // TODO: create this Cloud Function (like adminResetUserPassword, calling admin.auth().deleteUser(uid))
     const DELETE_AUTH_USER_ENDPOINT = 'https://us-central1-docsease-efacc.cloudfunctions.net/adminDeleteAuthUser';
 
     console.log('[review_queue] v2 loaded (batch accept/decline)');
@@ -662,12 +664,6 @@
           }
         }
       });
-    }
-  </script>
-
-  <script>
-    function toggleSidebar() {
-      document.querySelector('.sidebar').classList.toggle('collapsed');
     }
   </script>
 
