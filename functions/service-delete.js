@@ -1,5 +1,4 @@
 // Deletes a service (Super Admin) or files a deletion request for approval (normal admin).
-// deleteOrRequestServiceDeletion({ officeId, officeName, serviceId, serviceName })
 // -> { mode: 'requested' | 'already_requested' | 'deleted' }
 
 import { auth, db } from '../Firebase/firebase-config.js';
@@ -7,6 +6,7 @@ import {
   collection, addDoc, getDocs, query, where,
   doc, getDoc, deleteDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { notifySuperAdminDeleteRequest } from './email-service.js';
 
 export async function deleteOrRequestServiceDeletion({ officeId, officeName, serviceId, serviceName }) {
   const user = auth.currentUser;
@@ -35,6 +35,8 @@ export async function deleteOrRequestServiceDeletion({ officeId, officeName, ser
     return { mode: 'already_requested' };
   }
 
+  const requesterName = admin.full_name || user.displayName || user.email;
+
   await addDoc(collection(db, 'requests'), {
     type: 'delete_service',
     status: 'pending',
@@ -45,8 +47,10 @@ export async function deleteOrRequestServiceDeletion({ officeId, officeName, ser
     office_name: officeName || '',
     service_id: serviceId,
     service_name: serviceName || '',
-    createdAt: serverTimestamp() // used for Review Queue ordering
+    createdAt: serverTimestamp()
   });
+
+  await notifySuperAdminDeleteRequest(requesterName, serviceName, officeName);
 
   return { mode: 'requested' };
 }

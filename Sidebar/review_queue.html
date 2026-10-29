@@ -13,9 +13,7 @@
   <link rel="stylesheet" href="../css/review_queue.css" />
   <script src="../functions/toast.js"></script>
   <script type="module" src="../functions/role-guard.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js"
-    integrity="sha384-SALc35EccAf6RzGw4iNsyj7kTPr33K7RoGzYu+7heZhT8s0GZouafRiCg1qy44AS"
-    crossorigin="anonymous"></script>
+  <script src="../functions/sidebar.js"></script>
 </head>
 
 <body>
@@ -61,7 +59,7 @@
 
     <div class="sidebar-bottom">
       <button class="btn-collapse" onclick="toggleSidebar()" title="Collapse sidebar">
-        <img src="../assets/collapse.png" alt="Collapse" />
+        <img id="collapse-icon" src="../assets/collapse.png" alt="Collapse" />
       </button>
     </div>
   </aside>
@@ -110,6 +108,7 @@
     import { auth, db } from '../Firebase/firebase-config.js';
     import { collection, query, orderBy, onSnapshot, doc, getDoc, deleteDoc, writeBatch, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { sendRegistrationEmail, sendRequestCompleted } from '../functions/email-service.js';
     
     // ---- Activity log helper ----
     let _logActor = null;
@@ -150,12 +149,6 @@
         console.error('[activity-log] failed to log', type, err);
       }
     }
-
-    emailjs.init({ publicKey: 'sNwiz0smyu1zo-ozX' });
-
-    // Decline email not active yet; template vars: to_email, admin_name, reason
-    const EMAILJS_SERVICE_ID = 'service_77esocf';
-    const EMAILJS_DECLINE_TEMPLATE_ID = 'template_declined';
 
     // TODO: create this Cloud Function (like adminResetUserPassword, calling admin.auth().deleteUser(uid))
     const DELETE_AUTH_USER_ENDPOINT = 'https://us-central1-docsease-efacc.cloudfunctions.net/adminDeleteAuthUser';
@@ -462,6 +455,17 @@
         onConfirm: async () => {
           showLoadingToast('Processing...', 'Applying the request.');
           try {
+            // Get the admin's email now (before the account can be deleted)
+            let adminEmail = reqData.requested_by_email || '';
+            if (type === 'delete_admin' && !adminEmail && reqData.target_admin_uid) {
+              try {
+                const adminSnap = await getDoc(doc(db, 'admin', reqData.target_admin_uid));
+                adminEmail = adminSnap.exists() ? (adminSnap.data().email || '') : '';
+              } catch (e) {
+                console.error('Could not look up admin email:', e);
+              }
+            }
+
             // Atomic batch: apply, copy to completed_requests, remove from requests
             const batch = writeBatch(db);
 
@@ -499,6 +503,38 @@
                 // Notify the admin
                 recipient_uid: reqData.requested_by_uid || reqData.target_admin_uid || ''
               });
+            }
+
+            // Email the admin that the account is ready for sign in
+            if (type === 'new_admin') {
+              await sendRegistrationEmail(
+                reqData.requested_by_email,
+                reqData.requested_by_name,
+                reqData.office_name,
+                'accepted'
+              );
+            }
+
+            // Email the admin that the service deletion was approved
+            if (type === 'delete_service') {
+              await sendRequestCompleted(
+                reqData.requested_by_email,
+                reqData.requested_by_name,
+                'service deletion',
+                true,
+                'Service: ' + (reqData.service_name || '-') + '<br>Office: ' + (reqData.office_name || '-')
+              );
+            }
+
+            // Email the admin that the account deletion was approved
+            if (type === 'delete_admin') {
+              await sendRequestCompleted(
+                adminEmail,
+                reqData.requested_by_name,
+                'account deletion',
+                true,
+                'Email: ' + (adminEmail || '-')
+              );
             }
 
             // Also removes the Auth login
@@ -550,6 +586,17 @@
         onConfirm: async () => {
           showLoadingToast('Declining...', 'Removing the request.');
           try {
+            // Get the admin's email now (before the account can be deleted)
+            let adminEmail = reqData.requested_by_email || '';
+            if (type === 'delete_admin' && !adminEmail && reqData.target_admin_uid) {
+              try {
+                const adminSnap = await getDoc(doc(db, 'admin', reqData.target_admin_uid));
+                adminEmail = adminSnap.exists() ? (adminSnap.data().email || '') : '';
+              } catch (e) {
+                console.error('Could not look up admin email:', e);
+              }
+            }
+
             // 1. Remove Auth login
             let authRemoved = true;
             if (type === 'new_admin' && reqData.target_admin_uid) {
@@ -575,6 +622,32 @@
               });
             }
 
+            // Email the admin that the request was not approved
+            if (type === 'new_admin') {
+              await sendRegistrationEmail(
+                reqData.requested_by_email,
+                reqData.requested_by_name,
+                reqData.office_name,
+                'rejected'
+              );
+            } else if (type === 'delete_service') {
+              await sendRequestCompleted(
+                reqData.requested_by_email,
+                reqData.requested_by_name,
+                'service deletion',
+                false,
+                'Service: ' + (reqData.service_name || '-') + '<br>Office: ' + (reqData.office_name || '-')
+              );
+            } else if (type === 'delete_admin') {
+              await sendRequestCompleted(
+                adminEmail,
+                reqData.requested_by_name,
+                'account deletion',
+                false,
+                'Email: ' + (adminEmail || '-')
+              );
+            }
+
             document.getElementById('toast-overlay')?.classList.remove('show');
             showToast(
               'success',
@@ -591,12 +664,6 @@
           }
         }
       });
-    }
-  </script>
-
-  <script>
-    function toggleSidebar() {
-      document.querySelector('.sidebar').classList.toggle('collapsed');
     }
   </script>
 

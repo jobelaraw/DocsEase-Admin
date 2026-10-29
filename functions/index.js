@@ -4,10 +4,6 @@ const cors = require("cors")({ origin: true });
 
 admin.initializeApp();
 
-// Checks whether an email belongs to a registered ADMIN account specifically
-// (not just any Firebase Auth user - citizens from the mobile app share the
-// same Auth pool but are not admins). Used by the web portal's forgot
-// password flow to block citizen emails from getting an admin reset code.
 exports.isAdminEmailRegistered = onCall(async (request) => {
   const email = request.data && request.data.email
     ? request.data.email.trim().toLowerCase()
@@ -53,6 +49,55 @@ exports.adminResetUserPassword = onRequest({ invoker: "public" }, (req, res) => 
       await admin.auth().updateUser(user.uid, { password: newPassword });
       return res.status(200).json({ success: true });
     } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+});
+
+// Deletes a Firebase Auth user. Only callable by the Super Admin.
+exports.adminDeleteAuthUser = onRequest({ invoker: "public" }, (req, res) => {
+  cors(req, res, async () => {
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "Method not allowed" });
+    }
+
+    try {
+      // Verify the caller's Firebase ID token
+      const header = req.headers.authorization || "";
+      const idToken = header.startsWith("Bearer ") ? header.slice(7) : null;
+      if (!idToken) {
+        return res.status(401).json({ error: "Missing token" });
+      }
+      const caller = await admin.auth().verifyIdToken(idToken);
+
+      // Verify the caller is the Super Admin
+      const callerDoc = await admin.firestore().collection("admin").doc(caller.uid).get();
+      if (!callerDoc.exists || callerDoc.data().role !== "super_admin") {
+        return res.status(403).json({ error: "Not allowed" });
+      }
+
+      let body = req.body;
+      if (typeof body === "string") {
+        try { body = JSON.parse(body); } catch (e) { body = {}; }
+      }
+      const uid = body && body.uid;
+      if (!uid) {
+        return res.status(400).json({ error: "uid is required" });
+      }
+
+      // Never let the Super Admin delete themselves by accident
+      if (uid === caller.uid) {
+        return res.status(400).json({ error: "Cannot delete your own account" });
+      }
+
+      try {
+        await admin.auth().deleteUser(uid);
+      } catch (e) {
+        if (e.code !== "auth/user-not-found") throw e; // already gone is fine
+      }
+      return res.status(200).json({ success: true });
+    } catch (error) {
+      console.error("adminDeleteAuthUser failed:", error);
       return res.status(500).json({ error: error.message });
     }
   });

@@ -6,9 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GaBayan – Authentication</title>
   <link rel="icon" type="image/png" href="../assets/logo_whitebg.png" />
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js"
-    integrity="sha384-SALc35EccAf6RzGw4iNsyj7kTPr33K7RoGzYu+7heZhT8s0GZouafRiCg1qy44AS"
-    crossorigin="anonymous"></script>
   <link rel="stylesheet" href="../css/toast.css" />
   <link rel="stylesheet" href="../css/auth.css" />
   <script src="../functions/toast.js"></script>
@@ -40,7 +37,7 @@
 
         <div class="panel-logo">
           <div class="logo-icon">
-            <img src="../assets/logo.png" alt="DocsEase" />
+            <img src="../assets/logo_whitebg.png" alt="DocsEase" />
           </div>
           <span class="logo-wordmark"><img src="../assets/docsease_text.png" alt="DocsEase"
               style="height:20px; width:auto; object-fit:contain;" /></span>
@@ -422,9 +419,6 @@
 
   <!-- ════════════════════════════
       GOOGLE SIGNUP — COMPLETE YOUR PROFILE
-      Shown only after a successful Google popup sign-up, before the
-      pending admin doc is created — collects the info Google can't
-      give us (office) and lets the person confirm/edit their name.
   ════════════════════════════ -->
   <div class="gsignup-modal-overlay" id="gsignup-modal">
     <div class="gsignup-modal-box" onclick="event.stopPropagation()">
@@ -463,10 +457,6 @@
   </div>
 
   <script>
-    emailjs.init({ publicKey: 'KA-6Zx9c2My5ohVje' });
-  </script>
-
-  <script>
     document.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('accountDeleted') === 'true') {
@@ -492,6 +482,7 @@
   <script type="module">
     import { auth, db, googleProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, updateProfile, doc, setDoc, serverTimestamp } from '../Firebase/firebase-config.js';
     import { getDoc, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { sendRecoveryCode, sendRegistrationEmail, notifySuperAdminNewRequest } from '../functions/email-service.js';
     // ---- Activity log helper ----
     let _logActor = null;
     async function logActivity(type, details = {}) {
@@ -747,6 +738,8 @@
         });
 
         await logActivity('admin_account_requested', { actor_name: name, office_name: office });
+        await sendRegistrationEmail(email, name, office, 'review');
+        await notifySuperAdminNewRequest(name, email, office);
 
         await auth.signOut();
 
@@ -1111,6 +1104,8 @@
         });
 
         await logActivity('admin_account_requested', { actor_name: name, office_name: office });
+        await sendRegistrationEmail(pendingGoogleUser.email, name, office, 'review');
+        await notifySuperAdminNewRequest(name, pendingGoogleUser.email, office);
 
         document.getElementById('gsignup-modal').classList.remove('show');
         await auth.signOut();
@@ -1164,14 +1159,11 @@
 
       recoveryCode = Math.floor(100000 + Math.random() * 900000).toString();
       recoveryEmail = email;
-      sessionStorage.setItem('recoveryEmail', recoveryEmail);
+      sessionStorage.setItem('recoveryEmail', email);
       codeExpiry = Date.now() + 5 * 60 * 1000;
 
       try {
-        await emailjs.send('service_2qau4rv', 'template_fsgox73', {
-          to_email: recoveryEmail,
-          recovery_code: recoveryCode
-        });
+        await sendRecoveryCode(email, recoveryCode);
         document.getElementById('recovery-code').value = '';
 
         document.getElementById('toast-overlay')?.classList.remove('show');
@@ -1225,10 +1217,7 @@
       showLoadingToast('Resending Code...', 'Sending a new verification code.');
 
       try {
-        await emailjs.send('service_2qau4rv', 'template_fsgox73', {
-          to_email: recoveryEmail,
-          recovery_code: recoveryCode
-        });
+        await sendRecoveryCode(recoveryEmail, recoveryCode);
         document.getElementById('toast-overlay')?.classList.remove('show');
         showToast('success', 'Code Resent', 'A new recovery code has been sent to your email address.', 'OK');
         window.startResendTimer();
