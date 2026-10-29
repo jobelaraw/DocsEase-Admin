@@ -167,3 +167,27 @@
     html:not(.is-super-admin) .sidebar a.nav-item[href$="review_queue.html"] {
       display: none !important;
     }
+
+    html.sidebar-collapsed .sidebar {
+      width: 72px;
+      min-width: 72px;
+    }
+
+    html.sidebar-collapsed .sidebar .sidebar-logo {
+      padding: 0 0 32px 0;
+      justify-content: center;
+      gap: 0;
+    }
+
+    html.sidebar-collapsed .sidebar .nav-item {
+      justify-content: center;
+      padding: 14px 0;
+      gap: 0;
+    }
+
+    html.sidebar-collapsed .sidebar .logo-text,
+    html.sidebar-collapsed .sidebar .nav-label {
+      opacity: 0;
+      max-width: 0;
+      pointer-events: none;
+    }

@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="../css/toast.css" />
   <script src="../functions/toast.js"></script>
   <script type="module" src="../functions/role-guard.js"></script>
+  <script src="../functions/sidebar.js"></script>
 </head>
 
 <body>
@@ -353,14 +354,6 @@
   </script>
   
   <script>
-    function toggleSidebar() {
-      document.querySelector('.sidebar').classList.toggle('collapsed');
-      const collapsed = document.querySelector('.sidebar').classList.contains('collapsed');
-      const icon = document.getElementById('collapse-icon');
-      icon.src = collapsed ? '../assets/collapse-right.png' : '../assets/collapse.png';
-      icon.alt = collapsed ? 'Expand' : 'Collapse';
-    }
-
     function filterOffices(query) {
       const q = query.trim().toLowerCase();
       const cards = document.querySelectorAll('#office-grid .office-card');
