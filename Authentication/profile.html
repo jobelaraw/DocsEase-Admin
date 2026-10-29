@@ -57,6 +57,79 @@
   </div>
 </div>
 
+<!-- Delete account flow: step 2 (verify identity) > step 3 (final warning) > step 4 (progress) -->
+<style>
+  .del-error { color: #dc2626; font-size: 12px; min-height: 16px; margin-top: 6px; }
+  .del-text { font-size: 13px; color: #4b5563; line-height: 1.5; margin: 0 0 14px; }
+  .del-spinner {
+    width: 40px; height: 40px; margin: 8px auto 16px;
+    border: 3px solid #dbeafe; border-top-color: #2563eb; border-radius: 50%;
+    animation: del-spin 0.8s linear infinite;
+  }
+  @keyframes del-spin { to { transform: rotate(360deg); } }
+  .btn-del-danger { background: #dc2626 !important; border-color: #dc2626 !important; color: #fff !important; }
+</style>
+
+<div class="edit-modal-overlay" id="delete-account-modal" style="z-index: 99999;">
+  <div class="edit-modal-box" style="max-width: 420px;" onclick="event.stopPropagation()">
+
+    <!-- Step 2: verify identity -->
+    <div id="del-step-auth">
+      <div class="edit-modal-header">
+        <h2>CONFIRM YOUR IDENTITY</h2>
+        <button class="btn-close-modal" onclick="closeDeleteModal()">✕</button>
+      </div>
+      <p class="del-text">For your security, please verify your identity before deleting your admin account.</p>
+
+      <div class="edit-field-group" id="del-password-block">
+        <label>PASSWORD</label>
+        <div style="position: relative;">
+          <input type="password" id="del-password" placeholder="Enter your password" autocomplete="current-password"
+                 style="width: 100%; box-sizing: border-box; padding-right: 44px;"
+                 onkeydown="if(event.key==='Enter') submitDeleteAuth()" />
+          <button type="button" id="del-eye-btn" onclick="toggleDeletePasswordEye()" aria-label="Toggle password"
+                  style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 4px; cursor: pointer; display: flex; align-items: center;">
+            <img id="del-eye-img" src="../assets/eyeHide.png" alt="Show password" style="width: 20px; height: 20px; display: block;" />
+          </button>
+        </div>
+      </div>
+      <p class="del-text" id="del-google-block" style="display:none;">
+        This account signs in with Google. Click continue and choose the same Google account to verify it's you.
+      </p>
+      <div class="del-error" id="del-error"></div>
+
+      <div class="edit-actions">
+        <button type="button" class="btn-modal-confirmleave" onclick="closeDeleteModal()">Cancel</button>
+        <button type="button" class="btn-modal-save" id="btn-del-verify" onclick="submitDeleteAuth()">Continue</button>
+      </div>
+    </div>
+
+    <!-- Step 3: final warning -->
+    <div id="del-step-final" style="display:none;">
+      <div class="edit-modal-header">
+        <h2>DELETE PERMANENTLY?</h2>
+        <button class="btn-close-modal" onclick="closeDeleteModal()">✕</button>
+      </div>
+      <p class="del-text">
+        Once you confirm, your admin account and all associated data will be permanently deleted.
+        <strong>This cannot be undone.</strong>
+      </p>
+      <div class="edit-actions">
+        <button type="button" class="btn-modal-confirmleave" onclick="closeDeleteModal()">Cancel</button>
+        <button type="button" class="btn-modal-save btn-del-danger" onclick="confirmDeleteAccount()">Confirm Delete</button>
+      </div>
+    </div>
+
+    <!-- Step 4: deleting -->
+    <div id="del-step-progress" style="display:none; text-align:center; padding: 12px 0;">
+      <div class="del-spinner"></div>
+      <div style="font-weight:800; font-size:16px;">Deletion in progress</div>
+      <p class="del-text" style="margin-top:6px;">Please wait while we delete your account. Do not close this page.</p>
+    </div>
+
+  </div>
+</div>
+
 <script>
 // Cached load
 (function() {
@@ -232,40 +305,181 @@ window.saveProfileChanges = async function() {
   }
 };
 
-window.handleDeleteAccount = function() {
+// ---------- Delete account flow ----------
+// 1) confirm toast  >  2) verify identity (password / Google)  >  3) final warning  >  4) delete
+let deleteBusy = false;
+
+function showDeleteStep(step) {
+  ['auth', 'final', 'progress'].forEach(s => {
+    document.getElementById('del-step-' + s).style.display = (s === step) ? 'block' : 'none';
+  });
+}
+
+function setDeleteError(msg) {
+  document.getElementById('del-error').textContent = msg || '';
+}
+
+// Show / hide the password in the delete-account verification step
+function resetDeleteEye() {
+  const input = document.getElementById('del-password');
+  const img = document.getElementById('del-eye-img');
+  if (input) input.type = 'password';
+  if (img) { img.src = '../assets/eyeHide.png'; img.alt = 'Show password'; }
+}
+
+window.toggleDeletePasswordEye = function () {
+  const input = document.getElementById('del-password');
+  const img = document.getElementById('del-eye-img');
+  const isHidden = input.type === 'password';
+  input.type = isHidden ? 'text' : 'password';
+  img.src = isHidden ? '../assets/eyeShow.png' : '../assets/eyeHide.png';
+  img.alt = isHidden ? 'Hide password' : 'Show password';
+};
+
+window.closeDeleteModal = function () {
+  if (deleteBusy) return; // can't cancel while verifying / deleting
+  document.getElementById('delete-account-modal').classList.remove('show');
+  document.getElementById('del-password').value = '';
+  resetDeleteEye();
+  setDeleteError('');
+};
+
+// Step 1: first confirmation
+window.handleDeleteAccount = function () {
   window.showConfirmToast({
     type: 'error',
     title: 'Delete Account?',
     msg: 'This action is irreversible. You will lose your credentials and completely delete your admin account.',
     confirmText: 'Yes, Delete',
     cancelText: 'Cancel',
-    onConfirm: async () => {
-      if (window.showToast) {
-        window.showToast('loading', 'Deleting Account', 'Please wait while we delete your account...', '');
-      }
-      try {
-        const { auth, db } = await import('../Firebase/firebase-config.js');
-        const { deleteUser } = await import('https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js');
-        const { doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js');
-
-        const user = auth.currentUser;
-        if (user) {
-          await deleteDoc(doc(db, 'admin', user.uid));
-          await deleteUser(user);
-          localStorage.removeItem('docsEase_avatar');
-          localStorage.removeItem('docsEase_name');
-          window.location.href = '../Authentication/auth.html?accountDeleted=true';
-        }
-      } catch (error) {
-        console.error('Error deleting account:', error);
-        if (error.code === 'auth/requires-recent-login') {
-            if (window.showToast) window.showToast('error', 'Re-authentication Required', 'Please log out and log back in to delete your account.', 'OK');
-        } else {
-            if (window.showToast) window.showToast('error', 'Delete Failed', 'Failed to delete account.', 'OK');
-        }
-      }
-    }
+    onConfirm: () => { openDeleteAuthStep(); }
   });
+};
+
+// Step 2: open the identity check (password or Google, depending on how the admin signs in)
+async function openDeleteAuthStep() {
+  try {
+    const { auth } = await import('../Firebase/firebase-config.js');
+    const user = auth.currentUser;
+    if (!user) {
+      if (window.showToast) window.showToast('error', 'Not Signed In', 'Please sign in again and retry.', 'OK');
+      return;
+    }
+
+    const usesPassword = user.providerData.some(p => p.providerId === 'password');
+    document.getElementById('del-password-block').style.display = usesPassword ? 'block' : 'none';
+    document.getElementById('del-google-block').style.display = usesPassword ? 'none' : 'block';
+    document.getElementById('del-password').value = '';
+    resetDeleteEye();
+    setDeleteError('');
+
+    showDeleteStep('auth');
+    document.getElementById('delete-account-modal').classList.add('show');
+    if (usesPassword) setTimeout(() => document.getElementById('del-password').focus(), 50);
+  } catch (error) {
+    console.error('Could not start delete flow:', error);
+    if (window.showToast) window.showToast('error', 'Error', 'Something went wrong. Please try again.', 'OK');
+  }
+}
+
+window.submitDeleteAuth = async function () {
+  if (deleteBusy) return;
+
+  const btn = document.getElementById('btn-del-verify');
+  const usesPassword = document.getElementById('del-password-block').style.display !== 'none';
+  const password = document.getElementById('del-password').value;
+
+  if (usesPassword && !password) {
+    setDeleteError('Please enter your password.');
+    return;
+  }
+
+  deleteBusy = true;
+  btn.disabled = true;
+  btn.textContent = 'Verifying...';
+  setDeleteError('');
+
+  try {
+    const { auth, googleProvider } = await import('../Firebase/firebase-config.js');
+    const {
+      EmailAuthProvider,
+      GoogleAuthProvider,
+      reauthenticateWithCredential,
+      reauthenticateWithPopup
+    } = await import('https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js');
+
+    const user = auth.currentUser;
+    if (!user) throw new Error('No authenticated user found.');
+
+    if (usesPassword) {
+      const credential = EmailAuthProvider.credential(user.email, password);
+      await reauthenticateWithCredential(user, credential);
+    } else {
+      await reauthenticateWithPopup(user, googleProvider || new GoogleAuthProvider());
+    }
+
+    document.getElementById('del-password').value = '';
+    resetDeleteEye();
+    showDeleteStep('final'); // Step 3
+  } catch (error) {
+    console.error('Re-authentication failed:', error);
+    const messages = {
+      'auth/wrong-password': 'Incorrect password.',
+      'auth/invalid-credential': 'Incorrect password.',
+      'auth/too-many-requests': 'Too many attempts. Please try again later.',
+      'auth/network-request-failed': 'Please check your internet connection.',
+      'auth/user-mismatch': 'Please choose the Google account you are signed in with.',
+      'auth/popup-closed-by-user': 'Verification was cancelled.',
+      'auth/cancelled-popup-request': 'Verification was cancelled.',
+      'auth/popup-blocked': 'Your browser blocked the Google popup. Please allow popups and try again.'
+    };
+    setDeleteError(messages[error.code] || 'Verification failed. Please try again.');
+  } finally {
+    deleteBusy = false;
+    btn.disabled = false;
+    btn.textContent = 'Continue';
+  }
+};
+
+// Step 3 > 4: final confirmation, then delete
+window.confirmDeleteAccount = async function () {
+  if (deleteBusy) return;
+  deleteBusy = true;
+  showDeleteStep('progress');
+
+  try {
+    const { auth, db } = await import('../Firebase/firebase-config.js');
+    const { deleteUser } = await import('https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js');
+    const { doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js');
+
+    const user = auth.currentUser;
+    if (!user) throw new Error('No authenticated user found.');
+
+    // Delete data first (the rules need the user to still be signed in),
+    // then the auth account.
+    await deleteDoc(doc(db, 'admin', user.uid));
+    await deleteUser(user);
+
+    localStorage.removeItem('docsEase_avatar');
+    localStorage.removeItem('docsEase_name');
+    localStorage.removeItem('docsEase_role');
+    window.location.href = '../Authentication/auth.html?accountDeleted=true';
+  } catch (error) {
+    console.error('Error deleting account:', error);
+    deleteBusy = false;
+
+    if (error.code === 'auth/requires-recent-login') {
+      // Verification expired: send them back to the identity step
+      showDeleteStep('auth');
+      setDeleteError('Your verification expired. Please confirm your identity again.');
+    } else {
+      document.getElementById('delete-account-modal').classList.remove('show');
+      const msg = error.code === 'permission-denied'
+        ? 'Missing permission to delete your admin record. Check your Firestore rules.'
+        : 'Failed to delete account. Please try again.';
+      if (window.showToast) window.showToast('error', 'Delete Failed', msg, 'OK');
+    }
+  }
 };
 
 window.triggerSignOut = function (e) {
