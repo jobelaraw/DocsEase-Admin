@@ -343,3 +343,43 @@
     flex-wrap: wrap;
   }
 }
+
+/* Notification Badge (pending requests count) */
+.rq-notif-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  background: #e53935;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 0 0 2px #fff;
+  animation: rq-badge-pop 0.3s ease;
+}
+
+.rq-notif-badge[hidden] {
+  display: none;
+}
+
+/* Inside the "Pending Request" tab */
+.rq-notif-badge--inline {
+  margin-left: 6px;
+  min-width: 18px;
+  height: 18px;
+  font-size: 0.65rem;
+  vertical-align: middle;
+  box-shadow: none;
+}
+
+@keyframes rq-badge-pop {
+  0%   { transform: scale(0.6); }
+  60%  { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}

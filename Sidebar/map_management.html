@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GaBayan – Map Management</title>
+  <link rel="icon" type="image/png" href="../assets/logo_whitebg.png" />
+  <link rel="stylesheet" href="../css/dashboard.css" />
+  <link rel="stylesheet" href="../css/sidebar.css" />
+  <link rel="stylesheet" href="../css/profile.css" />
+  <link rel="stylesheet" href="../css/toast.css" />
+  <link rel="stylesheet" href="../css/map_management.css" />
+  <script src="../functions/toast.js"></script>
+  <script type="module" src="../functions/role-guard.js"></script>
+  <script src="../functions/sidebar.js"></script>
+</head>
+
+<body>
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">
+        <img src="../assets/logo.png" alt="GaBayan Logo" />
+      </div>
+      <div class="logo-text">
+        <img src="../assets/docsease_text.png" alt="GaBayan" class="brand-img" />
+      </div>
+    </div>
+
+    <div class="sidebar-nav-container">
+      <nav class="sidebar-nav">
+        <a href="dashboard.html" class="nav-item" title="Dashboard">
+          <div class="nav-icon"><img src="../assets/dashboard.png" alt="Dashboard" /></div>
+          <span class="nav-label">Dashboard</span>
+        </a>
+        <a href="service_management.html" class="nav-item" title="Service Management">
+          <div class="nav-icon"><img src="../assets/service_mngment.png" alt="Service Management" /></div>
+          <span class="nav-label">Service Management</span>
+        </a>
+        <a href="map_management.html" class="nav-item active" title="Map Management">
+          <div class="nav-icon"><img src="../assets/map_mngment.png" alt="Map Management" /></div>
+          <span class="nav-label">Map Management</span>
+        </a>
+        <a href="analytics.html" class="nav-item" title="Analytics">
+          <div class="nav-icon"><img src="../assets/analytics.png" alt="Analytics" /></div>
+          <span class="nav-label">Analytics</span>
+        </a>
+        <a href="review_queue.html" class="nav-item" title="Review Queue">
+          <div class="nav-icon"><img src="../assets/review_queue.png" alt="Review Queue" /></div>
+          <span class="nav-label">Review Queue</span>
+        </a>
+        <a href="activity_log.html" class="nav-item" title="Activity Log">
+          <div class="nav-icon"><img src="../assets/activity_log.png" alt="Activity Log" /></div>
+          <span class="nav-label">Activity Log</span>
+        </a>
+      </nav>
+    </div>
+
+    <div class="sidebar-bottom">
+      <button class="btn-collapse" onclick="toggleSidebar()" title="Collapse sidebar">
+        <img id="collapse-icon" src="../assets/collapse.png" alt="Collapse" />
+      </button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+      <div></div>
+      <div id="profile-placeholder"></div>
+    </header>
+
+    <div class="content mm-page">
+
+      <div class="welcome-banner">
+        <div>
+          <h1>Map Management</h1>
+          <p>Drag a room onto another to swap their offices, or click a room to edit its details.</p>
+        </div>
+      </div>
+
+      <!-- Floor plan card -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Floor Plan · First Floor</span>
+        </div>
+        <svg id="mm-map" viewBox="0 0 668 450" role="img" aria-label="Floor plan"></svg>
+      </div>
+
+      <div class="card mm-tray-card">
+        <div class="card-header">
+          <span class="card-title" id="mm-tray-title">Unplaced offices and rooms</span>
+          <button type="button" class="mm-link-btn" id="mm-autofill">Auto-fill empty rooms</button>
+        </div>
+        <div class="mm-tray" id="mm-tray"></div>
+        <div class="mm-hint">
+          <span>Drag one onto a room to place it. Drag a room down here to take it off the map.</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Swap / saved snackbar -->
+  <div class="mm-snack" id="mm-snack"><span id="mm-snack-msg"></span><button type="button" id="mm-undo">Undo</button></div>
+
+  <div class="ao-overlay" id="mm-ov">
+    <div class="ao-modal" role="dialog" aria-modal="true" aria-labelledby="mm-title">
+      <div class="ao-header">
+        <h2 class="ao-title" id="mm-title">EDIT OFFICE</h2>
+        <button type="button" class="ao-close" id="mm-close" aria-label="Close">&times;</button>
+      </div>
+
+      <div class="mm-field">
+        <label class="ao-label" for="f_name" id="f_name_label">OFFICE NAME</label>
+        <input class="ao-input" id="f_name" maxlength="100" autocomplete="off">
+      </div>
+
+      <div class="mm-field">
+        <label class="ao-label" for="f_desc">DESCRIPTION</label>
+        <textarea class="ao-input" id="f_desc" rows="4" maxlength="500"></textarea>
+      </div>
+
+      <div class="mm-row">
+        <div>
+          <label class="ao-label" for="f_floor">FLOOR</label>
+          <select class="ao-input" id="f_floor"></select>
+        </div>
+        <div>
+          <label class="ao-label" for="f_cat">CATEGORY / TYPE</label>
+          <select class="ao-input" id="f_cat"></select>
+        </div>
+      </div>
+      <div class="ao-error" id="mm-err"></div>
+
+      <div class="ao-actions">
+        <button type="button" class="ao-btn ao-btn-cancel" id="mm-cancel">CANCEL</button>
+        <button type="button" class="ao-btn ao-btn-add" id="mm-save">SAVE</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { auth, db } from '../Firebase/firebase-config.js';
+    import { collection, getDocs, doc, writeBatch, updateDoc, deleteField } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+    const FLOOR = 'first_floor';
+
+    const FLOORS = [['first_floor', 'First Floor'], ['second_floor', 'Second Floor'], ['third_floor', 'Third Floor']];
+    const CATEGORIES = [['regular_service', 'Regular Service'], ['emergency_services', 'Emergency Services'], ['building_access', 'Building Access'], ['facilities_and_amenities', 'Facilities and Amenities'], ['comfort_rooms', 'Comfort Rooms'], ['suites_and_hubs', 'Suites and Hubs']];
+
+    // Documents drawn as a fixed label on the map
+    const FIXED_IDS = new Set(['ELEVATOR']);
+
+    // Room shapes sit on top of the floor plan image.
+    const R = (x,y,w,h) => `M${x} ${y}h${w}v${h}h${-w}z`;
+    // Numbered CLOCKWISE: s1 is the bottom-left wing - s15 is the bottom-right wing.
+    // s16 is the elevator.
+    const SLOTS = [
+      {id:"s1",  d:R(20.5,313.5,210,71)}, 
+      {id:"s2",  d:R(143.5,251.5,71,57)},  
+      {id:"s3",  d:R(143.5,101.5,71,145)}, 
+      {id:"s4",  d:R(143.5,9.5,82,87)}, 
+      {id:"s5",  d:R(230.5,9.5,29,24)},      
+      {id:"s6",  d:R(261.5,9.5,28.5,24)},    
+      {id:"s7",  d:R(263.5,38.5,36,57)},     
+      {id:"s8",  d:R(304.5,38.5,70,57)},      
+      {id:"s9",  d:R(379.5,38.5,33,26)},     
+      {id:"s10", d:R(379.5,69.5,33,26)},    
+      {id:"s11", d:"M447.5 9.5 L531.5 9.5 L531.5 33.5 L500.5 33.5 L500.5 64.5 L447.5 64.5 Z", lx:474, ly:32, tiny:true},
+      {id:"s12", d:"M505.5 38.5 L531.5 38.5 L531.5 96.5 L447.5 96.5 L447.5 69.5 L505.5 69.5 Z", lx:490, ly:78, tiny:true},
+      {id:"s13", d:R(460.5,130.5,71,116)},    
+      {id:"s14", d:R(450.5,251.5,81,57)},    
+      {id:"s15", d:"M450.5 313.5 L649.5 313.5 L649.5 384.5 L469.5 384.5 L469.5 409.5 L450.5 409.5 Z", lx:548, ly:349}      
+    ];
+    const SLOT_IDS = new Set(SLOTS.map(s => s.id));
+
+    const SLOT_VERSION = 2;
+    const OLD_TO_NEW = {s13:'s1', s10:'s2', s9:'s3', s1:'s4', s2:'s5', s16:'s6', s3:'s7', s4:'s8',
+                        s5:'s9', s6:'s10', s7:'s11', s8:'s12', s11:'s13', s12:'s14', s14:'s15'};
+    const slotFields = slot => slot === null
+      ? { map_slot: deleteField(), map_slot_v: deleteField() }
+      : { map_slot: slot, map_slot_v: SLOT_VERSION };
+
+    // state 
+    let records = [];        
+    let bySlot = {};        
+    let loaded = false;
+    let lastLayout = null;  
+
+    const svg = document.getElementById('mm-map'), NS = 'http://www.w3.org/2000/svg';
+    const tray = document.getElementById('mm-tray'), trayCard = document.querySelector('.mm-tray-card');
+    const trayTitle = document.getElementById('mm-tray-title');
+
+    const el = (n, a = {}, p) => {
+      const e = document.createElementNS(NS, n);
+      for (const k in a) e.setAttribute(k, a[k]);
+      if (p) p.appendChild(e);
+      return e;
+    };
+    const esc = v => String(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+    const SKIP = new Set(['of','the','and','for','in','on']);
+    const short = n => n.split(/\s+/).filter(w => !SKIP.has(w.toLowerCase())).map(w => w[0]).join('').toUpperCase().slice(0, 6) || n;
+    const wrap = (text, max) => {
+      const lines = []; let cur = '';
+      text.split(/\s+/).forEach(w => {
+        if (cur && (cur + ' ' + w).length > max) { lines.push(cur); cur = w; }
+        else cur = cur ? cur + ' ' + w : w;
+      });
+      if (cur) lines.push(cur);
+      return lines;
+    };
+
+    function failToast(step, err) {
+      console.error(`[map] failed while ${step}:`, err);
+      const denied = err && err.code === 'permission-denied';
+      window.showToast('error', 'Action Failed',
+        denied ? `Firestore rules blocked this while ${step}.`
+               : `Something went wrong while ${step}. ${err && err.code ? err.code : 'Please try again.'}`, 'OK');
+    }
+
+    // load from Firestore 
+    async function load() {
+      try {
+        const [offices, rooms] = await Promise.all([
+          getDocs(collection(db, 'offices')),
+          getDocs(collection(db, 'other_room'))
+        ]);
+        records = [];
+        const toConvert = [];
+        const add = (snap, coll, nameField) => snap.forEach(d => {
+          if (FIXED_IDS.has(d.id)) return;
+          const x = d.data();
+          let slot = x.map_slot || null, old = false;
+          if (slot && x.map_slot_v !== SLOT_VERSION) { slot = OLD_TO_NEW[slot] || null; old = true; }
+          const rec = {
+            key: `${coll}/${d.id}`, coll, docId: d.id, nameField,
+            name: x[nameField] || d.id,
+            description: x.description || '',
+            floor: x.floor || '',
+            category: x.category || '',
+            slot
+          };
+          records.push(rec);
+          if (old) toConvert.push(rec);
+        });
+        add(offices, 'offices', 'office_name');
+        add(rooms, 'other_room', 'room_name');
+        loaded = true;
+        rebuild();
+        if (toConvert.length) convertOldSlots(toConvert);
+      } catch (err) {
+        failToast('loading offices and rooms', err);
+      }
+    }
+
+    // One-time: save the new room numbers for anything that was placed with the old numbering
+    async function convertOldSlots(list) {
+      try {
+        const batch = writeBatch(db);
+        list.forEach(rec => batch.update(doc(db, rec.coll, rec.docId), slotFields(rec.slot)));
+        await batch.commit();
+        snack(`Updated ${list.length} ${list.length > 1 ? 'offices' : 'office'} to the new room numbers`, false);
+      } catch (err) {
+        failToast('updating to the new room numbers', err);
+      }
+    }
+
+    function rebuild() {
+      bySlot = {};
+      records.filter(r => r.floor === FLOOR).forEach(r => {
+        if (r.slot && SLOT_IDS.has(r.slot) && !bySlot[r.slot]) bySlot[r.slot] = r;
+      });
+      draw();
+      drawTray();
+    }
+    const onMap = r => bySlot[r.slot] === r;
+    const unplaced = () => records.filter(r => r.floor === FLOOR && !onMap(r)).sort((a, b) => a.name.localeCompare(b.name));
+
+    // draw 
+    function draw() {
+      svg.innerHTML = '';
+      el('image', {href:'../assets/floor_plan.png', x:0, y:0, width:668, height:450, 'pointer-events':'none'}, svg);
+
+      SLOTS.forEach(s => {
+        const rec = bySlot[s.id];
+        const g = el('g', {class: 'mm-slot' + (rec ? '' : ' mm-empty'), 'data-id': s.id}, svg);
+        const shape = el('path', {d: s.d, class: 'mm-shape'}, g);
+        const bb = shape.getBBox();
+        const cx = s.lx ?? bb.x + bb.width/2, cy = s.ly ?? bb.y + bb.height/2;
+        const small = bb.width < 50 || bb.height < 40 || s.tiny;
+        const lab = el('g', {class: 'mm-label'}, g);
+
+        if (rec) {
+          const maxChars = Math.max(6, Math.floor((bb.width - 6) / 3.9));
+          const maxLines = Math.max(1, Math.floor((bb.height - 6) / 8.5));
+          let lines = small ? null : wrap(rec.name, maxChars);
+          if (lines && (lines.length > maxLines || lines.some(l => l.length > maxChars))) lines = null;
+          if (lines) {
+            const y0 = cy - (lines.length - 1) * 4.2 + 2.5;
+            lines.forEach((ln, i) => el('text', {x:cx, y:y0 + i*8.4, class:'mm-name'}, lab).textContent = ln);
+          } else {
+            el('text', {x:cx, y:cy + 3, class:'mm-code'}, lab).textContent = short(rec.name);
+          }
+        } else {
+          el('text', {x:cx, y:cy + (small ? 2 : 3), class:'mm-name mm-muted' + (small ? ' mm-name-sm' : '')}, lab).textContent = 'Empty';
+        }
+        g.addEventListener('pointerdown', e => startDrag(e, {type:'slot', slotId:s.id}));
+      });
+
+      el('text', {x:338, y:291, class:'mm-static'}, svg).textContent = 'Elevator';
+    }
+
+    function drawTray() {
+      const list = unplaced();
+      trayTitle.textContent = loaded ? `Unplaced offices and rooms (${list.length})` : 'Unplaced offices and rooms';
+      tray.innerHTML = list.length
+        ? list.map(r => `<button type="button" class="mm-chip" data-key="${esc(r.key)}">${esc(r.name)}</button>`).join('')
+        : `<p class="mm-empty-note">${loaded ? 'Everything on this floor is placed on the map.' : 'Loading…'}</p>`;
+      tray.querySelectorAll('.mm-chip').forEach(ch => ch.addEventListener('pointerdown', e =>
+        startDrag(e, {type:'rec', rec: records.find(r => r.key === ch.dataset.key)})));
+    }
+
+    // saving the layout (map_slot) 
+    async function commitLayout(changes, label, allowUndo = true) {
+      const before = changes.map(([rec]) => [rec, rec.slot]);
+      changes.forEach(([rec, slot]) => rec.slot = slot);
+      rebuild();
+      try {
+        const batch = writeBatch(db);
+        changes.forEach(([rec, slot]) =>
+          batch.update(doc(db, rec.coll, rec.docId), slotFields(slot)));
+        await batch.commit();
+        lastLayout = allowUndo ? before : null;
+        snack(label, allowUndo);
+      } catch (err) {
+        before.forEach(([rec, slot]) => rec.slot = slot); 
+        rebuild();
+        failToast('saving the new layout', err);
+      }
+    }
+
+    // drag & drop
+    let drag = null;
+
+    function startDrag(e, src) {
+      const rec = src.type === 'slot' ? bySlot[src.slotId] : src.rec;
+      if (!rec) return;                       
+      e.preventDefault();
+      drag = {src, rec, x:e.clientX, y:e.clientY, lx:e.clientX, ly:e.clientY, moved:false, ghost:null, target:null, raf:0};
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+      window.addEventListener('pointercancel', onCancel);
+    }
+
+    function clearHighlights() {
+      svg.querySelectorAll('.mm-target').forEach(n => n.classList.remove('mm-target'));
+      trayCard.classList.remove('mm-tray-hot');
+    }
+
+    const EDGE = 90, MAX_STEP = 18;
+    function autoScroll() {
+      if (!drag || !drag.moved) return;
+      const y = drag.ly;
+      let dy = 0;
+      if (y < EDGE) dy = -Math.ceil(MAX_STEP * (EDGE - y) / EDGE);
+      else if (y > window.innerHeight - EDGE) dy = Math.ceil(MAX_STEP * (y - (window.innerHeight - EDGE)) / EDGE);
+      if (dy) {
+        const before = window.scrollY;
+        window.scrollBy(0, dy);
+        if (window.scrollY !== before) onMove({clientX: drag.lx, clientY: drag.ly});   // refresh drop target
+      }
+      drag.raf = requestAnimationFrame(autoScroll);
+    }
+
+    function onMove(e) {
+      if (!drag) return;
+      drag.lx = e.clientX; drag.ly = e.clientY;
+      if (!drag.moved) {
+        if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 5) return;   // click vs drag
+        drag.moved = true;
+        if (drag.src.type === 'slot') svg.querySelector(`[data-id="${drag.src.slotId}"]`).classList.add('mm-src');
+        const g = document.createElement('div');
+        g.className = 'mm-float';
+        g.textContent = short(drag.rec.name);
+        document.body.appendChild(g);
+        drag.ghost = g;
+        drag.raf = requestAnimationFrame(autoScroll);
+      }
+      drag.ghost.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%, -50%)`;
+      clearHighlights();
+      drag.target = null;
+      const hit = document.elementFromPoint(e.clientX, e.clientY);
+      const slotEl = hit && hit.closest ? hit.closest('.mm-slot') : null;
+      if (slotEl) {
+        if (!(drag.src.type === 'slot' && slotEl.dataset.id === drag.src.slotId)) {
+          drag.target = {type:'slot', id:slotEl.dataset.id};
+          slotEl.classList.add('mm-target');
+        }
+      } else if (drag.src.type === 'slot' && hit && hit.closest && hit.closest('.mm-tray-card')) {
+        drag.target = {type:'tray'};
+        trayCard.classList.add('mm-tray-hot');
+      }
+    }
+
+    function stopListening() {
+      if (drag && drag.raf) cancelAnimationFrame(drag.raf);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onCancel);
+    }
+    function onCancel() {
+      stopListening();
+      if (drag && drag.ghost) drag.ghost.remove();
+      drag = null; clearHighlights(); draw();
+    }
+    function onUp() {
+      stopListening();
+      const d = drag; drag = null;
+      if (!d) return;
+      if (d.ghost) d.ghost.remove();
+      clearHighlights();
+      if (!d.moved) { openModal(d.rec); return; }
+
+      const t = d.target;
+      let changes = null, label = '';
+      if (t && t.type === 'slot') {
+        const occ = bySlot[t.id] || null;
+        changes = [[d.rec, t.id]];
+        if (d.src.type === 'slot') {
+          if (occ) changes.push([occ, d.src.slotId]);
+          label = occ ? `Swapped ${short(d.rec.name)} ↔ ${short(occ.name)}` : `Moved ${short(d.rec.name)}`;
+        } else {
+          if (occ) changes.push([occ, null]);
+          label = occ ? `Placed ${short(d.rec.name)}, ${short(occ.name)} is now unplaced` : `Placed ${short(d.rec.name)}`;
+        }
+      } else if (t && t.type === 'tray') {
+        changes = [[d.rec, null]];
+        label = `Removed ${short(d.rec.name)} from the map`;
+      }
+      if (changes) commitLayout(changes, label); else draw();
+    }
+
+    // snackbar / undo 
+    const sEl = document.getElementById('mm-snack'), undoBtn = document.getElementById('mm-undo');
+    let st;
+    function snack(msg, withUndo) {
+      document.getElementById('mm-snack-msg').textContent = msg;
+      undoBtn.style.display = withUndo ? '' : 'none';
+      sEl.style.display = 'flex';
+      clearTimeout(st);
+      st = setTimeout(() => sEl.style.display = 'none', 6000);
+    }
+    undoBtn.onclick = () => {
+      if (!lastLayout) return;
+      const back = lastLayout; lastLayout = null;
+      sEl.style.display = 'none';
+      commitLayout(back, 'Undone', false);
+    };
+
+    // auto-fill 
+    document.getElementById('mm-autofill').onclick = () => {
+      const free = SLOTS.filter(s => !bySlot[s.id]);
+      const list = unplaced();
+      const n = Math.min(free.length, list.length);
+      if (!n) { snack('There are no empty rooms, or nothing left to place.', false); return; }
+      window.showConfirmToast({
+        type: 'warning',
+        title: 'Auto-fill empty rooms?',
+        msg: `${n} unplaced ${n > 1 ? 'offices' : 'office'} will be placed in empty rooms, in alphabetical order. You can swap them afterwards.`,
+        confirmText: 'Yes, fill',
+        cancelText: 'No',
+        onConfirm: () => commitLayout(free.slice(0, n).map((s, i) => [list[i], s.id]), `Placed ${n} ${n > 1 ? 'offices' : 'office'}`)
+      });
+    };
+
+    // edit modal: name, description, floor, category 
+    const fillSel = (id, opts) => {
+      document.getElementById(id).innerHTML = opts.map(([v, l]) => `<option value="${v}">${l}</option>`).join('');
+    };
+    fillSel('f_floor', FLOORS);
+    fillSel('f_cat', CATEGORIES);
+
+    const pretty = v => String(v).replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());   // suites_and_hubs -> Suites And Hubs
+    function setField(id, val) {
+      const f = document.getElementById(id);
+      if (f.tagName === 'SELECT' && val && ![...f.options].some(o => o.value === val)) f.add(new Option(pretty(val), val));
+      f.value = val;
+    }
+
+    let editing = null;
+    const ov = document.getElementById('mm-ov'), errEl = document.getElementById('mm-err'),
+          fName = document.getElementById('f_name'), fDesc = document.getElementById('f_desc'),
+          fFloor = document.getElementById('f_floor'), fCat = document.getElementById('f_cat'),
+          saveBtn = document.getElementById('mm-save');
+    const fields = [fName, fDesc, fFloor, fCat];
+
+    function showErr(msg, field) {
+      errEl.textContent = msg;
+      fields.forEach(f => f.classList.remove('error'));
+      if (msg && field) field.classList.add('error');
+    }
+
+    function openModal(rec) {
+      editing = rec;
+      const isOffice = rec.coll === 'offices';
+      document.getElementById('mm-title').textContent = isOffice ? 'EDIT OFFICE' : 'EDIT ROOM';
+      document.getElementById('f_name_label').textContent = isOffice ? 'OFFICE NAME' : 'ROOM NAME';
+      fName.value = rec.name;
+      fDesc.value = rec.description;
+      setField('f_floor', rec.floor);
+      setField('f_cat', rec.category);
+      showErr('');
+      ov.classList.add('show');
+    }
+    const closeModal = () => { ov.classList.remove('show'); editing = null; };
+
+    document.getElementById('mm-cancel').onclick = closeModal;
+    document.getElementById('mm-close').onclick = closeModal;
+    ov.addEventListener('pointerdown', e => { if (e.target === ov) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+    fields.forEach(f => f.addEventListener('input', () => showErr('')));
+
+    saveBtn.onclick = async () => {
+      const rec = editing;
+      if (!rec) return;
+      const name = fName.value.replace(/\s+/g, ' ').trim();
+      const description = fDesc.value.trim();
+      const floor = fFloor.value, category = fCat.value;
+
+      if (!name) { showErr('Please enter a name.', fName); return; }
+      if (!description) { showErr('Please enter a description.', fDesc); return; }
+
+      if ((category === 'regular_service') !== (rec.coll === 'offices')) {
+        showErr('Changing between Regular Service and another type would move this record to a different collection. Delete it and add it again with the new category.', fCat);
+        return;
+      }
+      if (records.some(r => r !== rec && r.name.toLowerCase() === name.toLowerCase())) {
+        showErr('An office or room with this name already exists.', fName);
+        return;
+      }
+
+      const patch = { [rec.nameField]: name, description, floor, category };
+      const leavesMap = floor !== FLOOR && rec.slot;
+      if (leavesMap) Object.assign(patch, slotFields(null));
+
+      saveBtn.disabled = true; saveBtn.textContent = 'SAVING...';
+      try {
+        await updateDoc(doc(db, rec.coll, rec.docId), patch);
+        Object.assign(rec, { name, description, floor, category });
+        if (leavesMap) rec.slot = null;
+        closeModal();
+        rebuild();
+        snack(floor !== FLOOR ? 'Saved. It is on another floor now, so it is no longer on this map.' : 'Saved', false);
+      } catch (err) {
+        console.error('[map] save failed:', err);
+        showErr(err && err.code === 'permission-denied'
+          ? 'Firestore rules blocked this change.'
+          : 'Could not save. Please try again.');
+      } finally {
+        saveBtn.disabled = false; saveBtn.textContent = 'SAVE';
+      }
+    };
+
+    // start 
+    rebuild();
+    onAuthStateChanged(auth, user => { if (user) load(); });
+  </script>
+
+  <!-- Profile menu -->
+  <script>
+    fetch('../Authentication/profile.html')
+      .then(res => res.text())
+      .then(html => {
+        const template = document.createElement('template');
+        template.innerHTML = html;
+        const script = template.content.querySelector('script');
+        const profilePlaceholder = document.getElementById('profile-placeholder');
+        profilePlaceholder.replaceChildren(template.content);
+        if (script) {
+          const executableScript = document.createElement('script');
+          executableScript.textContent = script.textContent;
+          document.body.appendChild(executableScript);
+        }
+        if (window.currentUser) updateProfileDisplay(window.currentUser);
+      });
+  </script>
+</body>
+
+</html>

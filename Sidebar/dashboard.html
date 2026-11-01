@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="../css/sidebar.css" />
   <link rel="stylesheet" href="../css/profile.css" />
   <link rel="stylesheet" href="../css/toast.css" />
+  <link rel="stylesheet" href="../css/add_office_modal.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.js"
     integrity="sha384-tgbB5AKnszdcfwcZtTfuhR3Ko1XZdlDfsLtkxiiAZiVkkXCkFmp+FQFh+V/UTo54"
     crossorigin="anonymous"></script>
@@ -163,6 +164,23 @@
       </div>
       <label class="ao-label" for="ao-office-name">OFFICE NAME</label>
       <input type="text" id="ao-office-name" class="ao-input" placeholder="Enter office name..." maxlength="100" autocomplete="off" />
+
+      <div class="ao-field">
+        <label class="ao-label" for="ao-description">DESCRIPTION</label>
+        <textarea id="ao-description" class="ao-input" rows="3" maxlength="500" placeholder="What does this office do?"></textarea>
+      </div>
+
+      <div class="ao-row">
+        <div>
+          <label class="ao-label" for="ao-floor">FLOOR</label>
+          <select id="ao-floor" class="ao-input"></select>
+        </div>
+        <div>
+          <label class="ao-label" for="ao-category">CATEGORY / TYPE</label>
+          <select id="ao-category" class="ao-input"></select>
+        </div>
+      </div>
+
       <div class="ao-error" id="ao-error"></div>
       <div class="ao-actions">
         <button type="button" class="ao-btn ao-btn-cancel" onclick="closeAddOffice()">Cancel</button>
@@ -280,18 +298,39 @@
     }
 
     // ---------- Add New Office ----------
+    // Dropdown options: [value saved in Firestore, label shown].
+    // "regular_service" is saved in the offices collection. Any other category is saved in other_room.
+    // TODO: make these lists match the values your collections really use.
+    const AO_FLOORS = [['first_floor', 'First Floor'], ['second_floor', 'Second Floor'], ['third_floor', 'Third Floor']];
+    const AO_CATEGORIES = [['regular_service', 'Regular Service'], ['emergency_services', 'Emergency Services'], ['building_access', 'Building Access'], ['facilities_and_amenities', 'Facilities and Amenities'], ['comfort_rooms', 'Comfort Rooms'], ['suites_and_hubs', 'Suites and Hubs']];
+
     const aoOverlay = document.getElementById('add-office-overlay');
     const aoInput = document.getElementById('ao-office-name');
+    const aoDesc = document.getElementById('ao-description');
+    const aoFloor = document.getElementById('ao-floor');
+    const aoCategory = document.getElementById('ao-category');
     const aoError = document.getElementById('ao-error');
     const aoSubmit = document.getElementById('ao-submit');
+    const aoFields = [aoInput, aoDesc, aoFloor, aoCategory];
 
-    function showAoError(message) {
+    function fillAoSelect(select, placeholder, options) {
+      select.innerHTML = `<option value="" disabled selected>${placeholder}</option>` +
+        options.map(([value, label]) => `<option value="${value}">${label}</option>`).join('');
+    }
+    fillAoSelect(aoFloor, 'Select floor', AO_FLOORS);
+    fillAoSelect(aoCategory, 'Select category', AO_CATEGORIES);
+
+    function showAoError(message, field) {
       aoError.textContent = message;
-      aoInput.classList.toggle('error', !!message);
+      aoFields.forEach(f => f.classList.remove('error'));
+      if (message && field) field.classList.add('error');
     }
 
     window.openAddOffice = function() {
       aoInput.value = '';
+      aoDesc.value = '';
+      aoFloor.selectedIndex = 0;
+      aoCategory.selectedIndex = 0;
       showAoError('');
       aoOverlay.classList.add('show');
       aoOverlay.setAttribute('aria-hidden', 'false');
@@ -305,53 +344,84 @@
 
     window.submitAddOffice = async function() {
       const officeName = aoInput.value.replace(/\s+/g, ' ').trim();
+      const description = aoDesc.value.trim();
+      const floor = aoFloor.value;
+      const category = aoCategory.value;
 
-      if (!officeName) { showAoError('Please enter an office name.'); return; }
-      if (officeName.includes('/')) { showAoError('Office name cannot contain "/".'); return; }
+      if (!officeName) { showAoError('Please enter an office name.', aoInput); return; }
+      if (officeName.includes('/')) { showAoError('Office name cannot contain "/".', aoInput); return; }
+      if (!description) { showAoError('Please enter a description.', aoDesc); return; }
+      if (!floor) { showAoError('Please select a floor.', aoFloor); return; }
+      if (!category) { showAoError('Please select a category.', aoCategory); return; }
       showAoError('');
+
+      // regular_service -> offices (office_name), anything else -> other_room (room_name)
+      const isOffice = category === 'regular_service';
+      const targetCollection = isOffice ? 'offices' : 'other_room';
+      const nameField = isOffice ? 'office_name' : 'room_name';
 
       aoSubmit.disabled = true;
       aoSubmit.textContent = 'Adding...';
+      let step = 'starting';
 
       try {
         // Same id convention as add_service.html
         const officeId = officeName.toUpperCase().replace(/\s+/g, '-');
 
-        const existing = await getDocs(collection(db, 'offices'));
-        const duplicate = existing.docs.some(d =>
-          d.id === officeId ||
-          String(d.data().office_name || d.id).trim().toLowerCase() === officeName.toLowerCase()
-        );
+        // Names must be unique across offices AND other rooms, because they share the same map.
+        // If one collection can't be read (Firestore rules), skip it instead of blocking the whole add.
+        step = 'checking for duplicates';
+        const readDocs = async (name) => {
+          try { return (await getDocs(collection(db, name))).docs; }
+          catch (err) { console.warn(`[add-office] could not read "${name}":`, err); return []; }
+        };
+        const [officeDocs, roomDocs] = await Promise.all([readDocs('offices'), readDocs('other_room')]);
+        const duplicate = [...officeDocs, ...roomDocs].some(d => {
+          const data = d.data();
+          return d.id === officeId ||
+            String(data.office_name || data.room_name || d.id).trim().toLowerCase() === officeName.toLowerCase();
+        });
         if (duplicate) {
-          showAoError('An office with this name already exists.');
+          showAoError('An office or room with this name already exists.', aoInput);
           return;
         }
 
-        await setDoc(doc(db, 'offices', officeId), {
-          office_name: officeName,
+        step = `saving to "${targetCollection}"`;
+        await setDoc(doc(db, targetCollection, officeId), {
+          [nameField]: officeName,
+          description,
+          floor,
+          category,
           created_at: serverTimestamp()
         });
 
-        // Citizen-app notification
-        try {
-          await addDoc(collection(db, 'notifications'), {
-            title: 'Hi Citizen! A new office added',
-            body: `A new office, ${officeName}, is now available on GaBayan.`,
-            service_id: '',
-            timestamp: serverTimestamp()
-          });
-        } catch (notifError) {
-          console.error('Office notification failed:', notifError);
+        // Citizen-app notification (new offices only)
+        if (isOffice) {
+          try {
+            await addDoc(collection(db, 'notifications'), {
+              title: 'Hi Citizen! A new office added',
+              body: `A new office, ${officeName}, is now available on GaBayan.`,
+              service_id: '',
+              timestamp: serverTimestamp()
+            });
+          } catch (notifError) {
+            console.error('Office notification failed:', notifError);
+          }
         }
 
         await logActivity('office_added', { office_name: officeName });
 
         window.closeAddOffice();
-        window.showToast('success', 'Office Added', `"${officeName}" has been added.`, 'OK');
+        window.showToast('success', isOffice ? 'Office Added' : 'Room Added', `"${officeName}" has been added.`, 'OK');
         await loadDashboardCounts();
       } catch (error) {
-        console.error('Error adding office:', error);
-        window.showToast('error', 'Add Failed', 'The office could not be added. Please try again.', 'OK');
+        console.error(`[add-office] failed while ${step}:`, error);
+        const denied = error && error.code === 'permission-denied';
+        window.showToast('error', 'Add Failed',
+          denied
+            ? `Firestore rules blocked this while ${step}. Allow super admins to write to this collection.`
+            : `The office could not be added (${step}). ${error && error.code ? error.code : 'Please try again.'}`,
+          'OK');
       } finally {
         aoSubmit.disabled = false;
         aoSubmit.textContent = 'Add new office';
@@ -359,7 +429,7 @@
     };
 
     aoInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') window.submitAddOffice(); });
-    aoInput.addEventListener('input', () => showAoError(''));
+    aoFields.forEach(f => f.addEventListener('input', () => showAoError('')));
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && aoOverlay.classList.contains('show')) window.closeAddOffice(); });
 
     async function loadDashboardCounts() {
