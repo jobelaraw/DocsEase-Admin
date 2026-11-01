@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="../css/toast.css" />
   <script src="../functions/toast.js"></script>
   <script type="module" src="../functions/role-guard.js"></script>
+  <script type="module" src="../functions/office-destinations.js"></script>
 </head>
 
 <body>
@@ -29,7 +30,7 @@
           <div class="nav-icon"><img src="../assets/service_mngment.png" alt="Service Management" /></div>
           <span class="nav-label">Service Management</span>
         </a>
-         <a href="../Sidebar/map_management.html" class="nav-item" title="Map Management">
+        <a href="../Sidebar/map_management.html" class="nav-item" title="Map Management">
           <div class="nav-icon"><img src="../assets/map_mngment.png" alt="Map Management" /></div>
           <span class="nav-label">Map Management</span>
         </a>
@@ -41,9 +42,9 @@
           <div class="nav-icon"><img src="../assets/review_queue.png" alt="Review Queue" /></div>
           <span class="nav-label">Review Queue</span>
         </a>
-      <a href="../Sidebar/activity_log.html" class="nav-item" title="Activity Log">
-      <div class="nav-icon"><img src="../assets/activity_log.png" alt="Activity Log" /></div>
-        <span class="nav-label">Activity Log</span>
+        <a href="../Sidebar/activity_log.html" class="nav-item" title="Activity Log">
+          <div class="nav-icon"><img src="../assets/activity_log.png" alt="Activity Log" /></div>
+          <span class="nav-label">Activity Log</span>
         </a>
       </nav>
     </div>
@@ -77,6 +78,7 @@
         </div>
         <button class="btn-add-tab" onclick="addNewTab()">+</button>
       </div>
+
 
       <div class="form-section">
         <h3 class="section-title">General Details</h3>
@@ -113,6 +115,51 @@
 
       <div id="tab-contents">
         <div class="tab-pane active" id="tab-1">
+
+          
+<div class="form-section tab-service-details">
+  <h3 class="section-title">Transaction Details</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Type of Transaction <span style="font-weight:400;color:#888;">(optional)</span></label>
+            <div class="combo-box">
+              <input type="text" class="transaction-type-input"
+                data-optional="true"
+                placeholder="e.g. G2C – Government to Citizen" />
+              <button type="button" class="btn-drop" onclick="toggleCombo(this)">▼</button>
+              <div class="combo-menu">
+                <div class="combo-item" onclick="selectCombo(this)">G2C – Government to Citizen</div>
+                <div class="combo-item" onclick="selectCombo(this)">G2B – Government to Business</div>
+                <div class="combo-item" onclick="selectCombo(this)">G2G – Government to Government</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Who May Avail <span style="font-weight:400;color:#888;">(optional)</span></label>
+            <input type="text" class="who-may-avail-input"
+              data-optional="true"
+              placeholder="e.g. Real property owners with no tax delinquency" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Total Fees <span style="font-weight:400;color:#888;">(optional)</span></label>
+            <input type="text" class="total-fee-input"
+              data-optional="true"
+              placeholder="e.g. As stated in the SOA plus banking charge" />
+          </div>
+
+          <div class="form-group">
+            <label>Total Processing Time <span style="font-weight:400;color:#888;">(optional)</span></label>
+            <input type="text" class="total-time-input"
+              data-optional="true"
+              placeholder="e.g. 25 Minutes" />
+          </div>
+        </div>
+      </div>
 
           <div class="form-section">
             <h3 class="section-title">Requirements Checklist</h3>
@@ -155,7 +202,8 @@
                     <div class="form-group" style="flex: 1; margin-bottom: 0;">
                       <label>Step Title</label>
                       <div class="combo-box">
-                        <input type="text" placeholder="e.g. Application and Assessment" oninput="updateStepTitle(this)" />
+                        <input type="text" placeholder="e.g. Application and Assessment"
+                          oninput="updateStepTitle(this)" />
                         <button type="button" class="btn-drop" onclick="toggleCombo(this)">▼</button>
                         <div class="combo-menu">
                           <div class="combo-item" onclick="selectCombo(this)">Application and Assessment</div>
@@ -202,9 +250,31 @@
                     <textarea placeholder="List the personnel or office window..."></textarea>
                   </div>
                   <div class="form-group full-width" style="margin-top: 15px;">
-                    <label>Online Link <span style="font-weight:400;color:#888;">(optional)</span></label>
-                    <input type="text" class="step-link-input" data-optional="true" placeholder="e.g. https://binancitybusinesspermit.online" />
+                    <label>Agency Actions <span style="font-weight:400;color:#888;">(optional, one per
+                        line)</span></label>
+                    <textarea class="step-actions-input" data-optional="true"
+                      placeholder="Verification of documents&#10;Sending of SOA via email."></textarea>
                   </div>
+                  <div class="form-group full-width" style="margin-top: 15px;">
+                    <label>Notes / Footnote <span style="font-weight:400;color:#888;">(optional)</span></label>
+                    <textarea class="step-notes-input" data-optional="true"
+                      placeholder="e.g. *Payment will be credited within 1 to 5 working days..."></textarea>
+                  </div>
+                  <div class="form-group full-width" style="margin-top: 15px;">
+                    <label>Online Link <span style="font-weight:400;color:#888;">(optional)</span></label>
+                    <input type="text" class="step-link-input" data-optional="true"
+                      placeholder="e.g. https://binancitybusinesspermit.online" />
+                  </div>
+                    <div class="form-group full-width" style="margin-top: 15px;">
+                      <label>Navigate to <span style="font-weight:400;color:#888;">(optional)</span></label>
+                      <div class="combo-box nav-combo">
+                        <input type="text" class="step-navigate-input" data-optional="true" autocomplete="off"
+                          placeholder="Type or select an office..." />
+                        <button type="button" class="btn-drop nav-drop" tabindex="-1">▼</button>
+                        <div class="combo-menu nav-combo-menu"></div>
+                      </div>
+                      <small style="color:#888;display:block;margin-top:4px;">Fill this in only if this step needs the citizen to go to an office or room inside City Hall. The app will show a "Start Navigation" button.</small>
+                    </div>
                 </div>
               </div>
 
@@ -224,7 +294,8 @@
             <input type="text" id="location-input" placeholder="Enter location" />
             <button type="button" class="btn-drop" onclick="toggleCombo(this)">▼</button>
             <div class="combo-menu">
-              <div class="combo-item" onclick="selectCombo(this)">1st Floor, City Hall Building, Brgy. Zapote, Binan City, Laguna</div>
+              <div class="combo-item" onclick="selectCombo(this)">1st Floor, City Hall Building, Brgy. Zapote, Binan
+                City, Laguna</div>
             </div>
           </div>
         </div>
@@ -254,7 +325,7 @@
         </div>
       </div>
     </div>
-    
+
     <div class="actions-bar">
       <button class="btn-cancel" onclick="window.cancelAddService()">Cancel</button>
       <button class="btn-save" onclick="saveService()">Add Service</button>
@@ -361,7 +432,7 @@
       const officeMenu = document.getElementById('office-menu');
       try {
         const querySnapshot = await getDocs(collection(db, "offices"));
-        officeMenu.innerHTML = ''; 
+        officeMenu.innerHTML = '';
 
         if (querySnapshot.empty) {
           officeMenu.innerHTML = '<div class="combo-item">No offices found</div>';
@@ -371,9 +442,9 @@
         querySnapshot.forEach((doc) => {
           const data = doc.data();
           const officeName = data.office_name || doc.id;
-          
+
           officesMap[officeName.toLowerCase()] = doc.id;
-          
+
           const itemHTML = `<div class="combo-item" onclick="selectCombo(this)">${officeName}</div>`;
           officeMenu.insertAdjacentHTML('beforeend', itemHTML);
         });
@@ -383,7 +454,7 @@
       }
     }
 
-    window.saveService = async function() {
+    window.saveService = async function () {
       if (officesLoadPromise) await officesLoadPromise;
 
       const serviceName = document.getElementById('service-name-input').value.trim();
@@ -391,8 +462,9 @@
       const description = document.getElementById('service-desc-input').value.trim();
 
       const location = document.getElementById('location-input').value.trim();
-  const contactPhone = document.getElementById('contact-input').value.trim();
-  const contactEmail = document.getElementById('website-input').value.trim();
+      const contactPhone = document.getElementById('contact-input').value.trim();
+      const contactEmail = document.getElementById('website-input').value.trim();
+    
 
       const allTextField = document.querySelectorAll('.combo-box input, input[type="text"], textarea');
       let emptyFields = false;
@@ -445,8 +517,12 @@
       const tabPanes = document.querySelectorAll('.tab-pane');
 
       tabBtns.forEach((tabBtn, index) => {
+        const pane = tabPanes[index];   // ← must come first
         const channelName = tabBtn.querySelector('input').value.trim() || "Unnamed Channel";
-        const pane = tabPanes[index];
+        const transactionType = pane.querySelector('.transaction-type-input')?.value.trim() || '';
+        const whoMayAvail = pane.querySelector('.who-may-avail-input')?.value.trim() || '';
+        const totalFee = pane.querySelector('.total-fee-input')?.value.trim() || '';
+        const totalProcessingTime = pane.querySelector('.total-time-input')?.value.trim() || '';
 
         const requirements = [];
         pane.querySelectorAll('.req-item').forEach(req => {
@@ -464,7 +540,7 @@
         pane.querySelectorAll('.step-card').forEach(step => {
           const textInputs = step.querySelectorAll('input[type="text"]');
           const textAreas = step.querySelectorAll('textarea');
-          
+
           if (textInputs.length >= 3 && textAreas.length >= 2) {
             const stepTitle = textInputs[0].value.trim();
             const fee = textInputs[1].value.trim();
@@ -473,6 +549,14 @@
             const person = textAreas[1].value.trim();
             const linkInput = step.querySelector('.step-link-input');
             const onlineLink = linkInput ? linkInput.value.trim() : '';
+            const navInput = step.querySelector('.step-navigate-input');
+            const navigateTo = navInput ? navInput.value.trim() : '';
+            const actionsInput = step.querySelector('.step-actions-input');
+            const notesInput = step.querySelector('.step-notes-input');
+            const agencyActions = actionsInput
+              ? actionsInput.value.split('\n').map(s => s.trim()).filter(Boolean)
+              : [];
+            const notes = notesInput ? notesInput.value.trim() : '';
 
             if (stepTitle) {
               steps.push({
@@ -481,18 +565,25 @@
                 processing_time: time,
                 process_description: desc,
                 person_in_charge: person,
-                online_link: onlineLink
+                online_link: onlineLink,
+                navigate_to: navigateTo,
+                agency_actions: agencyActions,
+                notes: notes
               });
             }
           }
         });
 
-        channels.push({
-          tab_name: channelName,
-          requirements: requirements,
-          procedures: steps
-        });
-      });
+            channels.push({
+              tab_name: channelName,
+              transaction_type: transactionType,
+              who_may_avail: whoMayAvail,
+              total_fee: totalFee,
+              total_processing_time: totalProcessingTime,
+              requirements: requirements,
+              procedures: steps
+            });
+          });
 
       const serviceData = sanitizeForFirestore({
         service_name: serviceName,
@@ -514,14 +605,14 @@
         const serviceRef = doc(db, "offices", officeId, "services", customServiceId);
         await setDoc(serviceRef, serviceData);
 
-      //DISTRIBUTE NOTIFICATION TO ALL REGISTERED USERS
+        //DISTRIBUTE NOTIFICATION TO ALL REGISTERED USERS
         const usersSnap = await getDocs(collection(db, "users"));
-        
-        const notifPromises = usersSnap.docs.map(userDoc => 
+
+        const notifPromises = usersSnap.docs.map(userDoc =>
           addDoc(collection(db, "users", userDoc.id, "notifications"), {
             title: "Hi Citizen! A new service added.",
             body: `${serviceName} has been added to the ${officeName}.`,
-            service_id: customServiceId, 
+            service_id: customServiceId,
             is_read: false,
             timestamp: serverTimestamp()
           })
@@ -529,7 +620,7 @@
         await Promise.all(notifPromises);
 
         await logActivity('service_added', { office_name: officeName, service_name: serviceName });
-        
+
         const successOverlay = document.createElement('div');
         successOverlay.innerHTML = `
           <div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999;">
@@ -544,7 +635,7 @@
           </div>
         `;
         document.body.appendChild(successOverlay);
-        
+
       } catch (error) {
         console.error("Error saving service:", error);
         const errorMessage = error && error.message ? error.message : 'Something went wrong while saving the service. Please try again.';
@@ -563,7 +654,7 @@
           </div>
         `;
         document.body.appendChild(errorOverlay);
-        
+
         const saveBtn = document.querySelector('.btn-save');
         saveBtn.textContent = "Add Service";
         saveBtn.disabled = false;
@@ -657,7 +748,10 @@
         document.getElementById('service-desc-input'),
         document.getElementById('location-input'),
         document.getElementById('contact-input'),
-        document.getElementById('website-input')
+        document.getElementById('website-input'),
+        ...document.querySelectorAll(
+          '.transaction-type-input, .who-may-avail-input, .total-fee-input, .total-time-input'
+        ),
       ];
 
       const mainHasData = mainFields.some(field => field && normalizeText(field.value) !== '');
@@ -678,14 +772,14 @@
       return nestedInputs.some(input => normalizeText(input.value) !== '');
     }
 
-    const previousPageUrl = function() {
+    const previousPageUrl = function () {
       if (document.referrer && document.referrer.includes(window.location.origin)) {
         return document.referrer;
       }
       return '../Sidebar/service_management.html';
     };
 
-    window.navigateAway = function(targetUrl) {
+    window.navigateAway = function (targetUrl) {
       if (targetUrl) {
         window.location.href = targetUrl;
         return;
@@ -694,7 +788,7 @@
       window.location.href = previousPageUrl();
     };
 
-    window.cancelAddService = function() {
+    window.cancelAddService = function () {
       if (!window.hasAddedInformation()) {
         window.navigateAway();
         return;
@@ -709,11 +803,11 @@
         onConfirm: () => {
           window.navigateAway();
         },
-        onCancel: () => {}
+        onCancel: () => { }
       });
     };
 
-    window.confirmLeavePage = function(targetUrl) {
+    window.confirmLeavePage = function (targetUrl) {
       if (!window.hasAddedInformation()) {
         window.navigateAway(targetUrl);
         return;
@@ -728,7 +822,7 @@
         onConfirm: () => {
           window.navigateAway(targetUrl);
         },
-        onCancel: () => {}
+        onCancel: () => { }
       });
     };
 
@@ -806,16 +900,18 @@
       newPane.id = newTabId;
       newPane.classList.remove('active');
 
-      const reqList = newPane.querySelector('.form-section:nth-child(1) > div[id^="req-list"]');
+      const reqList = newPane.querySelector('[id^="req-list"]');
       reqList.id = 'req-list-' + tabCounter;
-      newPane.querySelector('.form-section:nth-child(1) .btn-add').setAttribute('onclick', `addRequirement('${reqList.id}')`);
+      reqList.closest('.form-section').querySelector('.btn-add')
+        .setAttribute('onclick', `addRequirement('${reqList.id}')`);
 
       const reqItems = reqList.querySelectorAll('.req-item');
       for (let i = 1; i < reqItems.length; i++) reqItems[i].remove();
 
-      const stepList = newPane.querySelector('.form-section:nth-child(2) > div[id^="steps-list"]');
+      const stepList = newPane.querySelector('[id^="steps-list"]');
       stepList.id = 'steps-list-' + tabCounter;
-      newPane.querySelector('.form-section:nth-child(2) .btn-add').setAttribute('onclick', `addStep('${stepList.id}')`);
+      stepList.closest('.form-section').querySelector('.btn-add')
+        .setAttribute('onclick', `addStep('${stepList.id}')`);
 
       const stepItems = stepList.querySelectorAll('.step-card');
       for (let i = 1; i < stepItems.length; i++) stepItems[i].remove();
@@ -943,9 +1039,27 @@
               <textarea placeholder="List the personnel or office window..."></textarea>
             </div>
             <div class="form-group full-width" style="margin-top: 15px;">
+  <label>Agency Actions <span style="font-weight:400;color:#888;">(optional, one per line)</span></label>
+  <textarea class="step-actions-input" data-optional="true" placeholder="Verification of documents&#10;Sending of SOA via email."></textarea>
+</div>
+<div class="form-group full-width" style="margin-top: 15px;">
+  <label>Notes / Footnote <span style="font-weight:400;color:#888;">(optional)</span></label>
+  <textarea class="step-notes-input" data-optional="true" placeholder="e.g. *Payment will be credited within 1 to 5 working days..."></textarea>
+</div>
+            <div class="form-group full-width" style="margin-top: 15px;">
               <label>Online Link <span style="font-weight:400;color:#888;">(optional)</span></label>
               <input type="text" class="step-link-input" data-optional="true" placeholder="e.g. https://binancitybusinesspermit.online" />
             </div>
+            <div class="form-group full-width" style="margin-top: 15px;">
+            <label>Navigate to <span style="font-weight:400;color:#888;">(optional)</span></label>
+            <div class="combo-box nav-combo">
+              <input type="text" class="step-navigate-input" data-optional="true" autocomplete="off"
+                placeholder="Type or select an office..." />
+              <button type="button" class="btn-drop nav-drop" tabindex="-1">▼</button>
+              <div class="combo-menu nav-combo-menu"></div>
+            </div>
+            <small style="color:#888;display:block;margin-top:4px;">Fill this in only if this step needs the citizen to go to an office or room inside City Hall. The app will show a "Start Navigation" button.</small>
+          </div>
           </div>
         </div>
       `;
