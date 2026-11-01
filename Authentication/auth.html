@@ -9,6 +9,8 @@
   <link rel="stylesheet" href="../css/toast.css" />
   <link rel="stylesheet" href="../css/auth.css" />
   <script src="../functions/toast.js"></script>
+  <link rel="stylesheet" href="../css/admin_agreement.css" />
+  <script type="module" src="../functions/admin_agreement.js"></script>
 
 </head>
 
@@ -37,7 +39,7 @@
 
         <div class="panel-logo">
           <div class="logo-icon">
-            <img src="../assets/logo_whitebg.png" alt="DocsEase" />
+            <img src="../assets/logo.png" alt="DocsEase" />
           </div>
           <span class="logo-wordmark"><img src="../assets/docsease_text.png" alt="DocsEase"
               style="height:20px; width:auto; object-fit:contain;" /></span>
@@ -192,7 +194,15 @@
             </div>
             <div class="field-error" id="err-su-confirm"></div>
           </div>
-
+          <div class="agr-row">
+            <button type="button" id="agr-checkbox" class="agr-check" role="checkbox"
+              aria-checked="false" aria-label="Agree to the Terms and Conditions and Privacy Policy">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="5 12.5 10 17.5 19 7" /></svg>
+            </button>
+            <span class="agr-label">I agree to the
+              <a href="#" class="agr-link" data-agr-tab="terms">Terms &amp; Conditions</a> and
+              <a href="#" class="agr-link" data-agr-tab="privacy">Privacy Policy</a></span>
+          </div>
           <button type="button" id="sign-up-btn" class="btn-main" onclick="handleSignUp()" disabled>SIGN UP</button>
 
           <div class="or-divider">OR</div>
@@ -676,6 +686,11 @@ async function populateOfficeDropdown() {
       const signUpButton = document.getElementById('sign-up-btn');
       const office = document.getElementById('su-office').value;
 
+      if (!window.AdminAgreement?.isAgreed()) {
+        await window.AdminAgreement?.open('terms');
+        return;
+      }
+
       if (document.getElementById('wrap-su-email')?.classList.contains('has-error')) return;
 
       let hasError = false;
@@ -727,6 +742,8 @@ async function populateOfficeDropdown() {
           role: 'admin',
           status: 'pending',
           sign_in_method: 'email',
+          accepted_terms_version: window.AdminAgreement.version,
+          accepted_terms_at: serverTimestamp(),
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         });
@@ -777,11 +794,18 @@ async function populateOfficeDropdown() {
 
       function updateAuthButtonState(button, fieldIds) {
         if (!button) return;
-        button.disabled = fieldIds.some((id) => {
+        const needsAgreement = button.id === 'sign-up-btn';
+        const notAgreed = needsAgreement && !window.AdminAgreement?.isAgreed();
+        button.disabled = notAgreed || fieldIds.some((id) => {
           const field = document.getElementById(id);
           return !field?.value.trim() || field.closest('.input-wrap')?.classList.contains('has-error');
         });
       }
+
+      // Re-check the Sign Up button whenever the agreement checkbox changes
+      document.addEventListener('agreement-change', () => {
+        updateAuthButtonState(signUpButton, signUpFields);
+      });
 
       signInFields.concat(signUpFields).forEach((id) => {
         document.getElementById(id)?.addEventListener('input', () => {
@@ -960,6 +984,11 @@ async function populateOfficeDropdown() {
 
     window.handleGoogleSignIn = async function () {
       const isSignUpMode = document.getElementById('wrapper').classList.contains('signup-mode');
+
+      if (isSignUpMode && !window.AdminAgreement?.isAgreed()) {
+        const accepted = await window.AdminAgreement?.open('terms');
+        if (!accepted) return;
+      }
 
       showLoadingToast('Signing In...', 'Please wait for a moment.');
 
@@ -1330,6 +1359,7 @@ async function populateOfficeDropdown() {
 
       document.getElementById('sign-in-btn')?.setAttribute('disabled', '');
       document.getElementById('sign-up-btn')?.setAttribute('disabled', '');
+      window.AdminAgreement?.reset();
 
       // Password rule indicators
       const passwordRules = document.getElementById('su-password-rules');
