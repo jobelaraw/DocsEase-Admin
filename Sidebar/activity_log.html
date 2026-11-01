@@ -97,7 +97,7 @@
 
   <script type="module">
     import { auth, db } from '../Firebase/firebase-config.js';
-    import { collection, query, orderBy, where, limit, onSnapshot, doc, getDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { collection, query, orderBy, limit, onSnapshot, doc, getDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
     const MAX_LOGS = 300; // max logs loaded
@@ -238,10 +238,12 @@
 
     // ---------- Live data ----------
     function startListening() {
-      // Filter logs by role
-      const q = isSuperAdmin
-        ? query(collection(db, 'activity_logs'), orderBy('createdAt', 'desc'), limit(MAX_LOGS))
-        : query(collection(db, 'activity_logs'), where('recipient_uid', 'in', [currentUid, 'all_admins']));
+      // Each admin reads only their own activity log copies
+      const q = query(
+        collection(db, 'admin', currentUid, 'activity_logs'),
+        orderBy('createdAt', 'desc'),
+        limit(MAX_LOGS)
+      );
       onSnapshot(q, (snap) => {
         logs = snap.docs.map(d => {
           const data = d.data({ serverTimestamps: 'estimate' });
@@ -259,8 +261,8 @@
     }
 
     // Delete permissions
-    function canDelete(log) {
-      return isSuperAdmin || (!!currentUid && log.recipient_uid === currentUid);
+    function canDelete() {
+      return !!currentUid; // every log in your own feed is yours to delete
     }
 
     // ---------- Render ----------
@@ -322,7 +324,7 @@
           try {
             for (let i = 0; i < ids.length; i += 400) {
               const batch = writeBatch(db);
-              ids.slice(i, i + 400).forEach(id => batch.delete(doc(db, 'activity_logs', id)));
+              ids.slice(i, i + 400).forEach(id => batch.delete(doc(db, 'admin', currentUid, 'activity_logs', id)));
               await batch.commit();
             }
             ids.forEach(id => selected.delete(id));

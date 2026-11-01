@@ -1,3 +1,5 @@
+import('./review-badge.js');
+
 (function () {
   var KEY = 'gabayan_sidebar_collapsed';
   var root = document.documentElement;

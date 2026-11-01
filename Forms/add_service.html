@@ -272,6 +272,16 @@
                       citizen to go to an office or room inside City Hall. The app will show a "Start Navigation"
                       button.</small>
                   </div>
+                    <div class="form-group full-width" style="margin-top: 15px;">
+                      <label>Navigate to <span style="font-weight:400;color:#888;">(optional)</span></label>
+                      <div class="combo-box nav-combo">
+                        <input type="text" class="step-navigate-input" data-optional="true" autocomplete="off"
+                          placeholder="Type or select an office..." />
+                        <button type="button" class="btn-drop nav-drop" tabindex="-1">▼</button>
+                        <div class="combo-menu nav-combo-menu"></div>
+                      </div>
+                      <small style="color:#888;display:block;margin-top:4px;">Fill this in only if this step needs the citizen to go to an office or room inside City Hall. The app will show a "Start Navigation" button.</small>
+                    </div>
                 </div>
               </div>
 
@@ -332,9 +342,23 @@
   <script type="module">
     import { auth, db } from '../Firebase/firebase-config.js';
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { collection, getDocs, getDoc, doc, setDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-    // ---- Activity log helper ----
+    import { collection, getDocs, getDoc, doc, setDoc, addDoc, serverTimestamp, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    // Activity log helper
     let _logActor = null;
+    let _superAdminUids = null;
+
+    async function getSuperAdminUids() {
+      if (_superAdminUids) return _superAdminUids;
+      try {
+        const snap = await getDoc(doc(db, 'app_settings', 'super_admin'));
+        _superAdminUids = snap.exists() ? (snap.data().uids || []) : [];
+      } catch (err) {
+        console.error('[activity-log] could not read super admin list:', err);
+        return [];
+      }
+      return _superAdminUids;
+    }
+
     async function logActivity(type, details = {}) {
       try {
         const user = auth.currentUser;
@@ -356,7 +380,22 @@
           _logActor = { uid: user.uid, name, role };
         }
 
-        await addDoc(collection(db, 'activity_logs'), {
+        // Super Admin(s) always get a copy, plus the target admin / all admins
+        const recipients = new Set(await getSuperAdminUids());
+        if (details.recipient_uid === 'all_admins') {
+          if (_logActor.role === 'super_admin') {
+            const adminsSnap = await getDocs(query(collection(db, 'admin'), where('status', '==', 'active')));
+            adminsSnap.forEach(d => recipients.add(d.id));
+          }
+        } else if (details.recipient_uid) {
+          recipients.add(details.recipient_uid);
+        }
+        if (!recipients.size) {
+          console.warn('[activity-log] no recipients - check app_settings/super_admin');
+          return;
+        }
+
+        const payload = {
           type,
           actor_uid: _logActor.uid,
           actor_name: details.actor_name || _logActor.name,
@@ -364,8 +403,18 @@
           office_name: details.office_name || '',
           service_name: details.service_name || '',
           target_name: details.target_name || '',
+          target_uid: details.target_uid || '',
           createdAt: serverTimestamp()
-        });
+        };
+
+        const uids = [...recipients];
+        for (let i = 0; i < uids.length; i += 400) {
+          const batch = writeBatch(db);
+          uids.slice(i, i + 400).forEach(uid => {
+            batch.set(doc(collection(db, 'admin', uid, 'activity_logs')), payload);
+          });
+          await batch.commit();
+        }
       } catch (err) {
         console.error('[activity-log] failed to log', type, err);
       }
