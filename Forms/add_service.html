@@ -116,50 +116,45 @@
       <div id="tab-contents">
         <div class="tab-pane active" id="tab-1">
 
-          
-<div class="form-section tab-service-details">
-  <h3 class="section-title">Transaction Details</h3>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label>Type of Transaction <span style="font-weight:400;color:#888;">(optional)</span></label>
-            <div class="combo-box">
-              <input type="text" class="transaction-type-input"
-                data-optional="true"
-                placeholder="e.g. G2C – Government to Citizen" />
-              <button type="button" class="btn-drop" onclick="toggleCombo(this)">▼</button>
-              <div class="combo-menu">
-                <div class="combo-item" onclick="selectCombo(this)">G2C – Government to Citizen</div>
-                <div class="combo-item" onclick="selectCombo(this)">G2B – Government to Business</div>
-                <div class="combo-item" onclick="selectCombo(this)">G2G – Government to Government</div>
+          <div class="form-section tab-service-details">
+            <h3 class="section-title">Transaction Details</h3>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Type of Transaction <span style="font-weight:400;color:#888;">(optional)</span></label>
+                <div class="combo-box">
+                  <input type="text" class="transaction-type-input" data-optional="true"
+                    placeholder="e.g. G2C – Government to Citizen" />
+                  <button type="button" class="btn-drop" onclick="toggleCombo(this)">▼</button>
+                  <div class="combo-menu">
+                    <div class="combo-item" onclick="selectCombo(this)">G2C – Government to Citizen</div>
+                    <div class="combo-item" onclick="selectCombo(this)">G2B – Government to Business</div>
+                    <div class="combo-item" onclick="selectCombo(this)">G2G – Government to Government</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Who May Avail <span style="font-weight:400;color:#888;">(optional)</span></label>
+                <input type="text" class="who-may-avail-input" data-optional="true"
+                  placeholder="e.g. Real property owners with no tax delinquency" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Total Fees <span style="font-weight:400;color:#888;">(optional)</span></label>
+                <input type="text" class="total-fee-input" data-optional="true"
+                  placeholder="e.g. As stated in the SOA plus banking charge" />
+              </div>
+
+              <div class="form-group">
+                <label>Total Processing Time <span style="font-weight:400;color:#888;">(optional)</span></label>
+                <input type="text" class="total-time-input" data-optional="true" placeholder="e.g. 25 Minutes" />
               </div>
             </div>
           </div>
-
-          <div class="form-group">
-            <label>Who May Avail <span style="font-weight:400;color:#888;">(optional)</span></label>
-            <input type="text" class="who-may-avail-input"
-              data-optional="true"
-              placeholder="e.g. Real property owners with no tax delinquency" />
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>Total Fees <span style="font-weight:400;color:#888;">(optional)</span></label>
-            <input type="text" class="total-fee-input"
-              data-optional="true"
-              placeholder="e.g. As stated in the SOA plus banking charge" />
-          </div>
-
-          <div class="form-group">
-            <label>Total Processing Time <span style="font-weight:400;color:#888;">(optional)</span></label>
-            <input type="text" class="total-time-input"
-              data-optional="true"
-              placeholder="e.g. 25 Minutes" />
-          </div>
-        </div>
-      </div>
 
           <div class="form-section">
             <h3 class="section-title">Requirements Checklist</h3>
@@ -265,16 +260,18 @@
                     <input type="text" class="step-link-input" data-optional="true"
                       placeholder="e.g. https://binancitybusinesspermit.online" />
                   </div>
-                    <div class="form-group full-width" style="margin-top: 15px;">
-                      <label>Navigate to <span style="font-weight:400;color:#888;">(optional)</span></label>
-                      <div class="combo-box nav-combo">
-                        <input type="text" class="step-navigate-input" data-optional="true" autocomplete="off"
-                          placeholder="Type or select an office..." />
-                        <button type="button" class="btn-drop nav-drop" tabindex="-1">▼</button>
-                        <div class="combo-menu nav-combo-menu"></div>
-                      </div>
-                      <small style="color:#888;display:block;margin-top:4px;">Fill this in only if this step needs the citizen to go to an office or room inside City Hall. The app will show a "Start Navigation" button.</small>
+                  <div class="form-group full-width" style="margin-top: 15px;">
+                    <label>Navigate to <span style="font-weight:400;color:#888;">(optional)</span></label>
+                    <div class="combo-box nav-combo">
+                      <input type="text" class="step-navigate-input" data-optional="true" autocomplete="off"
+                        placeholder="Type or select an office..." />
+                      <button type="button" class="btn-drop nav-drop" tabindex="-1">▼</button>
+                      <div class="combo-menu nav-combo-menu"></div>
                     </div>
+                    <small style="color:#888;display:block;margin-top:4px;">Fill this in only if this step needs the
+                      citizen to go to an office or room inside City Hall. The app will show a "Start Navigation"
+                      button.</small>
+                  </div>
                 </div>
               </div>
 
@@ -313,9 +310,9 @@
           </div>
 
           <div class="form-group">
-            <label>WEBSITE <span style="font-weight:400;color:#888;">(optional)</span></label>
+            <label>EMAIL <span style="font-weight:400;color:#888;">(optional)</span></label>
             <div class="combo-box">
-              <input type="text" id="website-input" data-optional="true" placeholder="Enter website or email" />
+              <input type="text" id="website-input" data-optional="true" placeholder="Enter email or website" />
               <button type="button" class="btn-drop" onclick="toggleCombo(this)">▼</button>
               <div class="combo-menu">
                 <div class="combo-item" onclick="selectCombo(this)">bplo@binan.gov.ph</div>
@@ -464,7 +461,7 @@
       const location = document.getElementById('location-input').value.trim();
       const contactPhone = document.getElementById('contact-input').value.trim();
       const contactEmail = document.getElementById('website-input').value.trim();
-    
+
 
       const allTextField = document.querySelectorAll('.combo-box input, input[type="text"], textarea');
       let emptyFields = false;
@@ -574,16 +571,16 @@
           }
         });
 
-            channels.push({
-              tab_name: channelName,
-              transaction_type: transactionType,
-              who_may_avail: whoMayAvail,
-              total_fee: totalFee,
-              total_processing_time: totalProcessingTime,
-              requirements: requirements,
-              procedures: steps
-            });
-          });
+        channels.push({
+          tab_name: channelName,
+          transaction_type: transactionType,
+          who_may_avail: whoMayAvail,
+          total_fee: totalFee,
+          total_processing_time: totalProcessingTime,
+          requirements: requirements,
+          procedures: steps
+        });
+      });
 
       const serviceData = sanitizeForFirestore({
         service_name: serviceName,
