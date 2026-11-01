@@ -9,9 +9,9 @@
 //   effectiveDate, operatorName, contactEmail
 
 const version = '1.0';
-const effectiveDate = '[Month DD, YYYY]';
-const operatorName = '[Name of Operator]';
-const contactEmail = '[contact email]';
+const effectiveDate = 'November 01, 2026';
+const operatorName = 'GaBayan Team';
+const contactEmail = 'gabayan.noreply@gmail.com';
 
 const charter =
   "2026 Citizen's Charter (1st Edition) of the City Government of Biñan, Laguna";
