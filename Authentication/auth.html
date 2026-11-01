@@ -480,9 +480,12 @@
   </script>
 
   <script type="module">
-    import { auth, db, googleProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, updateProfile, doc, setDoc, serverTimestamp } from '../Firebase/firebase-config.js';
-    import { getDoc, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { auth, db, googleProvider } from '../Firebase/firebase-config.js';
+    import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getDoc, collection, getDocs, addDoc, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { sendRecoveryCode, sendRegistrationEmail, notifySuperAdminNewRequest } from '../functions/email-service.js';
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-functions.js";
+
     // ---- Activity log helper ----
     let _logActor = null;
     async function logActivity(type, details = {}) {
@@ -520,9 +523,8 @@
         console.error('[activity-log] failed to log', type, err);
       }
     }
-    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-functions.js";
 
-    async function populateOfficeDropdown() {
+async function populateOfficeDropdown() {
       const select = document.getElementById('su-office');
       const gsSelect = document.getElementById('gs-office');
 
@@ -544,9 +546,13 @@
         if (gsSelect) gsSelect.innerHTML = errHtml;
       }
     }
-    populateOfficeDropdown();
 
-    const functions = getFunctions(auth.app);
+    document.addEventListener('DOMContentLoaded', () => {
+      populateOfficeDropdown();
+    });
+
+    // Initialize Firebase Functions safely using the default app
+    const functions = getFunctions();
 
     let recoveryCode = null;
     let recoveryEmail = null;
