@@ -14,6 +14,7 @@
   <script src="../functions/toast.js"></script>
   <script type="module" src="../functions/role-guard.js"></script>
   <script src="../functions/sidebar.js"></script>
+  <script type="module" src="../functions/review-badge.js"></script>
 </head>
 
 <body>
@@ -67,7 +68,7 @@
   <div class="main">
     <header class="topbar" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
       <div class="rq-banner-tabs">
-        <button type="button" class="rq-maintab active" id="tab-pending" onclick="setMainTab('pending')">Pending Request</button>
+        <button type="button" class="rq-maintab active" id="tab-pending" onclick="setMainTab('pending')">Pending Request <span class="rq-notif-badge rq-notif-badge--inline" id="rq-tab-badge" hidden></span></button>
         <button type="button" class="rq-maintab" id="tab-completed" onclick="setMainTab('completed')">Completed Request</button>
       </div>
 
@@ -215,8 +216,22 @@
       }
     });
 
+    // Red notification badge: number of requests waiting for review
+    function updateNotifBadges() {
+      const count = pendingRequests.filter(r => (r.status || 'pending') === 'pending').length;
+      const label = count > 99 ? '99+' : String(count);
+      ['rq-tab-badge'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = label;
+        el.hidden = count === 0;
+        el.setAttribute('aria-label', count + ' pending request' + (count === 1 ? '' : 's'));
+      });
+    }
+
     function rebuildAndRender() {
       allRequests = [...pendingRequests, ...completedRequests];
+      updateNotifBadges();
       render();
     }
 
