@@ -1,0 +1,21 @@
+.ao-modal { max-height: 92vh; overflow-y: auto; }
+.ao-header { margin-bottom: 24px; }
+
+.ao-field { margin-top: 16px; }
+.ao-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+textarea.ao-input { display: block; resize: vertical; min-height: 84px; }
+select.ao-input { background: #fff; cursor: pointer; }
+/* Grey text while the "Select ..." placeholder is showing */
+select.ao-input:has(option[value=""]:checked) { color: #9ba6b9; }
+select.ao-input option { color: #0d1f3c; }
+
+@media (max-width: 480px) {
+  .ao-modal { padding: 24px 20px 28px; }
+  .ao-row { grid-template-columns: 1fr; }
+}
