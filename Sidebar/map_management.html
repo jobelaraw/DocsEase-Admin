@@ -131,6 +131,17 @@
           <select class="ao-input" id="f_cat"></select>
         </div>
       </div>
+
+      <div class="mm-row" style="margin-top:16px">
+        <div>
+          <label class="ao-label" for="f_open">OPENING TIME</label>
+          <input type="time" class="ao-input" id="f_open">
+        </div>
+        <div>
+          <label class="ao-label" for="f_close">CLOSING TIME</label>
+          <input type="time" class="ao-input" id="f_close">
+        </div>
+      </div>
       <div class="ao-error" id="mm-err"></div>
 
       <div class="ao-actions">
@@ -241,6 +252,8 @@
             description: x.description || '',
             floor: x.floor || '',
             category: x.category || '',
+            openTime: x.open_time || '',
+            closeTime: x.close_time || '',
             slot
           };
           records.push(rec);
@@ -494,8 +507,9 @@
     const ov = document.getElementById('mm-ov'), errEl = document.getElementById('mm-err'),
           fName = document.getElementById('f_name'), fDesc = document.getElementById('f_desc'),
           fFloor = document.getElementById('f_floor'), fCat = document.getElementById('f_cat'),
+          fOpen = document.getElementById('f_open'), fClose = document.getElementById('f_close'),
           saveBtn = document.getElementById('mm-save');
-    const fields = [fName, fDesc, fFloor, fCat];
+    const fields = [fName, fDesc, fFloor, fCat, fOpen, fClose];
 
     function showErr(msg, field) {
       errEl.textContent = msg;
@@ -512,6 +526,8 @@
       fDesc.value = rec.description;
       setField('f_floor', rec.floor);
       setField('f_cat', rec.category);
+      fOpen.value = rec.openTime || '';
+      fClose.value = rec.closeTime || '';
       showErr('');
       ov.classList.add('show');
     }
@@ -529,9 +545,13 @@
       const name = fName.value.replace(/\s+/g, ' ').trim();
       const description = fDesc.value.trim();
       const floor = fFloor.value, category = fCat.value;
+      const openTime = fOpen.value, closeTime = fClose.value;
 
       if (!name) { showErr('Please enter a name.', fName); return; }
       if (!description) { showErr('Please enter a description.', fDesc); return; }
+      if (!openTime) { showErr('Please enter an opening time.', fOpen); return; }
+      if (!closeTime) { showErr('Please enter a closing time.', fClose); return; }
+      if (openTime === closeTime) { showErr('Opening and closing time cannot be the same.', fClose); return; }
 
       if ((category === 'regular_service') !== (rec.coll === 'offices')) {
         showErr('Changing between Regular Service and another type would move this record to a different collection. Delete it and add it again with the new category.', fCat);
@@ -542,23 +562,29 @@
         return;
       }
 
-      const patch = { [rec.nameField]: name, description, floor, category };
+      const patch = { [rec.nameField]: name, description, floor, category, open_time: openTime, close_time: closeTime };
       const leavesMap = floor !== FLOOR && rec.slot;
       if (leavesMap) Object.assign(patch, slotFields(null));
 
       saveBtn.disabled = true; saveBtn.textContent = 'SAVING...';
       try {
         await updateDoc(doc(db, rec.coll, rec.docId), patch);
-        Object.assign(rec, { name, description, floor, category });
+        Object.assign(rec, { name, description, floor, category, openTime, closeTime });
         if (leavesMap) rec.slot = null;
         closeModal();
         rebuild();
-        snack(floor !== FLOOR ? 'Saved. It is on another floor now, so it is no longer on this map.' : 'Saved', false);
+        const isOffice = rec.coll === 'offices';
+        window.showToast('success', isOffice ? 'Office Updated' : 'Room Updated',
+          floor !== FLOOR
+            ? `"${name}" has been saved. It is on another floor now, so it is no longer on this map.`
+            : `"${name}" has been saved.`,
+          'OK');
       } catch (err) {
         console.error('[map] save failed:', err);
-        showErr(err && err.code === 'permission-denied'
-          ? 'Firestore rules blocked this change.'
-          : 'Could not save. Please try again.');
+        const denied = err && err.code === 'permission-denied';
+        window.showToast('error', 'Save Failed',
+          denied ? 'Firestore rules blocked this change.' : 'Could not save. Please try again.',
+          'OK');
       } finally {
         saveBtn.disabled = false; saveBtn.textContent = 'SAVE';
       }
