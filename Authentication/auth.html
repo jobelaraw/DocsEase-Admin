@@ -623,6 +623,102 @@ async function populateOfficeDropdown() {
     window.showFieldError = showFieldError;
     window.showLoadingToast = showLoadingToast;
 
+    // Login lockout (5 failed attempts = 10 minute lock)
+    const MAX_LOGIN_ATTEMPTS = 5;
+    const LOCKOUT_MS = 10 * 60 * 1000;
+    const LOCK_STORE_KEY = 'docsease_login_lockout';
+
+    function readLockStore() {
+      try { return JSON.parse(localStorage.getItem(LOCK_STORE_KEY)) || {}; } catch (_) { return {}; }
+    }
+    function writeLockStore(store) {
+      try { localStorage.setItem(LOCK_STORE_KEY, JSON.stringify(store)); } catch (_) {}
+    }
+    function lockKey(email) { return (email || '').trim().toLowerCase(); }
+
+    // Milliseconds left on the lock for this email (0 = not locked)
+    function getLockRemaining(email) {
+      const key = lockKey(email);
+      if (!key) return 0;
+      const store = readLockStore();
+      const entry = store[key];
+      if (!entry || !entry.lockedUntil) return 0;
+      const left = entry.lockedUntil - Date.now();
+      if (left <= 0) {
+        delete store[key];
+        writeLockStore(store);
+        return 0;
+      }
+      return left;
+    }
+
+    function registerFailedAttempt(email) {
+      const key = lockKey(email);
+      const store = readLockStore();
+      const entry = store[key] || { count: 0, lockedUntil: 0 };
+      entry.count += 1;
+      if (entry.count >= MAX_LOGIN_ATTEMPTS) {
+        entry.lockedUntil = Date.now() + LOCKOUT_MS;
+      }
+      store[key] = entry;
+      writeLockStore(store);
+      return { locked: entry.count >= MAX_LOGIN_ATTEMPTS, attemptsLeft: Math.max(0, MAX_LOGIN_ATTEMPTS - entry.count) };
+    }
+
+    function clearFailedAttempts(email) {
+      const key = lockKey(email);
+      const store = readLockStore();
+      if (store[key]) { delete store[key]; writeLockStore(store); }
+    }
+
+    function formatRemaining(ms) {
+      const total = Math.ceil(ms / 1000);
+      const m = Math.floor(total / 60);
+      const s = String(total % 60).padStart(2, '0');
+      return m + ':' + s;
+    }
+
+    const LOCK_MODAL_TITLE = 'Account Temporarily Locked';
+    let lockModalTimer = null;
+    let lockModalOpen = false;
+
+    function lockMessage(ms) {
+      return 'Too many failed login attempts. Please try again in ' + formatRemaining(ms) + '.';
+    }
+
+    function stopLockModalTimer() {
+      if (lockModalTimer) { clearInterval(lockModalTimer); lockModalTimer = null; }
+    }
+
+    function showLockModal(email) {
+      const left = getLockRemaining(email);
+      if (left <= 0) return;
+
+      stopLockModalTimer();
+      lockModalOpen = true;
+      showToast('error', LOCK_MODAL_TITLE, lockMessage(left), 'OK', () => {
+        lockModalOpen = false;
+        stopLockModalTimer();
+      });
+
+      lockModalTimer = setInterval(() => {
+        const msgEl = document.getElementById('toast-msg');
+        const titleEl = document.getElementById('toast-title');
+        // Stop if the modal was closed or replaced by another toast
+        if (!lockModalOpen || !msgEl || titleEl?.textContent !== LOCK_MODAL_TITLE) {
+          stopLockModalTimer();
+          return;
+        }
+        const remaining = getLockRemaining(email);
+        if (remaining <= 0) {
+          msgEl.textContent = 'Your account is now unlocked. You may sign in again.';
+          stopLockModalTimer();
+          return;
+        }
+        msgEl.textContent = lockMessage(remaining);
+      }, 1000);
+    }
+
     // Sign In
     window.handleSignIn = async function () {
       clearFieldErrors();
@@ -641,12 +737,18 @@ async function populateOfficeDropdown() {
       }
       if (hasError) return;
 
+      if (getLockRemaining(email) > 0) {
+        showLockModal(email);
+        return;
+      }
+
       showLoadingToast('Signing In...', 'Please wait while we sign you in.');
       if (signInButton) signInButton.disabled = true;
 
       try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
+        clearFailedAttempts(email);   // correct credentials -> reset the counter
 
         const adminSnap = await getDoc(doc(db, 'admin', user.uid));
         if (!adminSnap.exists()) {
@@ -671,9 +773,35 @@ async function populateOfficeDropdown() {
         window.location.href = '../Sidebar/dashboard.html';
       } catch (error) {
         document.getElementById('toast-overlay')?.classList.remove('show');
-        showFieldError('si-email', 'Email or password is invalid.');
-        showFieldError('si-password', 'Email or password is invalid.');
-        if (signInButton) signInButton.disabled = false;
+
+        const badCredentialCodes = [
+          'auth/invalid-credential', 'auth/wrong-password',
+          'auth/user-not-found', 'auth/invalid-login-credentials'
+        ];
+
+        if (error.code === 'auth/network-request-failed') {
+          showFieldError('si-email', 'No internet connection. Please check your network.');
+          if (signInButton) signInButton.disabled = false;
+        } else if (error.code === 'auth/too-many-requests') {
+
+          const store = readLockStore();
+          store[lockKey(email)] = { count: MAX_LOGIN_ATTEMPTS, lockedUntil: Date.now() + LOCKOUT_MS };
+          writeLockStore(store);
+          showLockModal(email);
+        } else if (badCredentialCodes.includes(error.code)) {
+          const { locked } = registerFailedAttempt(email);
+          if (locked) {
+            showLockModal(email);
+          } else {
+            showFieldError('si-email', 'Email or password is invalid.');
+            showFieldError('si-password', 'Email or password is invalid.');
+            if (signInButton) signInButton.disabled = false;
+          }
+        } else {
+          showFieldError('si-email', 'Email or password is invalid.');
+          showFieldError('si-password', 'Email or password is invalid.');
+          if (signInButton) signInButton.disabled = false;
+        }
       }
     };
 
