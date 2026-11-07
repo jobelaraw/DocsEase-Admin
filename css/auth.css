@@ -345,6 +345,14 @@
       object-fit: contain;
     }
 
+    /* Hide Edge's built-in password reveal / clear buttons.
+       The page already has its own eye toggle (.eye-btn). */
+    input[type="password"]::-ms-reveal,
+    input[type="password"]::-ms-clear,
+    input[type="text"]::-ms-clear {
+      display: none;
+    }
+
     .btn-main {
       width: 100%;
       height: 54px;
