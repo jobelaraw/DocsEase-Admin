@@ -1,8 +1,3 @@
-/* css/agreement.css
-   Checkbox row + Terms/Privacy modal for the web admin sign-up.
-   Self-contained (does not depend on auth.css). Colors match the mobile app. */
-
-/* ── Checkbox row (sits above the Sign Up button) ── */
 .agr-row {
   display: flex;
   align-items: center;

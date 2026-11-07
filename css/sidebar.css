@@ -191,3 +191,8 @@
       max-width: 0;
       pointer-events: none;
     }
+
+    html.preload .sidebar,
+    html.preload .sidebar * {
+      transition: none !important;
+}

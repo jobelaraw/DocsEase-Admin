@@ -20,6 +20,19 @@ import('./review-badge.js');
 
   if (readSaved()) root.classList.add('sidebar-collapsed');
 
+  // Show super-admin nav items on first paint
+  try {
+    if (sessionStorage.getItem('docsease_role_hint') === 'super_admin') {
+      root.classList.add('is-super-admin');
+    }
+  } catch (e) {}
+
+  // Turn off sidebar animations during page load
+  root.classList.add('preload');
+  window.addEventListener('load', function () {
+    requestAnimationFrame(function () { root.classList.remove('preload'); });
+  });
+
   document.addEventListener('DOMContentLoaded', function () {
     var sidebar = document.querySelector('.sidebar');
     if (!sidebar) return;
