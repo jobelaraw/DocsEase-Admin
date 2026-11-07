@@ -450,13 +450,22 @@ window.confirmDeleteAccount = async function () {
   try {
     const { auth, db } = await import('../Firebase/firebase-config.js');
     const { deleteUser } = await import('https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js');
-    const { doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js');
+    const { doc, deleteDoc, collection, getDocs, query, where, writeBatch } =
+      await import('https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js');
 
     const user = auth.currentUser;
     if (!user) throw new Error('No authenticated user found.');
 
-    // Delete data first (the rules need the user to still be signed in),
-    // then the auth account.
+    const deleteAllDocs = async (colOrQuery) => {
+      const snap = await getDocs(colOrQuery);
+      for (let i = 0; i < snap.docs.length; i += 400) {
+        const batch = writeBatch(db);
+        snap.docs.slice(i, i + 400).forEach(d => batch.delete(d.ref));
+        await batch.commit();
+      }
+    };
+
+    await deleteAllDocs(collection(db, 'admin', user.uid, 'activity_logs'));
     await deleteDoc(doc(db, 'admin', user.uid));
     await deleteUser(user);
 
