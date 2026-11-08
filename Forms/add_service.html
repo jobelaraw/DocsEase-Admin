@@ -545,6 +545,12 @@
         return;
       }
 
+      // "Navigate to" must be one of the dropdown choices (typed text is not accepted)
+      if (!window.validateNavigateInputs()) {
+        window.showToast('error', 'Invalid Destination', 'Please choose the "Navigate to" destination from the dropdown list. Text that is not in the list cannot be saved.', 'OK');
+        return;
+      }
+
       // Office must already exist (created via Service Management)
       const officeId = officesMap[officeName.toLowerCase()];
       if (!officeId) {

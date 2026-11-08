@@ -52,7 +52,7 @@ function renderMenu(combo, showAll = false) {
 
   if (!officesReady) { addMessage(menu, 'Loading offices...'); return; }
   if (!officeNames.length) { addMessage(menu, 'No first-floor offices found.'); return; }
-  if (!list.length) { addMessage(menu, 'No matching office. What you typed will be used as-is.'); return; }
+  if (!list.length) { addMessage(menu, 'No matching destination. Please pick one from the list.'); return; }
 
   list.forEach((name) => {
     const div = document.createElement('div');
@@ -80,11 +80,69 @@ function choose(combo, name) {
   closeMenu(combo); // must come after the dispatch (the input handler opens the menu)
 }
 
+// A typed value only counts if it matches a listed destination (case-insensitive)
+function matchDestination(value) {
+  const q = norm(value);
+  return officeNames.find((n) => norm(n) === q) || null;
+}
+
+function markInvalid(input, bad) {
+  input.style.borderColor = bad ? 'red' : '';
+  if (input.parentElement) input.parentElement.style.borderColor = bad ? 'red' : '';
+}
+
+// Used by the Edit page (data lives in memory, not only in the DOM).
+// Empty is fine (the field is optional); anything else must be a listed destination.
+window.isValidNavigateTo = function (value) {
+  const v = String(value || '').trim();
+  if (!v) return true;
+  return officesReady && !!matchDestination(v);
+};
+
+// Used by the Add page: checks every "Navigate to" box, marks the bad ones red,
+// switches to the tab / opens the step that has the first bad one.
+window.validateNavigateInputs = function (scope = document) {
+  let firstBad = null;
+  scope.querySelectorAll('.step-navigate-input').forEach((input) => {
+    const v = input.value.trim();
+    const match = v ? matchDestination(v) : null;
+    const ok = !v || (officesReady && !!match);
+    markInvalid(input, !ok);
+    if (ok && match && match !== input.value) input.value = match; // use the exact listed spelling
+    if (!ok && !firstBad) firstBad = input;
+  });
+
+  if (firstBad) {
+    const pane = firstBad.closest('.tab-pane');
+    if (pane && !pane.classList.contains('active')) {
+      const idx = [...document.querySelectorAll('.tab-pane')].indexOf(pane);
+      const tabBtn = document.querySelectorAll('.tab-btn')[idx];
+      if (tabBtn) tabBtn.click();
+    }
+    const card = firstBad.closest('.step-card');
+    if (card) card.classList.add('open');
+    firstBad.scrollIntoView({ block: 'center' });
+  }
+  return !firstBad;
+};
+
 // Events (delegated)
 document.addEventListener('input', (e) => {
   if (!isNavInput(e.target)) return;
+  markInvalid(e.target, false); // clear the red mark while the user is typing
   const combo = comboOf(e.target);
   if (combo) openMenu(combo);
+});
+
+// When the user leaves the box with text that is not a listed destination, mark it red
+document.addEventListener('focusout', (e) => {
+  if (!isNavInput(e.target)) return;
+  const input = e.target;
+  setTimeout(() => {
+    const v = input.value.trim();
+    if (!v || !officesReady) { markInvalid(input, false); return; }
+    markInvalid(input, !matchDestination(v));
+  }, 200); // wait, so clicking a dropdown item is handled first
 });
 
 document.addEventListener('focusin', (e) => {
@@ -150,29 +208,57 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// Live office list
+// Live list of first-floor offices (`offices`) and rooms (`other_room`)
+let unsubscribeRooms = null;
+let officeList = [];
+let roomList = [];
+
+const nameOf = (d) => {
+  const data = d.data();
+  return String(data.office_name || data.room_name || data.name || d.id).trim();
+};
+
+function rebuildNames() {
+  const names = [...officeList, ...roomList].filter(Boolean);
+  officeNames = [...new Set(names)].sort((a, b) => a.localeCompare(b));
+  officesReady = true;
+
+  document.querySelectorAll('.nav-combo-menu.show').forEach((m) => {
+    const combo = comboOf(m);
+    if (combo) renderMenu(combo);
+  });
+}
+
 onAuthStateChanged(auth, (user) => {
   if (!user || unsubscribe) return;
 
   unsubscribe = onSnapshot(
     collection(db, 'offices'),
     (snap) => {
-      const names = snap.docs
+      officeList = snap.docs
         .filter((d) => isFirstFloor(d.data()[FLOOR_FIELD]))
-        .map((d) => String(d.data().office_name || d.id).trim())
-        .filter(Boolean);
-      officeNames = [...new Set(names)].sort((a, b) => a.localeCompare(b));
-      officesReady = true;
-
-      document.querySelectorAll('.nav-combo-menu.show').forEach((m) => {
-        const combo = comboOf(m);
-        if (combo) renderMenu(combo);
-      });
+        .map(nameOf);
+      rebuildNames();
     },
     (err) => {
       console.error('[office-destinations] could not load offices:', err);
-      officeNames = [];
-      officesReady = true;
+      officeList = [];
+      rebuildNames();
+    }
+  );
+
+  unsubscribeRooms = onSnapshot(
+    collection(db, 'other_room'),
+    (snap) => {
+      roomList = snap.docs
+        .filter((d) => isFirstFloor(d.data()[FLOOR_FIELD]))
+        .map(nameOf);
+      rebuildNames();
+    },
+    (err) => {
+      console.error('[office-destinations] could not load rooms:', err);
+      roomList = [];
+      rebuildNames();
     }
   );
 });

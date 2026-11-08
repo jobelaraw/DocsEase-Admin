@@ -937,6 +937,26 @@
     }
 
     window.saveChanges = function () {
+      // "Navigate to" must be one of the dropdown choices (typed text is not accepted)
+      for (let ti = 0; ti < serviceData.tabs.length; ti++) {
+        const step = (serviceData.tabs[ti].procedures || []).find(s => !window.isValidNavigateTo(s.navigate_to));
+        if (!step) continue;
+
+        currentTabIndex = ti;
+        renderTabBar();
+        renderTabPane();
+        const card = document.querySelector(`.step-card[data-uid="${step.__uid}"]`);
+        if (card) {
+          card.classList.add('open');
+          const input = card.querySelector('.step-navigate-input');
+          input.style.borderColor = 'red';
+          input.parentElement.style.borderColor = 'red';
+          input.scrollIntoView({ block: 'center' });
+        }
+        showToast('error', 'Invalid Destination', 'Please choose the "Navigate to" destination from the dropdown list. Text that is not in the list cannot be saved.', 'OK');
+        return;
+      }
+
       showConfirmToast({
         type: 'info',
         title: 'Save Changes?',
