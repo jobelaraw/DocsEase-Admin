@@ -2,6 +2,16 @@ import { auth, db } from '../Firebase/firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 import { collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+// Only offices on the first floor can be picked as a navigation destination.
+const FLOOR_FIELD = 'floor';
+
+// Matches "first_floor" (what Firestore stores). Also tolerates "1", "1st floor", "ground floor".
+function isFirstFloor(value) {
+  if (value === undefined || value === null) return false;
+  const v = String(value).trim().toLowerCase().replace(/[_-]+/g, ' ');
+  return /^(1|1st|first|ground|g)(\s*(floor|flr|fl))?$/.test(v);
+}
+
 let officeNames = [];
 let officesReady = false;
 let unsubscribe = null;
@@ -41,7 +51,7 @@ function renderMenu(combo, showAll = false) {
   menu.innerHTML = '';
 
   if (!officesReady) { addMessage(menu, 'Loading offices...'); return; }
-  if (!officeNames.length) { addMessage(menu, 'No offices found. You can still type a destination.'); return; }
+  if (!officeNames.length) { addMessage(menu, 'No first-floor offices found.'); return; }
   if (!list.length) { addMessage(menu, 'No matching office. What you typed will be used as-is.'); return; }
 
   list.forEach((name) => {
@@ -148,6 +158,7 @@ onAuthStateChanged(auth, (user) => {
     collection(db, 'offices'),
     (snap) => {
       const names = snap.docs
+        .filter((d) => isFirstFloor(d.data()[FLOOR_FIELD]))
         .map((d) => String(d.data().office_name || d.id).trim())
         .filter(Boolean);
       officeNames = [...new Set(names)].sort((a, b) => a.localeCompare(b));
