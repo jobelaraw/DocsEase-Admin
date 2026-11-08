@@ -1121,7 +1121,7 @@ async function populateOfficeDropdown() {
         if (!accepted) return;
       }
 
-      showLoadingToast('Signing In...', 'Please wait for a moment.');
+      showLoadingToast(isSignUpMode ? 'Signing Up...' : 'Signing In...', 'Please wait for a moment.');
 
       try {
         // Force account chooser
@@ -1136,7 +1136,7 @@ async function populateOfficeDropdown() {
         if (mobileUserDoc.exists()) {
           await auth.signOut();
           document.getElementById('toast-overlay')?.classList.remove('show');
-          showToast('error', 'Signed In Error', 'Email Address cannot be use.');
+          showToast('error', isSignUpMode ? 'Sign Up Error' : 'Sign In Error', 'This email address cannot be used.');
           return;
         }
 
@@ -1190,7 +1190,7 @@ async function populateOfficeDropdown() {
         else if (error.code === 'auth/network-request-failed') msg = 'No internet connection. Please check your network.';
         else if (error.code === 'auth/unauthorized-domain') msg = 'This domain is not authorized. Please contact support.';
         else if (error.code === 'auth/account-exists-with-different-credential') msg = 'An account already exists with this email using a different provider. Please sign in with email/password first to link accounts.';
-        showToast('error', 'Google Sign In Failed', msg);
+        showToast('error', isSignUpMode ? 'Google Sign Up Failed' : 'Google Sign In Failed', msg);
       }
     };
 
