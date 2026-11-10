@@ -162,40 +162,61 @@
   <div class="ao-overlay" id="add-office-overlay" aria-hidden="true">
     <div class="ao-modal" role="dialog" aria-modal="true" aria-labelledby="ao-title">
       <div class="ao-header">
-        <h2 class="ao-title" id="ao-title">ADD NEW OFFICE</h2>
+        <h2 class="ao-title" id="ao-title">Add New Office</h2>
         <button type="button" class="ao-close" aria-label="Close" onclick="closeAddOffice()">&times;</button>
       </div>
-      <label class="ao-label" for="ao-office-name">OFFICE NAME</label>
-      <input type="text" id="ao-office-name" class="ao-input" placeholder="Enter office name..." maxlength="100" autocomplete="off" />
+    <div class="ao-body">
+      <div class="ao-section">
+        <div class="ao-section-title">Office Information</div>
+        <div class="ao-field">
+          <label class="ao-label" for="ao-office-name">Office Name</label>
+          <input type="text" id="ao-office-name" class="ao-input" placeholder="Enter office name..." maxlength="100" autocomplete="off" />
+        </div>
 
-      <div class="ao-field">
-        <label class="ao-label" for="ao-description">DESCRIPTION</label>
-        <textarea id="ao-description" class="ao-input" rows="3" maxlength="500" placeholder="What does this office do?"></textarea>
+        <div class="ao-field">
+          <label class="ao-label" for="ao-description">DESCRIPTION</label>
+          <textarea id="ao-description" class="ao-input" rows="3" maxlength="500" placeholder="What does this office do?"></textarea>
+        </div>
+
+        <div class="ao-row">
+          <div>
+            <label class="ao-label" for="ao-floor">FLOOR</label>
+            <select id="ao-floor" class="ao-input"></select>
+          </div>
+          <div>
+            <label class="ao-label" for="ao-category">CATEGORY / TYPE</label>
+            <select id="ao-category" class="ao-input"></select>
+          </div>
+        </div>
       </div>
 
-      <div class="ao-row">
-        <div>
-          <label class="ao-label" for="ao-floor">FLOOR</label>
-          <select id="ao-floor" class="ao-input"></select>
+      <div class="ao-section">
+        <div class="ao-section-title">Office Schedule</div>
+        <div class="ao-row">
+          <div>
+            <label class="ao-label" for="ao-day-from">DAY FROM</label>
+            <select id="ao-day-from" class="ao-input"></select>
+          </div>
+          <div>
+            <label class="ao-label" for="ao-day-to">DAY TO <span class="ao-hint">(optional)</span></label>
+            <select id="ao-day-to" class="ao-input"></select>
+          </div>
         </div>
-        <div>
-          <label class="ao-label" for="ao-category">CATEGORY / TYPE</label>
-          <select id="ao-category" class="ao-input"></select>
-        </div>
-      </div>
 
-      <div class="ao-row">
-        <div>
-          <label class="ao-label" for="ao-open-time">OPENING TIME</label>
-          <input type="time" id="ao-open-time" class="ao-input" />
-        </div>
-        <div>
-          <label class="ao-label" for="ao-close-time">CLOSING TIME</label>
-          <input type="time" id="ao-close-time" class="ao-input" />
+        <div class="ao-row">
+          <div>
+            <label class="ao-label" for="ao-open-time">OPENING TIME</label>
+            <input type="time" id="ao-open-time" class="ao-input" />
+          </div>
+          <div>
+            <label class="ao-label" for="ao-close-time">CLOSING TIME</label>
+            <input type="time" id="ao-close-time" class="ao-input" />
+          </div>
         </div>
       </div>
 
       <div class="ao-error" id="ao-error"></div>
+    </div>
       <div class="ao-actions">
         <button type="button" class="ao-btn ao-btn-cancel" onclick="closeAddOffice()">Cancel</button>
         <button type="button" class="ao-btn ao-btn-add" id="ao-submit" onclick="submitAddOffice()">Add new office</button>
@@ -311,10 +332,7 @@
       `).join('');
     }
 
-    // ---------- Add New Office ----------
-    // Dropdown options: [value saved in Firestore, label shown].
-    // "regular_service" is saved in the offices collection. Any other category is saved in other_room.
-    // TODO: make these lists match the values your collections really use.
+    // Add New Office
     const AO_FLOORS = [['first_floor', 'First Floor'], ['second_floor', 'Second Floor'], ['third_floor', 'Third Floor']];
     const AO_CATEGORIES = [['regular_service', 'Regular Service'], ['emergency_services', 'Emergency Services'], ['building_access', 'Building Access'], ['facilities_and_amenities', 'Facilities and Amenities'], ['comfort_rooms', 'Comfort Rooms'], ['suites_and_hubs', 'Suites and Hubs']];
 
@@ -327,7 +345,9 @@
     const aoSubmit = document.getElementById('ao-submit');
     const aoOpen = document.getElementById('ao-open-time');
     const aoClose = document.getElementById('ao-close-time');
-    const aoFields = [aoInput, aoDesc, aoFloor, aoCategory, aoOpen, aoClose];
+    const aoDayFrom = document.getElementById('ao-day-from');
+    const aoDayTo = document.getElementById('ao-day-to');
+    const aoFields = [aoInput, aoDesc, aoFloor, aoCategory, aoDayFrom, aoDayTo, aoOpen, aoClose];
     aoFields.forEach(f => f.addEventListener('input', () => showAoError('')));
 
     function fillAoSelect(select, placeholder, options) {
@@ -336,6 +356,32 @@
     }
     fillAoSelect(aoFloor, 'Select floor', AO_FLOORS);
     fillAoSelect(aoCategory, 'Select category', AO_CATEGORIES);
+
+    const SCHED_DAYS = [['Mon', 'Monday'], ['Tue', 'Tuesday'], ['Wed', 'Wednesday'], ['Thu', 'Thursday'], ['Fri', 'Friday'], ['Sat', 'Saturday'], ['Sun', 'Sunday']];
+    const schedFmtTime = (hhmm) => {
+      const [h, m] = hhmm.split(':').map(Number);
+      const ap = h >= 12 ? 'PM' : 'AM';
+      const h12 = h % 12 === 0 ? 12 : h % 12;
+      return m ? `${h12}:${String(m).padStart(2, '0')}${ap}` : `${h12}${ap}`;
+    };
+    const schedTo24 = (h, m, ap) => {
+      let hh = Number(h) % 12;
+      if (/pm/i.test(ap)) hh += 12;
+      return `${String(hh).padStart(2, '0')}:${String(m || '00').padStart(2, '0')}`;
+    };
+    const buildSchedule = (dayFrom, dayTo, openTime, closeTime) =>
+      `${dayTo && dayTo !== dayFrom ? `${dayFrom}-${dayTo}` : dayFrom}, ${schedFmtTime(openTime)}-${schedFmtTime(closeTime)}`;
+    const parseSchedule = (s) => {
+      const m = String(s || '').match(/^\s*([A-Za-z]{3})(?:\s*-\s*([A-Za-z]{3}))?\s*,?\s*(\d{1,2})(?::(\d{2}))?\s*(AM|PM)\s*-\s*(\d{1,2})(?::(\d{2}))?\s*(AM|PM)\s*$/i);
+      if (!m) return null;
+      const cap = (d) => d ? d.charAt(0).toUpperCase() + d.slice(1).toLowerCase() : '';
+      return { dayFrom: cap(m[1]), dayTo: cap(m[2]), open: schedTo24(m[3], m[4], m[5]), close: schedTo24(m[6], m[7], m[8]) };
+    };
+    const schedDayOptions = (placeholder, toSelect) =>
+      `<option value=""${toSelect ? '' : ' disabled'} selected>${placeholder}</option>` +
+      SCHED_DAYS.map(([v, l]) => `<option value="${v}">${l}</option>`).join('');
+    aoDayFrom.innerHTML = schedDayOptions('Select day', false);
+    aoDayTo.innerHTML = schedDayOptions('Same day', true);
 
     function showAoError(message, field) {
       aoError.textContent = message;
@@ -348,6 +394,8 @@
       aoDesc.value = '';
       aoFloor.selectedIndex = 0;
       aoCategory.selectedIndex = 0;
+      aoDayFrom.selectedIndex = 0;
+      aoDayTo.selectedIndex = 0;
       aoOpen.value = '';
       aoClose.value = '';
       showAoError('');
@@ -366,7 +414,9 @@
       const description = aoDesc.value.trim();
       const floor = aoFloor.value;
       const category = aoCategory.value;
-      const openTime = aoOpen.value;    // "HH:MM" (24-hour)
+      const dayFrom = aoDayFrom.value;
+      const dayTo = aoDayTo.value;
+      const openTime = aoOpen.value;
       const closeTime = aoClose.value;
 
       if (!officeName) { showAoError('Please enter an office name.', aoInput); return; }
@@ -374,12 +424,12 @@
       if (!description) { showAoError('Please enter a description.', aoDesc); return; }
       if (!floor) { showAoError('Please select a floor.', aoFloor); return; }
       if (!category) { showAoError('Please select a category.', aoCategory); return; }
+      if (!dayFrom) { showAoError('Please select a day.', aoDayFrom); return; }
       if (!openTime) { showAoError('Please enter an opening time.', aoOpen); return; }
       if (!closeTime) { showAoError('Please enter a closing time.', aoClose); return; }
       if (openTime === closeTime) { showAoError('Opening and closing time cannot be the same.', aoClose); return; }
       showAoError('');
 
-      // regular_service -> offices (office_name), anything else -> other_room (room_name)
       const isOffice = category === 'regular_service';
       const targetCollection = isOffice ? 'offices' : 'other_room';
       const nameField = isOffice ? 'office_name' : 'room_name';
@@ -389,11 +439,8 @@
       let step = 'starting';
 
       try {
-        // Same id convention as add_service.html
         const officeId = officeName.toUpperCase().replace(/\s+/g, '-');
 
-        // Names must be unique across offices AND other rooms, because they share the same map.
-        // If one collection can't be read (Firestore rules), skip it instead of blocking the whole add.
         step = 'checking for duplicates';
         const readDocs = async (name) => {
           try { return (await getDocs(collection(db, name))).docs; }
@@ -416,12 +463,10 @@
           description,
           floor,
           category,
-          open_time: openTime,
-          close_time: closeTime,
+          schedule: buildSchedule(dayFrom, dayTo, openTime, closeTime),
           created_at: serverTimestamp()
         });
 
-        // Citizen-app notification (new offices only)
         if (isOffice) {
           try {
             await addDoc(collection(db, 'notifications'), {
