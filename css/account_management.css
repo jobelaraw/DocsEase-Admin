@@ -387,14 +387,6 @@ transition: background-color 0.2s ease, border-color 0.2s ease;
   transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
 }
 
-.btn-edit {
-  background: #ffffff;
-  border-color: #d1d9e6;
-  color: var(--navy);
-}
-
-.btn-edit:hover { background: var(--active-bg); }
-
 .btn-deactivate { background: #fff0f0; color: #c0392b; }
 .btn-deactivate:hover { background: #ffdcdc; }
 

@@ -142,38 +142,9 @@
     </div>
   </div>
 
-  <!-- Edit account information -->
-  <div class="am-overlay" id="edit-overlay" aria-hidden="true">
-    <div class="am-modal" role="dialog" aria-modal="true" aria-labelledby="edit-title">
-      <div class="am-header">
-        <h2 class="am-title" id="edit-title">Edit Account</h2>
-        <button type="button" class="am-close" aria-label="Close" data-close>&times;</button>
-      </div>
-      <div class="am-body">
-        <div class="am-field">
-          <label class="am-label" for="edit-name">Full Name</label>
-          <input type="text" id="edit-name" class="am-input" maxlength="100" autocomplete="off" />
-        </div>
-        <div class="am-field">
-          <label class="am-label" for="edit-email">Email Address</label>
-          <input type="email" id="edit-email" class="am-input" disabled />
-        </div>
-        <div class="am-field" id="edit-office-field">
-          <label class="am-label" for="edit-office">Assigned Office</label>
-          <select id="edit-office" class="am-input"></select>
-        </div>
-        <div class="am-error" id="edit-error"></div>
-      </div>
-      <div class="am-actions">
-        <button type="button" class="am-btn am-btn-cancel" data-close>Cancel</button>
-        <button type="button" class="am-btn am-btn-primary" id="edit-submit">Save Changes</button>
-      </div>
-    </div>
-  </div>
-
   <script type="module">
     import { auth, db } from '../Firebase/firebase-config.js';
-    import { collection, getDocs, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import { logActivity } from '../functions/activity-log.js';
 
@@ -186,8 +157,7 @@
       status: 'all',             // status tab
       search: '',
       selfUid: null,
-      data: { users: null, admins: null },
-      offices: null
+      data: { users: null, admins: null }
     };
 
     // ---------- Access: Super Admin only ----------
@@ -329,11 +299,10 @@
       if (a.uid === state.selfUid) return '<span class="acct-note">You</span>';
       if (a.role === 'super_admin') return '<span class="acct-note">Super Admin</span>';
       if (a.computed === 'pending') return '<a class="acct-note acct-link" href="review_queue.html">Review Queue</a>';
-      const edit = `<button type="button" class="btn-row btn-edit" data-action="edit" data-uid="${escapeHtml(a.uid)}">Edit</button>`;
       const toggle = a.computed === 'deactivated'
         ? `<button type="button" class="btn-row btn-reactivate" data-action="reactivate" data-uid="${escapeHtml(a.uid)}">Reactivate</button>`
         : `<button type="button" class="btn-row btn-deactivate" data-action="deactivate" data-uid="${escapeHtml(a.uid)}">Deactivate</button>`;
-      return edit + toggle;
+      return toggle;
     }
 
     function render() {
@@ -417,8 +386,7 @@
       if (!btn) return;
       const acct = findAccount(btn.dataset.uid);
       if (!acct) return;
-      if (btn.dataset.action === 'edit') openEdit(acct);
-      else openStatus(acct, btn.dataset.action);
+      openStatus(acct, btn.dataset.action);
     });
 
     // ---------- Modals ----------
@@ -511,82 +479,6 @@
         submit.disabled = false;
         submit.textContent = label;
       }
-    });
-
-    // Edit info
-    let editTarget = null;
-
-    async function loadOffices() {
-      if (state.offices) return state.offices;
-      const snap = await getDocs(collection(db, 'offices'));
-      state.offices = snap.docs.map(d => d.data().office_name || d.id).sort((a, b) => a.localeCompare(b));
-      return state.offices;
-    }
-
-    async function openEdit(acct) {
-      editTarget = acct;
-      const isAdmins = state.section === 'admins';
-      document.getElementById('edit-title').textContent = isAdmins ? 'Edit Admin Account' : 'Edit User Account';
-      document.getElementById('edit-name').value = acct.name || '';
-      document.getElementById('edit-email').value = acct.email || '';
-      document.getElementById('edit-error').textContent = '';
-      document.getElementById('edit-office-field').style.display = isAdmins ? '' : 'none';
-      document.getElementById('edit-submit').disabled = false;
-
-      if (isAdmins) {
-        const select = document.getElementById('edit-office');
-        select.innerHTML = '<option value="">Loading offices…</option>';
-        openModal('edit-overlay');
-        try {
-          const offices = await loadOffices();
-          const options = offices.includes(acct.office) || !acct.office ? offices : [acct.office, ...offices];
-          select.innerHTML = options.map(o =>
-            `<option value="${escapeHtml(o)}"${o === acct.office ? ' selected' : ''}>${escapeHtml(o)}</option>`).join('');
-        } catch (err) {
-          select.innerHTML = `<option value="${escapeHtml(acct.office)}">${escapeHtml(acct.office || 'Could not load offices')}</option>`;
-        }
-      } else {
-        openModal('edit-overlay');
-      }
-      document.getElementById('edit-name').focus();
-    }
-
-    document.getElementById('edit-submit').addEventListener('click', async () => {
-      if (!editTarget) return;
-      const name = document.getElementById('edit-name').value.trim();
-      const isAdmins = state.section === 'admins';
-      const office = isAdmins ? document.getElementById('edit-office').value : '';
-      const errorEl = document.getElementById('edit-error');
-      if (!name) { errorEl.textContent = 'Please enter a name.'; return; }
-      if (name === (editTarget.name || '') && (!isAdmins || office === editTarget.office)) {
-        closeModal('edit-overlay');
-        return;
-      }
-
-      const submit = document.getElementById('edit-submit');
-      const section = state.section;
-      const target = editTarget;
-      submit.disabled = true;
-      submit.textContent = 'Saving…';
-      try {
-        await callFunction('adminUpdateAccountInfo', { type: section, uid: target.uid, name, office });
-        closeModal('edit-overlay');
-        showToast('success', 'Account Updated', `${name}'s information has been saved.`);
-        logActivity(`${isAdmins ? 'admin' : 'user'}_account_updated`, {
-          target_name: name,
-          target_uid: target.uid,
-          office_name: isAdmins ? office : ''
-        });
-        await loadSection(section);
-      } catch (err) {
-        errorEl.textContent = err.message;
-      } finally {
-        submit.disabled = false;
-        submit.textContent = 'Save Changes';
-      }
-    });
-    document.getElementById('edit-name').addEventListener('keydown', e => {
-      if (e.key === 'Enter') document.getElementById('edit-submit').click();
     });
   </script>
 

@@ -219,18 +219,12 @@
         case 'user_account_reactivated':
           return { title: 'Hi there! Reactivated a user.',
                    desc: `${isMe ? 'You' : name} reactivated the mobile user account of ${log.target_name || 'a user'}.` };
-        case 'user_account_updated':
-          return { title: 'Hi there! Updated a user.',
-                   desc: `${isMe ? 'You' : name} updated the account information of ${log.target_name || 'a user'}.` };
         case 'admin_account_deactivated':
           return { title: 'Hi there! Deactivated an admin.',
                    desc: `${isMe ? 'You' : name} deactivated the admin account of ${target}${log.office_name ? ' for ' + office : ''}.` };
         case 'admin_account_reactivated':
           return { title: 'Hi there! Reactivated an admin.',
                    desc: `${isMe ? 'You' : name} reactivated the admin account of ${target}${log.office_name ? ' for ' + office : ''}.` };
-        case 'admin_account_updated':
-          return { title: 'Hi there! Updated an admin.',
-                   desc: `${isMe ? 'You' : name} updated the account information of ${target}.` };
         default:
           return { title: 'Hi there! New activity.', desc: '' };
       }
