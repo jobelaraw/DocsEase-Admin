@@ -72,7 +72,7 @@
 
   <div class="main">
     <header class="topbar">
-      <button class="btn-back" onclick="window.location.href='service_management.html'">
+      <button class="btn-back" id="btn-back" style="visibility:hidden;" onclick="window.location.href='service_management.html'">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
           stroke-linecap="round" stroke-linejoin="round">
           <polyline points="15 18 9 12 15 6" />
@@ -120,6 +120,17 @@
     import { collection, query, where, getDocs, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
+    const params = new URLSearchParams(window.location.search);
+    let currentOffice = params.get('office');
+    const sameName = (a, b) =>
+      String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase();
+
+    function showOfficeTitle() {
+      if (!currentOffice) return;
+      document.getElementById('page-title').textContent = currentOffice + " Services";
+      document.getElementById('page-subtitle').textContent = `Monitor and manage service items listed under ${currentOffice}.`;
+    }
+
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
         window.location.href = '../Authentication/auth.html';
@@ -139,6 +150,30 @@
         const userRoleEl = document.querySelector('.user-role');
         if (userNameEl) userNameEl.textContent = user.displayName || user.email;
         if (userRoleEl) userRoleEl.textContent = 'Admin ✓';
+
+        const adminData = adminDoc.data();
+        const isSuperAdmin = adminData.role === 'super_admin' && adminData.status === 'active';
+
+        // Only the Super Admin has an office list to go back to
+        if (isSuperAdmin) document.getElementById('btn-back').style.visibility = 'visible';
+
+        if (!isSuperAdmin) {
+          const myOffice = (adminData.admin_office || '').trim();
+          if (!myOffice) {
+            document.getElementById('loading').innerText =
+              'Your account has no office assigned yet. Please contact the Super Admin.';
+            return;
+          }
+          // Wrong or missing office in the URL: go to their own office
+          if (!sameName(currentOffice, myOffice)) {
+            window.location.replace('category_list.html?office=' + encodeURIComponent(myOffice));
+            return;
+          }
+          currentOffice = myOffice;
+        }
+
+        showOfficeTitle();
+        loadServices();
       } catch (error) {
         console.error('Auth check failed:', error);
         await signOut(auth);
@@ -146,18 +181,10 @@
       }
     });
 
-    const params = new URLSearchParams(window.location.search);
-    const currentOffice = params.get('office');
-
-    if (currentOffice) {
-      document.getElementById('page-title').textContent = currentOffice + " Services";
-      document.getElementById('page-subtitle').textContent = `Monitor and manage service items listed under ${currentOffice}.`;
-    }
-
     async function loadServices() {
       const listContainer = document.getElementById('services-grid');
       const loadingText = document.getElementById('loading');
-      
+
       if (!currentOffice) {
         loadingText.innerText = 'No office selected.';
         return;
@@ -190,15 +217,15 @@
 
         querySnapshot.forEach((doc) => {
           const serviceData = doc.data();
-          const serviceId = doc.id; 
-          
+          const serviceId = doc.id;
+
           const safeId = serviceId.replace(/'/g, "\\'");
           const serviceHTML = `
             <div class="service-card" onclick="openService('${safeId}')">
               <p class="card-title">${serviceData.service_name || serviceId}</p>
             </div>
           `;
-          
+
           listContainer.insertAdjacentHTML('beforeend', serviceHTML);
         });
 
@@ -207,8 +234,6 @@
         loadingText.innerText = 'Failed to load services. Check your permissions.';
       }
     }
-
-    loadServices();
   </script>
   
   <script>

@@ -72,7 +72,7 @@
       <div id="profile-placeholder"></div>
     </header>
 
-    <div class="content">
+      <div class="content" id="main-content" style="visibility:hidden;">
       <div class="header-group">
         <div class="title-area">
           <h1>Office Category List</h1>
@@ -276,10 +276,25 @@
         if (userNameEl) userNameEl.textContent = user.displayName || user.email;
         if (userRoleEl) userRoleEl.textContent = 'Admin ✓';
 
-        // Set label by role
         const adminData = adminDoc.data();
         isSuperAdmin = adminData.role === 'super_admin' && adminData.status === 'active';
-        document.getElementById(isSuperAdmin ? 'btn-add-office' : 'btn-add-service').style.display = '';
+
+        // Regular admin: skip the office list and open their own office directly
+        if (!isSuperAdmin) {
+          const myOffice = (adminData.admin_office || '').trim();
+          if (myOffice) {
+            window.location.replace('category_list.html?office=' + encodeURIComponent(myOffice));
+            return;
+          }
+          // No office assigned (older account): show a message instead of the list
+          document.getElementById('main-content').style.visibility = '';
+          document.getElementById('loading').innerText =
+            'Your account has no office assigned yet. Please contact the Super Admin.';
+          return;
+        }
+
+        document.getElementById('main-content').style.visibility = '';
+        document.getElementById('btn-add-office').style.display = '';
 
         // Load offices after role is known
         loadOffices();

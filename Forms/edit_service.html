@@ -278,6 +278,7 @@
     // ---- State ----
     let serviceData = null;
     let isSuperAdmin = false; // role flag
+    let adminOffice = '';
     let currentTabIndex = 0;
     let uidCounter = 0;
     const nextUid = () => 'u' + (++uidCounter) + '-' + Math.random().toString(36).slice(2, 7);
@@ -320,9 +321,17 @@
       }
       try {
         const officeSnap = await getDoc(doc(db, 'offices', officeId));
-        document.getElementById('office-display').value = officeSnap.exists()
+        const officeNameForCheck = officeSnap.exists()
           ? (officeSnap.data().office_name || officeId)
           : officeId;
+
+        if (!isSuperAdmin &&
+            officeNameForCheck.trim().toLowerCase() !== adminOffice.toLowerCase()) {
+          showFatalError('You can only manage services that belong to your own office.');
+          return;
+        }
+
+        document.getElementById('office-display').value = officeNameForCheck;
 
         const serviceRef = doc(db, 'offices', officeId, 'services', serviceId);
         const serviceSnap = await getDoc(serviceRef);
@@ -1053,6 +1062,7 @@
         }
 
         isSuperAdmin = adminDoc.data().role === 'super_admin';
+        adminOffice = (adminDoc.data().admin_office || '').trim();
 
         const userNameEl = document.querySelector('.user-name');
         const userRoleEl = document.querySelector('.user-role');

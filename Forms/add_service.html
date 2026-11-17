@@ -412,6 +412,20 @@
 
     let officesMap = {};
     let officesLoadPromise;
+    let myOffice = null; // null = Super Admin (may pick any office)
+
+    // Regular admin: fill in their office and make the field read-only
+    function lockOfficeField(name) {
+      const input = document.getElementById('office-input');
+      input.value = name;
+      input.readOnly = true;
+      input.removeAttribute('onclick');
+      input.removeAttribute('oninput');
+      input.style.cursor = 'default';
+      const dropBtn = input.closest('.combo-box')?.querySelector('.btn-drop');
+      if (dropBtn) dropBtn.style.display = 'none';
+      window.__officeLocked = true;
+    }
 
     function sanitizeForFirestore(value) {
       if (Array.isArray(value)) {
@@ -456,6 +470,18 @@
         if (userNameEl) userNameEl.textContent = user.displayName || user.email;
         if (userRoleEl) userRoleEl.textContent = 'Admin ✓';
 
+        const adminData = adminDoc.data();
+        if (adminData.role !== 'super_admin') {
+          myOffice = (adminData.admin_office || '').trim();
+          if (!myOffice) {
+            window.showToast('error', 'No Office Assigned',
+              'Your account has no office assigned yet. Please contact the Super Admin.', 'OK',
+              () => { window.location.href = '../Sidebar/dashboard.html'; });
+            return;
+          }
+          lockOfficeField(myOffice);
+        }
+
         officesLoadPromise = loadOffices();
       } catch (error) {
         console.error('Auth check failed:', error);
@@ -494,7 +520,9 @@
       if (officesLoadPromise) await officesLoadPromise;
 
       const serviceName = document.getElementById('service-name-input').value.trim();
-      const officeName = document.getElementById('office-input').value.trim();
+      const officeName = myOffice !== null
+        ? myOffice
+        : document.getElementById('office-input').value.trim();
       const description = document.getElementById('service-desc-input').value.trim();
 
       const location = document.getElementById('location-input').value.trim();
@@ -786,7 +814,7 @@
     function hasAddedInformation() {
       const mainFields = [
         document.getElementById('service-name-input'),
-        document.getElementById('office-input'),
+        window.__officeLocked ? null : document.getElementById('office-input'),
         document.getElementById('service-desc-input'),
         document.getElementById('location-input'),
         document.getElementById('contact-input'),
