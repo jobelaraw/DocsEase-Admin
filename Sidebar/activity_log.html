@@ -52,6 +52,11 @@
           <div class="nav-icon"><img src="../assets/review_queue.png" alt="Review Queue" /></div>
           <span class="nav-label">Review Queue</span>
         </a>
+
+        <a href="account_management.html" class="nav-item" title="Account Management">
+          <div class="nav-icon"><img src="../assets/account_management.svg" alt="Account Management" /></div>
+          <span class="nav-label">Account Management</span>
+        </a>
         <a href="activity_log.html" class="nav-item active" title="Activity Log">
           <div class="nav-icon"><img src="../assets/activity_log.png" alt="Activity Log" /></div>
           <span class="nav-label">Activity Log</span>
@@ -208,6 +213,24 @@
         case 'admin_account_declined':
           return { title: 'Hi there! Declined a request.',
                    desc: `${isMe ? 'You' : name} declined the admin account request of ${target} for ${office}.` };
+        case 'user_account_deactivated':
+          return { title: 'Hi there! Deactivated a user.',
+                   desc: `${isMe ? 'You' : name} deactivated the mobile user account of ${log.target_name || 'a user'}.` };
+        case 'user_account_reactivated':
+          return { title: 'Hi there! Reactivated a user.',
+                   desc: `${isMe ? 'You' : name} reactivated the mobile user account of ${log.target_name || 'a user'}.` };
+        case 'user_account_updated':
+          return { title: 'Hi there! Updated a user.',
+                   desc: `${isMe ? 'You' : name} updated the account information of ${log.target_name || 'a user'}.` };
+        case 'admin_account_deactivated':
+          return { title: 'Hi there! Deactivated an admin.',
+                   desc: `${isMe ? 'You' : name} deactivated the admin account of ${target}${log.office_name ? ' for ' + office : ''}.` };
+        case 'admin_account_reactivated':
+          return { title: 'Hi there! Reactivated an admin.',
+                   desc: `${isMe ? 'You' : name} reactivated the admin account of ${target}${log.office_name ? ' for ' + office : ''}.` };
+        case 'admin_account_updated':
+          return { title: 'Hi there! Updated an admin.',
+                   desc: `${isMe ? 'You' : name} updated the account information of ${target}.` };
         default:
           return { title: 'Hi there! New activity.', desc: '' };
       }

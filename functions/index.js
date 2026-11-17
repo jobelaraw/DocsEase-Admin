@@ -144,3 +144,250 @@ exports.onAdminCreated = onDocumentCreated("admin/{userId}", async (event) => {
     console.error(`Failed to set admin claim for ${userId}:`, error);
   }
 });
+// ---------------------------------------------------------------------------
+// Account Management (Super Admin only)
+// ---------------------------------------------------------------------------
+
+// Verifies the Bearer token and that the caller is an active Super Admin.
+// Returns the caller's uid, or sends an error response and returns null.
+async function requireSuperAdmin(req, res) {
+  const header = req.headers.authorization || "";
+  const idToken = header.startsWith("Bearer ") ? header.slice(7) : null;
+  if (!idToken) {
+    res.status(401).json({ error: "Missing token" });
+    return null;
+  }
+  let caller;
+  try {
+    caller = await admin.auth().verifyIdToken(idToken);
+  } catch (e) {
+    res.status(401).json({ error: "Invalid token" });
+    return null;
+  }
+  const callerDoc = await admin.firestore().collection("admin").doc(caller.uid).get();
+  const data = callerDoc.exists ? callerDoc.data() : null;
+  if (!data || data.role !== "super_admin" || data.status !== "active") {
+    res.status(403).json({ error: "Not allowed" });
+    return null;
+  }
+  return { uid: caller.uid, name: data.full_name || caller.email || "Super Admin" };
+}
+
+function parseBody(req) {
+  let body = req.body;
+  if (typeof body === "string") {
+    try { body = JSON.parse(body); } catch (e) { body = {}; }
+  }
+  return body || {};
+}
+
+function toMillis(value) {
+  if (!value) return null;
+  if (typeof value.toMillis === "function") return value.toMillis();
+  const ms = new Date(value).getTime();
+  return Number.isNaN(ms) ? null : ms;
+}
+
+// Mobile user docs are written by the mobile app; accept common name shapes.
+function userNameOf(data, authUser) {
+  const joined = [data.first_name || data.firstName, data.last_name || data.lastName]
+    .filter(Boolean).join(" ");
+  return data.full_name || data.fullName || data.name || data.displayName ||
+    joined || (authUser && authUser.displayName) || "";
+}
+
+const ACCOUNT_COLLECTIONS = { users: "users", admins: "admin" };
+
+// Lists mobile users or web admins, merged with Firebase Auth login metadata.
+exports.adminListAccounts = onRequest({ invoker: "public" }, (req, res) => {
+  cors(req, res, async () => {
+    if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+    try {
+      const caller = await requireSuperAdmin(req, res);
+      if (!caller) return;
+
+      const { type } = parseBody(req);
+      const collectionName = ACCOUNT_COLLECTIONS[type];
+      if (!collectionName) return res.status(400).json({ error: "type must be 'users' or 'admins'" });
+
+      const snap = await admin.firestore().collection(collectionName).get();
+
+      // Firebase Auth lookups, 100 uids per call
+      const authByUid = new Map();
+      const uids = snap.docs.map(d => d.id);
+      for (let i = 0; i < uids.length; i += 100) {
+        const result = await admin.auth().getUsers(uids.slice(i, i + 100).map(uid => ({ uid })));
+        result.users.forEach(u => authByUid.set(u.uid, u));
+      }
+
+      const accounts = snap.docs.map(d => {
+        const data = d.data() || {};
+        const authUser = authByUid.get(d.id) || null;
+        const meta = authUser ? authUser.metadata : null;
+        const lastSignIn = meta && meta.lastSignInTime ? toMillis(meta.lastSignInTime) : null;
+        const lastRefresh = meta && meta.lastRefreshTime ? toMillis(meta.lastRefreshTime) : null;
+        const lastActive = Math.max(lastSignIn || 0, lastRefresh || 0) || null;
+
+        return {
+          uid: d.id,
+          name: type === "admins" ? (data.full_name || (authUser && authUser.displayName) || "") : userNameOf(data, authUser),
+          email: data.email || (authUser && authUser.email) || "",
+          office: data.admin_office || "",
+          role: data.role || (type === "admins" ? "admin" : "user"),
+          status: data.status || "active",
+          disabled: authUser ? !!authUser.disabled : false,
+          hasAuth: !!authUser,
+          createdAt: toMillis(data.createdAt) || (meta ? toMillis(meta.creationTime) : null),
+          lastLogin: lastSignIn,
+          lastActive,
+          deactivatedAt: toMillis(data.deactivated_at),
+          deactivatedBy: data.deactivated_by_name || "",
+          deactivationReason: data.deactivation_reason || ""
+        };
+      });
+
+      return res.status(200).json({ accounts, selfUid: caller.uid });
+    } catch (error) {
+      console.error("adminListAccounts failed:", error);
+      return res.status(500).json({ error: error.message });
+    }
+  });
+});
+
+// Shared checks for actions on another account. Returns the target doc ref + data, or null.
+async function loadManageableTarget(res, caller, type, uid) {
+  const collectionName = ACCOUNT_COLLECTIONS[type];
+  if (!collectionName || !uid) {
+    res.status(400).json({ error: "type and uid are required" });
+    return null;
+  }
+  if (uid === caller.uid) {
+    res.status(400).json({ error: "You cannot change your own account here." });
+    return null;
+  }
+  const ref = admin.firestore().collection(collectionName).doc(uid);
+  const snap = await ref.get();
+  if (!snap.exists) {
+    res.status(404).json({ error: "Account not found." });
+    return null;
+  }
+  const data = snap.data() || {};
+  if (type === "admins" && data.role === "super_admin") {
+    res.status(403).json({ error: "Super Admin accounts cannot be managed here." });
+    return null;
+  }
+  return { ref, data };
+}
+
+// Deactivates (disables login, keeps the record) or reactivates an account.
+exports.adminSetAccountStatus = onRequest({ invoker: "public" }, (req, res) => {
+  cors(req, res, async () => {
+    if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+    try {
+      const caller = await requireSuperAdmin(req, res);
+      if (!caller) return;
+
+      const { type, uid, action, reason } = parseBody(req);
+      if (action !== "deactivate" && action !== "reactivate") {
+        return res.status(400).json({ error: "action must be 'deactivate' or 'reactivate'" });
+      }
+      const target = await loadManageableTarget(res, caller, type, uid);
+      if (!target) return;
+      const { ref, data } = target;
+      const FieldValue = admin.firestore.FieldValue;
+
+      if (action === "deactivate") {
+        if (data.status === "deactivated") return res.status(200).json({ success: true, status: "deactivated" });
+        if (type === "admins" && data.status === "pending") {
+          return res.status(400).json({ error: "Pending admin requests are handled in the Review Queue." });
+        }
+        try {
+          await admin.auth().updateUser(uid, { disabled: true });
+          await admin.auth().revokeRefreshTokens(uid);
+        } catch (e) {
+          if (e.code !== "auth/user-not-found") throw e;
+        }
+        await ref.set({
+          status: "deactivated",
+          previous_status: data.status || "active",
+          deactivated_at: FieldValue.serverTimestamp(),
+          deactivated_by: caller.uid,
+          deactivated_by_name: caller.name,
+          deactivation_reason: String(reason || "").trim().slice(0, 500),
+          updatedAt: FieldValue.serverTimestamp()
+        }, { merge: true });
+        return res.status(200).json({ success: true, status: "deactivated" });
+      }
+
+      // reactivate
+      try {
+        await admin.auth().updateUser(uid, { disabled: false });
+      } catch (e) {
+        if (e.code !== "auth/user-not-found") throw e;
+      }
+      const restored = data.previous_status && data.previous_status !== "deactivated" ? data.previous_status : "active";
+      await ref.set({
+        status: restored,
+        previous_status: FieldValue.delete(),
+        deactivated_at: FieldValue.delete(),
+        deactivated_by: FieldValue.delete(),
+        deactivated_by_name: FieldValue.delete(),
+        deactivation_reason: FieldValue.delete(),
+        reactivated_at: FieldValue.serverTimestamp(),
+        reactivated_by: caller.uid,
+        updatedAt: FieldValue.serverTimestamp()
+      }, { merge: true });
+      return res.status(200).json({ success: true, status: restored });
+    } catch (error) {
+      console.error("adminSetAccountStatus failed:", error);
+      return res.status(500).json({ error: error.message });
+    }
+  });
+});
+
+// Updates basic account information (name; office for admins).
+exports.adminUpdateAccountInfo = onRequest({ invoker: "public" }, (req, res) => {
+  cors(req, res, async () => {
+    if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+    try {
+      const caller = await requireSuperAdmin(req, res);
+      if (!caller) return;
+
+      const { type, uid, name, office } = parseBody(req);
+      const target = await loadManageableTarget(res, caller, type, uid);
+      if (!target) return;
+      const { ref, data } = target;
+
+      const cleanName = String(name || "").trim().slice(0, 100);
+      if (!cleanName) return res.status(400).json({ error: "Name is required." });
+
+      const update = { updatedAt: admin.firestore.FieldValue.serverTimestamp() };
+
+      if (type === "admins") {
+        update.full_name = cleanName;
+        const cleanOffice = String(office || "").trim();
+        if (cleanOffice) {
+          const officeSnap = await admin.firestore().collection("offices")
+            .where("office_name", "==", cleanOffice).limit(1).get();
+          if (officeSnap.empty) return res.status(400).json({ error: "That office does not exist." });
+          update.admin_office = cleanOffice;
+        }
+      } else {
+        // Keep the mobile app's own name field; default to full_name
+        const nameKey = ["full_name", "fullName", "name", "displayName"].find(k => k in data) || "full_name";
+        update[nameKey] = cleanName;
+      }
+
+      await ref.set(update, { merge: true });
+      try {
+        await admin.auth().updateUser(uid, { displayName: cleanName });
+      } catch (e) {
+        if (e.code !== "auth/user-not-found") throw e;
+      }
+      return res.status(200).json({ success: true });
+    } catch (error) {
+      console.error("adminUpdateAccountInfo failed:", error);
+      return res.status(500).json({ error: error.message });
+    }
+  });
+});
