@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="../css/sidebar.css" />
   <link rel="stylesheet" href="../css/profile.css" />
   <link rel="stylesheet" href="../css/toast.css" />
+  <link rel="stylesheet" href="../css/page_transition.css" />
   <script src="../functions/toast.js"></script>
   <script type="module" src="../functions/role-guard.js"></script>
   <script src="../functions/sidebar.js"></script>
@@ -72,7 +73,7 @@
 
   <div class="main">
     <header class="topbar">
-      <button class="btn-back" id="btn-back" style="visibility:hidden;" onclick="window.location.href='service_management.html'">
+      <button class="btn-back role-back" id="btn-back" onclick="window.location.href='service_management.html'">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
           stroke-linecap="round" stroke-linejoin="round">
           <polyline points="15 18 9 12 15 6" />
@@ -83,11 +84,11 @@
       <div id="profile-placeholder"></div>
     </header>
 
-    <div class="content">
+    <div class="content page-fade" id="main-content">
       <div class="header-group">
         <div class="title-area">
-          <h2 id="page-title">Service List</h2>
-          <p id="page-subtitle">Monitor and manage document processes.</p>
+          <h2 id="page-title"></h2>
+          <p id="page-subtitle"></p>
         </div>
       </div>
 
@@ -107,8 +108,8 @@
 
       <div class="panel-card">
         <div class="services-scroll">
-          <div class="services-grid" id="services-grid"></div>
-          <p id="loading" style="text-align: center; color:#6b7a99; font-size:1rem; font-weight:600; margin-top:40px;">Loading services...</p>
+          <div class="services-grid page-fade" id="services-grid"></div>
+          <p id="loading" class="delayed-loading" style="text-align: center; color:#6b7a99; font-size:1rem; font-weight:600; margin-top:40px;">Loading services...</p>
           <p id="no-results" style="display:none; text-align:center; color:#6b7a99; font-size:1rem; font-weight:600; margin-top:40px;">No services found.</p>
         </div>
       </div>
@@ -126,10 +127,23 @@
       String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase();
 
     function showOfficeTitle() {
-      if (!currentOffice) return;
-      document.getElementById('page-title').textContent = currentOffice + " Services";
-      document.getElementById('page-subtitle').textContent = `Monitor and manage service items listed under ${currentOffice}.`;
+      const title = document.getElementById('page-title');
+      const subtitle = document.getElementById('page-subtitle');
+      if (!currentOffice) {
+        title.textContent = 'Service List';
+        subtitle.textContent = 'Monitor and manage document processes.';
+        return;
+      }
+      title.textContent = currentOffice + " Services";
+      subtitle.textContent = `Monitor and manage service items listed under ${currentOffice}.`;
     }
+
+    function revealContent() {
+      document.getElementById('main-content').classList.add('is-ready');
+    }
+
+    // Office is already known from the URL: show the right title on first paint
+    showOfficeTitle();
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -155,13 +169,14 @@
         const isSuperAdmin = adminData.role === 'super_admin' && adminData.status === 'active';
 
         // Only the Super Admin has an office list to go back to
-        if (isSuperAdmin) document.getElementById('btn-back').style.visibility = 'visible';
+        document.getElementById('btn-back').style.visibility = isSuperAdmin ? 'visible' : 'hidden';
 
         if (!isSuperAdmin) {
           const myOffice = (adminData.admin_office || '').trim();
           if (!myOffice) {
             document.getElementById('loading').innerText =
               'Your account has no office assigned yet. Please contact the Super Admin.';
+            revealContent();
             return;
           }
           // Wrong or missing office in the URL: go to their own office
@@ -173,6 +188,7 @@
         }
 
         showOfficeTitle();
+        revealContent();
         loadServices();
       } catch (error) {
         console.error('Auth check failed:', error);
@@ -215,19 +231,22 @@
           loadingText.style.display = 'none';
         }
 
+        // Build all cards first, then insert and fade them in together
+        let cardsHTML = '';
         querySnapshot.forEach((doc) => {
           const serviceData = doc.data();
           const serviceId = doc.id;
 
           const safeId = serviceId.replace(/'/g, "\\'");
-          const serviceHTML = `
+          cardsHTML += `
             <div class="service-card" onclick="openService('${safeId}')">
               <p class="card-title">${serviceData.service_name || serviceId}</p>
             </div>
           `;
-
-          listContainer.insertAdjacentHTML('beforeend', serviceHTML);
         });
+
+        listContainer.innerHTML = cardsHTML;
+        requestAnimationFrame(() => listContainer.classList.add('is-ready'));
 
       } catch (error) {
         console.error("Error fetching services: ", error);

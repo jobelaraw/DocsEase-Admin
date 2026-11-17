@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="../css/sidebar.css" />
   <link rel="stylesheet" href="../css/profile.css" />
   <link rel="stylesheet" href="../css/toast.css" />
+  <link rel="stylesheet" href="../css/page_transition.css" />
   <link rel="stylesheet" href="../css/add_office_modal.css" />
   <script src="../functions/toast.js"></script>
   <script type="module" src="../functions/role-guard.js"></script>
@@ -72,7 +73,7 @@
       <div id="profile-placeholder"></div>
     </header>
 
-      <div class="content" id="main-content" style="visibility:hidden;">
+      <div class="content page-fade" id="main-content">
       <div class="header-group">
         <div class="title-area">
           <h1>Office Category List</h1>
@@ -100,8 +101,8 @@
       </div>
 
       <div class="grid-container">
-        <div class="office-grid" id="office-grid"></div>
-        <p id="loading" style="text-align: center; color:#6b7a99; font-size:1rem; font-weight:600; margin-top:40px;">Loading offices...</p>
+        <div class="office-grid page-fade" id="office-grid"></div>
+        <p id="loading" class="delayed-loading" style="text-align: center; color:#6b7a99; font-size:1rem; font-weight:600; margin-top:40px;">Loading offices...</p>
         <p id="no-results" style="display:none; text-align:center; color:#6b7a99; font-size:1rem; font-weight:600; margin-top:40px;">No offices found.</p>
       </div>
 
@@ -287,13 +288,13 @@
             return;
           }
           // No office assigned (older account): show a message instead of the list
-          document.getElementById('main-content').style.visibility = '';
+          document.getElementById('main-content').classList.add('is-ready');
           document.getElementById('loading').innerText =
             'Your account has no office assigned yet. Please contact the Super Admin.';
           return;
         }
 
-        document.getElementById('main-content').style.visibility = '';
+        document.getElementById('main-content').classList.add('is-ready');
         document.getElementById('btn-add-office').style.display = '';
 
         // Load offices after role is known
@@ -315,6 +316,7 @@
 
       try {
         grid.innerHTML = '';
+        grid.classList.remove('is-ready');
         loadingText.innerText = 'Loading offices...';
         loadingText.style.display = 'block';
 
@@ -327,6 +329,8 @@
           loadingText.style.display = 'none';
         }
 
+        // Build all cards first, then insert and fade them in together
+        let cardsHTML = '';
         querySnapshot.forEach((officeDoc) => {
           const officeData = officeDoc.data();
           const officeName = officeData.office_name || officeDoc.id;
@@ -339,8 +343,11 @@
               <h3 class="card-title" style="color: var(--navy);">${escapeHtml(officeName)}</h3>
             </div>
           `;
-          grid.insertAdjacentHTML('beforeend', cardHTML);
+          cardsHTML += cardHTML;
         });
+
+        grid.innerHTML = cardsHTML;
+        requestAnimationFrame(() => grid.classList.add('is-ready'));
 
       } catch (error) {
         console.error("Error fetching offices: ", error);

@@ -8,6 +8,7 @@
   <link rel="icon" type="image/png" href="../assets/logo_whitebg.png" />
   <link rel="stylesheet" href="../css/edit_service.css" />
   <link rel="stylesheet" href="../css/toast.css" />
+  <link rel="stylesheet" href="../css/page_transition.css" />
   <script src="../functions/toast.js"></script>
   <script type="module" src="../functions/role-guard.js"></script>
   <script type="module" src="../functions/office-destinations.js"></script>
@@ -73,11 +74,11 @@
     <div class="form-wrapper">
 
       <!-- Tab Bar -->
-      <div class="tab-bar" id="tabs-header"></div>
+      <div class="tab-bar page-fade" id="tabs-header"></div>
 
-      <p id="loading-msg" style="text-align:center;color:#6b7a99;font-weight:600;margin:40px 0;">Loading service...</p>
+      <p id="loading-msg" class="delayed-loading" style="text-align:center;color:#6b7a99;font-weight:600;margin:40px 0;">Loading service...</p>
 
-      <div id="form-body" style="display:none;">
+      <div id="form-body" class="page-fade" style="display:none;">
 
         <!-- General Details -->
         <div class="form-section">
@@ -380,7 +381,12 @@
         populateForm();
 
         document.getElementById('loading-msg').style.display = 'none';
-        document.getElementById('form-body').style.display = 'block';
+        const formBody = document.getElementById('form-body');
+        formBody.style.display = 'block';
+        requestAnimationFrame(() => {
+          formBody.classList.add('is-ready');
+          document.getElementById('tabs-header').classList.add('is-ready');
+        });
       } catch (error) {
         console.error('Error fetching service:', error);
         showFatalError('Failed to load service. Check your permissions or connection.');

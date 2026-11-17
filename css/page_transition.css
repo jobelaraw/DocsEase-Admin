@@ -1,0 +1,30 @@
+/* Smooth page/content reveal used across Service Management pages */
+.page-fade {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.page-fade.is-ready {
+  opacity: 1;
+  transform: none;
+}
+
+/* Loading text only appears if loading takes longer than ~0.4s */
+.delayed-loading {
+  opacity: 0;
+  animation: pageTransitionShowLoading 0.2s ease 0.4s forwards;
+}
+
+@keyframes pageTransitionShowLoading {
+  to { opacity: 1; }
+}
+
+/* Back button: shown on first paint for super admins (hint set by sidebar.js) */
+#btn-back.role-back { visibility: hidden; }
+html.is-super-admin #btn-back.role-back { visibility: visible; }
+
+@media (prefers-reduced-motion: reduce) {
+  .page-fade { transition: none; transform: none; }
+  .delayed-loading { animation-duration: 0s; }
+}
