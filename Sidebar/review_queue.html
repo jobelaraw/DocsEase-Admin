@@ -106,6 +106,15 @@
         <button type="button" class="rq-typechip" data-type="delete_service" onclick="setTypeFilter('delete_service')">Pending Deleted Service</button>
       </div>
 
+      <div class="rq-search-row">
+        <div class="search-input-wrapper">
+          <div class="search-icon-embed">
+            <img src="../assets/search.png" alt="Search icon" />
+          </div>
+          <input type="text" id="search-input" placeholder="Search name, email, office or service..." aria-label="Search requests" autocomplete="off" />
+        </div>
+      </div>
+
       <div class="rq-grid" id="rq-grid">
         <div class="rq-empty">Loading requests…</div>
       </div>
@@ -217,6 +226,7 @@
     let mainTab = 'pending'; // 'pending' | 'completed'
     let typeFilter = 'all'; // 'all' | 'new_admin' | 'delete_admin' | 'delete_service'
     let dateFilter = 'today'; // 'today' | 'week' | 'earlier'
+    let searchQuery = ''; // lowercased, trimmed
 
     const TYPE_LABELS = {
       new_admin: { pending: 'Pending Admin Account', completed: 'Completed Admin Account' },
@@ -370,6 +380,24 @@
       render();
     };
 
+    function matchesSearch(r, wantStatus) {
+      const typeLabel = TYPE_LABELS[r.type]?.[wantStatus] || '';
+      return [
+        r.requested_by_name,
+        r.requested_by_email,
+        r.office_name,
+        r.service_name,
+        r.resolvedBy_name,
+        typeLabel
+      ].some(v => String(v || '').toLowerCase().includes(searchQuery));
+    }
+
+    // Search only re-renders from cached snapshot data; listeners are untouched
+    document.getElementById('search-input').addEventListener('input', e => {
+      searchQuery = e.target.value.trim().toLowerCase();
+      render();
+    });
+
     function render() {
       const wantStatus = mainTab === 'completed' ? 'completed' : 'pending';
       let items = allRequests.filter(r => (r.status || 'pending') === wantStatus);
@@ -381,9 +409,13 @@
         return dateBucket(d) === dateFilter;
       });
 
+      if (searchQuery) items = items.filter(r => matchesSearch(r, wantStatus));
+
       const grid = document.getElementById('rq-grid');
       if (!items.length) {
-        grid.innerHTML = `<div class="rq-empty">No ${wantStatus} requests here.</div>`;
+        grid.innerHTML = searchQuery
+          ? `<div class="rq-empty">No ${wantStatus} requests match "${escapeHtml(document.getElementById('search-input').value.trim())}".</div>`
+          : `<div class="rq-empty">No ${wantStatus} requests here.</div>`;
         return;
       }
 
