@@ -1076,7 +1076,8 @@
           } catch (error) {
             console.error('Error deleting / requesting deletion of service:', error);
             showToast('error', asRequest ? 'Request Failed' : 'Delete Failed',
-              asRequest ? 'Could not send the deletion request. Please try again.' : 'Failed to delete service. Please try again.');
+              asRequest ? 'Could not send the deletion request. Please try again.'
+                : 'Failed to delete service: ' + ((error && error.message) || 'Please try again.'));
           }
         },
         onCancel: () => { }

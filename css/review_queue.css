@@ -121,15 +121,24 @@
   color: #000;
 }
 
-/* Search (matches Account Management / Service Management) */
-.rq-search-row {
+/* Toolbar: search on the left, type filters to its right */
+.rq-toolbar {
   display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
+.rq-toolbar .rq-type-filters {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Search (matches Account Management / Service Management) */
 .search-input-wrapper {
   position: relative;
   width: 100%;
   max-width: 370px;
+  flex: 0 1 370px;
 }
 
 .search-input-wrapper input {
@@ -397,8 +406,15 @@
     flex-wrap: wrap;
   }
 
+  .rq-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
   .search-input-wrapper {
     max-width: none;
+    flex: none;
   }
 }
 
