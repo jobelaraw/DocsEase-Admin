@@ -106,7 +106,7 @@
           <div class="search-icon-embed">
             <img src="../assets/search.png" alt="Search icon" />
           </div>
-          <input type="text" id="search-input" placeholder="Search name, email, office or service..." aria-label="Search requests" autocomplete="off" />
+          <input type="text" id="search-input" placeholder="Search requests..." aria-label="Search requests" autocomplete="off" />
         </div>
 
         <div class="rq-type-filters" id="rq-type-filters">
@@ -375,13 +375,21 @@
     }
 
     function descriptionFor(req) {
+      const done = (req.status || 'pending') === 'completed';
+      const svc = req.service_name ? '"' + escapeHtml(req.service_name) + '"' : 'a service';
       switch (req.type) {
         case 'new_admin':
-          return `A new admin account for the ${escapeHtml(req.office_name || 'office')} is waiting. Come and check it out.`;
+          return done
+            ? `The admin account for the ${escapeHtml(req.office_name || 'office')} was accepted.`
+            : `A new admin account for the ${escapeHtml(req.office_name || 'office')} is waiting. Come and check it out.`;
         case 'delete_admin':
-          return `${escapeHtml(req.requested_by_name || 'This admin')} requested to delete their own admin account.`;
+          return done
+            ? `The request of ${escapeHtml(req.requested_by_name || 'this admin')} to delete their own admin account was accepted.`
+            : `${escapeHtml(req.requested_by_name || 'This admin')} requested to delete their own admin account.`;
         case 'delete_service':
-          return `Requested to delete ${req.service_name ? '"' + escapeHtml(req.service_name) + '"' : 'a service'} in the office ${escapeHtml(req.office_name || '')}, still waiting to accept request.`;
+          return done
+            ? `The request to delete ${svc} in the office ${escapeHtml(req.office_name || '')} was accepted.`
+            : `Requested to delete ${svc} in the office ${escapeHtml(req.office_name || '')}, still waiting to accept request.`;
         default:
           return 'A new request is waiting for review.';
       }
@@ -402,8 +410,8 @@
         ? 'Deleted services are kept for 30 days. Recover them or delete them permanently.'
         : 'Manage request, accept or decline request admin.';
       document.getElementById('search-input').placeholder = isDeleted
-        ? 'Search service, office or admin...'
-        : 'Search name, email, office or service...';
+        ? 'Search deleted services...'
+        : 'Search requests...';
 
       document.querySelectorAll('#rq-type-filters .rq-typechip').forEach(chip => {
         const type = chip.dataset.type;
