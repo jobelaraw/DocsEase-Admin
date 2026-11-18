@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="../css/sidebar.css" />
   <link rel="stylesheet" href="../css/profile.css" />
   <link rel="stylesheet" href="../css/toast.css" />
+  <link rel="stylesheet" href="../css/page_transition.css" />
   <script src="../functions/toast.js"></script>
   <script type="module" src="../functions/role-guard.js"></script>
   <script src="../functions/sidebar.js"></script>
@@ -75,7 +76,7 @@
       <div id="profile-placeholder"></div>
     </header>
 
-    <div class="content">
+    <div class="content page-fade" id="main-content">
 
       <!-- Header -->
       <div class="page-header">
@@ -94,22 +95,22 @@
       <div class="stats-row">
         <div class="stat-card">
           <div class="label">Total Registered Users</div>
-          <div class="value" id="totalUsers">–</div>
+          <div class="value" id="totalUsers"><span class="skel skel-inline" style="width:80px;height:36px;" aria-hidden="true"></span></div>
           <div class="sub">All accounts in Firestore</div>
         </div>
         <div class="stat-card">
           <div class="label">New Signups Today</div>
-          <div class="value" id="newToday">–</div>
+          <div class="value" id="newToday"><span class="skel skel-inline" style="width:80px;height:36px;" aria-hidden="true"></span></div>
           <div class="sub">Since midnight</div>
         </div>
         <div class="stat-card">
           <div class="label">New Signups This Week</div>
-          <div class="value" id="newWeek">–</div>
+          <div class="value" id="newWeek"><span class="skel skel-inline" style="width:80px;height:36px;" aria-hidden="true"></span></div>
           <div class="sub">Since Sunday</div>
         </div>
         <div class="stat-card">
           <div class="label">New Signups This Month</div>
-          <div class="value" id="newMonth">–</div>
+          <div class="value" id="newMonth"><span class="skel skel-inline" style="width:80px;height:36px;" aria-hidden="true"></span></div>
           <div class="sub">Since the 1st</div>
         </div>
       </div>
@@ -117,7 +118,10 @@
       <!-- Signups Trend -->
       <div class="card">
         <div class="card-title">New Signups Trend</div>
-        <canvas id="signupTrendChart" height="60"></canvas>
+        <div class="chart-skel-wrap" id="signup-wrap" style="position:relative;aspect-ratio:5 / 1;">
+          <canvas id="signupTrendChart" height="60"></canvas>
+          <span class="skel skel-fill" id="signup-skel" aria-hidden="true"></span>
+        </div>
       </div>
 
       <!-- Services & Offices -->
@@ -130,21 +134,25 @@
       <div class="stats-row">
         <div class="stat-card">
           <div class="label">Total Offices</div>
-          <div class="value" id="totalOffices">–</div>
+          <div class="value" id="totalOffices"><span class="skel skel-inline" style="width:80px;height:36px;" aria-hidden="true"></span></div>
           <div class="sub">All offices in Firestore</div>
         </div>
         <div class="stat-card">
           <div class="label">Total Services</div>
-          <div class="value" id="totalServices">–</div>
+          <div class="value" id="totalServices"><span class="skel skel-inline" style="width:80px;height:36px;" aria-hidden="true"></span></div>
           <div class="sub">Across all offices</div>
         </div>
       </div>
 
       <div class="card">
         <div class="card-title">Services per Office</div>
-        <div class="service-rank-list" id="servicesPerOfficeList">
-          <div class="sub" style="padding:12px 0;">Loading…</div>
-        </div>
+        <div class="service-rank-list" id="servicesPerOfficeList" aria-busy="true">
+            <div class="service-rank-item"><span class="skel skel-circle" style="width:26px;height:26px;"></span><div class="rank-bar-wrap skel-stack" style="gap:8px;"><span class="skel skel-text" style="width:55%;"></span><span class="skel" style="height:7px;"></span></div><span class="skel skel-text" style="width:32px;"></span></div>
+            <div class="service-rank-item"><span class="skel skel-circle" style="width:26px;height:26px;"></span><div class="rank-bar-wrap skel-stack" style="gap:8px;"><span class="skel skel-text" style="width:70%;"></span><span class="skel" style="height:7px;"></span></div><span class="skel skel-text" style="width:32px;"></span></div>
+            <div class="service-rank-item"><span class="skel skel-circle" style="width:26px;height:26px;"></span><div class="rank-bar-wrap skel-stack" style="gap:8px;"><span class="skel skel-text" style="width:45%;"></span><span class="skel" style="height:7px;"></span></div><span class="skel skel-text" style="width:32px;"></span></div>
+            <div class="service-rank-item"><span class="skel skel-circle" style="width:26px;height:26px;"></span><div class="rank-bar-wrap skel-stack" style="gap:8px;"><span class="skel skel-text" style="width:60%;"></span><span class="skel" style="height:7px;"></span></div><span class="skel skel-text" style="width:32px;"></span></div>
+            <div class="service-rank-item"><span class="skel skel-circle" style="width:26px;height:26px;"></span><div class="rank-bar-wrap skel-stack" style="gap:8px;"><span class="skel skel-text" style="width:40%;"></span><span class="skel" style="height:7px;"></span></div><span class="skel skel-text" style="width:32px;"></span></div>
+          </div>
       </div>
 
       <!-- Service History -->
@@ -157,8 +165,12 @@
       <div class="two-col">
         <div class="card">
           <div class="card-title">Most-Used Services</div>
-          <div class="service-rank-list" id="mostUsedServicesList">
-            <div class="sub" style="padding:12px 0;">Loading…</div>
+          <div class="service-rank-list" id="mostUsedServicesList" aria-busy="true">
+            <div class="service-rank-item"><span class="skel skel-circle" style="width:26px;height:26px;"></span><div class="rank-bar-wrap skel-stack" style="gap:8px;"><span class="skel skel-text" style="width:55%;"></span><span class="skel" style="height:7px;"></span></div><span class="skel skel-text" style="width:32px;"></span></div>
+            <div class="service-rank-item"><span class="skel skel-circle" style="width:26px;height:26px;"></span><div class="rank-bar-wrap skel-stack" style="gap:8px;"><span class="skel skel-text" style="width:70%;"></span><span class="skel" style="height:7px;"></span></div><span class="skel skel-text" style="width:32px;"></span></div>
+            <div class="service-rank-item"><span class="skel skel-circle" style="width:26px;height:26px;"></span><div class="rank-bar-wrap skel-stack" style="gap:8px;"><span class="skel skel-text" style="width:45%;"></span><span class="skel" style="height:7px;"></span></div><span class="skel skel-text" style="width:32px;"></span></div>
+            <div class="service-rank-item"><span class="skel skel-circle" style="width:26px;height:26px;"></span><div class="rank-bar-wrap skel-stack" style="gap:8px;"><span class="skel skel-text" style="width:60%;"></span><span class="skel" style="height:7px;"></span></div><span class="skel skel-text" style="width:32px;"></span></div>
+            <div class="service-rank-item"><span class="skel skel-circle" style="width:26px;height:26px;"></span><div class="rank-bar-wrap skel-stack" style="gap:8px;"><span class="skel skel-text" style="width:40%;"></span><span class="skel" style="height:7px;"></span></div><span class="skel skel-text" style="width:32px;"></span></div>
           </div>
         </div>
 
@@ -166,6 +178,7 @@
           <div class="card-title">Completion Trend</div>
           <div class="chart-wrap">
             <canvas id="completionTrendChart"></canvas>
+            <span class="skel skel-fill" id="trend-skel" aria-hidden="true"></span>
           </div>
         </div>
       </div>
@@ -231,10 +244,28 @@
 
       } catch (error) {
         console.error('Failed to load analytics:', error);
+        clearSkeletons(['totalUsers', 'newToday', 'newWeek', 'newMonth']);
+        document.getElementById('signup-skel')?.remove();
         if (window.showToast) {
           window.showToast('error', 'Analytics Error', 'Could not load analytics data. Check console for details.');
         }
       }
+    }
+
+    // On a load error, swap any skeletons still showing in these elements for a fallback
+    function clearSkeletons(ids) {
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (el.classList.contains('service-rank-list')) {
+          if (el.getAttribute('aria-busy')) {
+            el.removeAttribute('aria-busy');
+            el.innerHTML = '<div class="sub" style="padding:12px 0;">Couldn\'t load data.</div>';
+          }
+        } else if (el.querySelector('.skel')) {
+          el.textContent = '–';
+        }
+      });
     }
 
     // Escape HTML injection
@@ -246,6 +277,7 @@
 
     function renderRankList(containerId, items, maxCount) {
       const container = document.getElementById(containerId);
+      container.removeAttribute('aria-busy');
       if (!items.length) {
         container.innerHTML = '<div class="sub" style="padding:12px 0;">No data yet.</div>';
         return;
@@ -392,9 +424,12 @@
             }
           }
         });
+        document.getElementById('trend-skel')?.remove();
 
       } catch (error) {
         console.error('Failed to load services/offices analytics:', error);
+        clearSkeletons(['totalOffices', 'totalServices', 'servicesPerOfficeList', 'mostUsedServicesList']);
+        document.getElementById('trend-skel')?.remove();
         if (window.showToast) {
           window.showToast('error', 'Analytics Error', 'Could not load services/offices data. Check console for details.');
         }
@@ -421,6 +456,7 @@
         if (userNameEl) userNameEl.textContent = user.displayName || user.email;
         if (userRoleEl) userRoleEl.textContent = 'Admin ✓';
 
+        document.getElementById('main-content').classList.add('is-ready');
         loadAnalytics();
         loadServicesOfficesAnalytics();
       } catch (error) {
@@ -502,6 +538,9 @@
           }
         }
       });
+      // Chart is drawn: drop the placeholder and let Chart.js size the area
+      document.getElementById('signup-skel')?.remove();
+      document.getElementById('signup-wrap').style.aspectRatio = '';
     }
   </script>
   

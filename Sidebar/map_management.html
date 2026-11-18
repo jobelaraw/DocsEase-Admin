@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="../css/toast.css" />
   <link rel="stylesheet" href="../css/map_management.css" />
   <link rel="stylesheet" href="../css/add_office_modal.css" />
+  <link rel="stylesheet" href="../css/page_transition.css" />
   <script src="../functions/toast.js"></script>
   <script type="module" src="../functions/role-guard.js"></script>
   <script src="../functions/sidebar.js"></script>
@@ -79,7 +80,7 @@
       <div id="profile-placeholder"></div>
     </header>
 
-    <div class="content mm-page">
+    <div class="content mm-page page-fade" id="main-content">
 
       <div class="welcome-banner">
         <div>
@@ -93,7 +94,10 @@
         <div class="card-header">
           <span class="card-title">Floor Plan · First Floor</span>
         </div>
-        <svg id="mm-map" viewBox="0 0 668 450" role="img" aria-label="Floor plan"></svg>
+        <div style="position:relative;">
+          <svg id="mm-map" viewBox="0 0 668 450" role="img" aria-label="Floor plan"></svg>
+          <span class="skel skel-fill" id="mm-map-skel" aria-hidden="true"></span>
+        </div>
       </div>
 
       <div class="card mm-tray-card">
@@ -101,7 +105,7 @@
           <span class="card-title" id="mm-tray-title">Unplaced offices and rooms</span>
           <button type="button" class="mm-link-btn" id="mm-autofill">Auto-fill empty rooms</button>
         </div>
-        <div class="mm-tray" id="mm-tray"></div>
+        <div class="mm-tray" id="mm-tray"><span class="skel skel-pill skel-inline" style="width:90px;height:32px;" aria-hidden="true"></span><span class="skel skel-pill skel-inline" style="width:130px;height:32px;" aria-hidden="true"></span><span class="skel skel-pill skel-inline" style="width:70px;height:32px;" aria-hidden="true"></span><span class="skel skel-pill skel-inline" style="width:110px;height:32px;" aria-hidden="true"></span><span class="skel skel-pill skel-inline" style="width:150px;height:32px;" aria-hidden="true"></span><span class="skel skel-pill skel-inline" style="width:85px;height:32px;" aria-hidden="true"></span></div>
         <div class="mm-hint">
           <span>Drag one onto a room to place it. Drag a room down here to take it off the map.</span>
         </div>
@@ -293,9 +297,13 @@
         add(rooms, 'other_room', 'room_name');
         loaded = true;
         rebuild();
+        document.getElementById('mm-map-skel')?.remove();
         if (toConvert.length) convertOldSlots(toConvert);
       } catch (err) {
         failToast('loading offices and rooms', err);
+        document.getElementById('mm-map-skel')?.remove();
+        loaded = true;
+        drawTray();
       }
     }
 
@@ -361,7 +369,9 @@
       trayTitle.textContent = loaded ? `Unplaced offices and rooms (${list.length})` : 'Unplaced offices and rooms';
       tray.innerHTML = list.length
         ? list.map(r => `<button type="button" class="mm-chip" data-key="${esc(r.key)}">${esc(r.name)}</button>`).join('')
-        : `<p class="mm-empty-note">${loaded ? 'Everything on this floor is placed on the map.' : 'Loading…'}</p>`;
+        : loaded
+          ? '<p class="mm-empty-note">Everything on this floor is placed on the map.</p>'
+          : ['90px', '130px', '70px', '110px', '150px', '85px'].map(w => `<span class="skel skel-pill skel-inline" style="width:${w};height:32px;" aria-hidden="true"></span>`).join('');
       tray.querySelectorAll('.mm-chip').forEach(ch => ch.addEventListener('pointerdown', e =>
         startDrag(e, {type:'rec', rec: records.find(r => r.key === ch.dataset.key)})));
     }
@@ -656,7 +666,11 @@
 
     // start 
     rebuild();
-    onAuthStateChanged(auth, user => { if (user) load(); });
+    onAuthStateChanged(auth, user => {
+      if (!user) return;
+      document.getElementById('main-content').classList.add('is-ready');
+      load();
+    });
   </script>
 
   <!-- Profile menu -->

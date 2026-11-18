@@ -107,7 +107,15 @@
 
       <div class="grid-container">
         <div class="office-grid page-fade" id="office-grid"></div>
-        <p id="loading" class="delayed-loading" style="text-align: center; color:#6b7a99; font-size:1rem; font-weight:600; margin-top:40px;">Loading offices...</p>
+        <div class="office-grid skel-group" id="page-skel" aria-hidden="true">
+            <div class="office-card" style="pointer-events:none;"><span class="skel skel-title" style="width:60%;"></span></div>
+            <div class="office-card" style="pointer-events:none;"><span class="skel skel-title" style="width:45%;"></span></div>
+            <div class="office-card" style="pointer-events:none;"><span class="skel skel-title" style="width:70%;"></span></div>
+            <div class="office-card" style="pointer-events:none;"><span class="skel skel-title" style="width:55%;"></span></div>
+            <div class="office-card" style="pointer-events:none;"><span class="skel skel-title" style="width:40%;"></span></div>
+            <div class="office-card" style="pointer-events:none;"><span class="skel skel-title" style="width:65%;"></span></div>
+        </div>
+        <p id="loading" style="display:none; text-align: center; color:#6b7a99; font-size:1rem; font-weight:600; margin-top:40px;"></p>
         <p id="no-results" style="display:none; text-align:center; color:#6b7a99; font-size:1rem; font-weight:600; margin-top:40px;">No offices found.</p>
       </div>
 
@@ -294,6 +302,8 @@
           }
           // No office assigned (older account): show a message instead of the list
           document.getElementById('main-content').classList.add('is-ready');
+          document.getElementById('page-skel').hidden = true;
+          document.getElementById('loading').style.display = 'block';
           document.getElementById('loading').innerText =
             'Your account has no office assigned yet. Please contact the Super Admin.';
           return;
@@ -318,20 +328,21 @@
     async function loadOffices() {
       const grid = document.getElementById('office-grid');
       const loadingText = document.getElementById('loading');
+      const skel = document.getElementById('page-skel');
 
       try {
         grid.innerHTML = '';
         grid.classList.remove('is-ready');
-        loadingText.innerText = 'Loading offices...';
-        loadingText.style.display = 'block';
+        loadingText.style.display = 'none';
+        skel.hidden = false;
 
         const querySnapshot = await getDocs(collection(db, "offices"));
 
+        skel.hidden = true;
         if (querySnapshot.empty) {
           loadingText.innerText = 'No offices found. Add one to get started!';
+          loadingText.style.display = 'block';
           return;
-        } else {
-          loadingText.style.display = 'none';
         }
 
         // Build all cards first, then insert and fade them in together
@@ -356,7 +367,9 @@
 
       } catch (error) {
         console.error("Error fetching offices: ", error);
+        skel.hidden = true;
         loadingText.innerText = 'Failed to load offices. Ensure you have admin access.';
+        loadingText.style.display = 'block';
       }
     }
 

@@ -112,8 +112,13 @@
         </div>
 
         <div class="acct-table-head" id="acct-head"></div>
-        <div class="acct-list" id="acct-list">
-          <div class="acct-empty delayed-loading">Loading accounts…</div>
+        <div class="acct-list" id="acct-list" aria-busy="true">
+          <div class="acct-row" style="pointer-events:none;"><div class="acct-person"><span class="skel skel-circle" style="width:36px;height:36px;"></span><div class="skel-stack" style="flex:1;gap:6px;"><span class="skel skel-text" style="width:60%;"></span><span class="skel skel-text" style="width:80%;height:10px;"></span></div></div><span class="skel skel-text" style="width:70%;"></span><span class="skel skel-text" style="width:55%;"></span><span class="skel skel-pill" style="width:72px;height:22px;"></span><span class="skel skel-pill" style="width:120px;justify-self:end;"></span></div>
+          <div class="acct-row" style="pointer-events:none;"><div class="acct-person"><span class="skel skel-circle" style="width:36px;height:36px;"></span><div class="skel-stack" style="flex:1;gap:6px;"><span class="skel skel-text" style="width:60%;"></span><span class="skel skel-text" style="width:80%;height:10px;"></span></div></div><span class="skel skel-text" style="width:70%;"></span><span class="skel skel-text" style="width:55%;"></span><span class="skel skel-pill" style="width:72px;height:22px;"></span><span class="skel skel-pill" style="width:120px;justify-self:end;"></span></div>
+          <div class="acct-row" style="pointer-events:none;"><div class="acct-person"><span class="skel skel-circle" style="width:36px;height:36px;"></span><div class="skel-stack" style="flex:1;gap:6px;"><span class="skel skel-text" style="width:60%;"></span><span class="skel skel-text" style="width:80%;height:10px;"></span></div></div><span class="skel skel-text" style="width:70%;"></span><span class="skel skel-text" style="width:55%;"></span><span class="skel skel-pill" style="width:72px;height:22px;"></span><span class="skel skel-pill" style="width:120px;justify-self:end;"></span></div>
+          <div class="acct-row" style="pointer-events:none;"><div class="acct-person"><span class="skel skel-circle" style="width:36px;height:36px;"></span><div class="skel-stack" style="flex:1;gap:6px;"><span class="skel skel-text" style="width:60%;"></span><span class="skel skel-text" style="width:80%;height:10px;"></span></div></div><span class="skel skel-text" style="width:70%;"></span><span class="skel skel-text" style="width:55%;"></span><span class="skel skel-pill" style="width:72px;height:22px;"></span><span class="skel skel-pill" style="width:120px;justify-self:end;"></span></div>
+          <div class="acct-row" style="pointer-events:none;"><div class="acct-person"><span class="skel skel-circle" style="width:36px;height:36px;"></span><div class="skel-stack" style="flex:1;gap:6px;"><span class="skel skel-text" style="width:60%;"></span><span class="skel skel-text" style="width:80%;height:10px;"></span></div></div><span class="skel skel-text" style="width:70%;"></span><span class="skel skel-text" style="width:55%;"></span><span class="skel skel-pill" style="width:72px;height:22px;"></span><span class="skel skel-pill" style="width:120px;justify-self:end;"></span></div>
+          <div class="acct-row" style="pointer-events:none;"><div class="acct-person"><span class="skel skel-circle" style="width:36px;height:36px;"></span><div class="skel-stack" style="flex:1;gap:6px;"><span class="skel skel-text" style="width:60%;"></span><span class="skel skel-text" style="width:80%;height:10px;"></span></div></div><span class="skel skel-text" style="width:70%;"></span><span class="skel skel-text" style="width:55%;"></span><span class="skel skel-pill" style="width:72px;height:22px;"></span><span class="skel skel-pill" style="width:120px;justify-self:end;"></span></div>
         </div>
       </div>
     </div>
@@ -205,10 +210,30 @@
       return json;
     }
 
+    // Placeholder rows shown while a list is loading
+    function skeletonRows(count = 6) {
+      const isAdmins = state.section === 'admins';
+      const widths = ['60%', '75%', '50%', '70%', '55%', '65%'];
+      return Array.from({ length: count }, (_, i) => `
+        <div class="acct-row${isAdmins ? ' is-admins' : ''}" aria-hidden="true" style="pointer-events:none;">
+          <div class="acct-person">
+            <span class="skel skel-circle" style="width:36px;height:36px;"></span>
+            <div class="skel-stack" style="flex:1;gap:6px;">
+              <span class="skel skel-text" style="width:${widths[i % widths.length]};"></span>
+              <span class="skel skel-text" style="width:80%;height:10px;"></span>
+            </div>
+          </div>
+          ${isAdmins ? '<span class="skel skel-text" style="width:75%;"></span>' : ''}
+          <span class="skel skel-text" style="width:70%;"></span>
+          <span class="skel skel-text" style="width:55%;"></span>
+          <span class="skel skel-pill" style="width:72px;height:22px;"></span>
+          <span class="skel skel-pill" style="width:120px;justify-self:end;"></span>
+        </div>`).join('');
+    }
+
     async function loadSection(section, { silent = false } = {}) {
       if (!silent && section === state.section) {
-        document.getElementById('acct-list').innerHTML =
-          '<div class="acct-empty delayed-loading">Loading accounts…</div>';
+        document.getElementById('acct-list').innerHTML = skeletonRows();
       }
       try {
         const result = await callFunction('adminListAccounts', { type: section });
@@ -320,9 +345,11 @@
 
       const listEl = document.getElementById('acct-list');
       if (!state.data[state.section]) {
-        listEl.innerHTML = '<div class="acct-empty delayed-loading">Loading accounts…</div>';
+        listEl.innerHTML = skeletonRows();
+        listEl.setAttribute('aria-busy', 'true');
         return;
       }
+      listEl.removeAttribute('aria-busy');
 
       const rows = filtered();
       if (!rows.length) {

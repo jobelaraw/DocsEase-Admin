@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="../css/profile.css" />
   <link rel="stylesheet" href="../css/toast.css" />
   <link rel="stylesheet" href="../css/add_office_modal.css" />
+  <link rel="stylesheet" href="../css/page_transition.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.js"
     integrity="sha384-tgbB5AKnszdcfwcZtTfuhR3Ko1XZdlDfsLtkxiiAZiVkkXCkFmp+FQFh+V/UTo54"
     crossorigin="anonymous"></script>
@@ -86,7 +87,7 @@
       <div id="profile-placeholder"></div>
     </header>
 
-    <div class="content">
+    <div class="content page-fade" id="main-content">
       <div class="welcome-banner">
         <div>
           <h1>Welcome Back, Admin!</h1>
@@ -116,7 +117,7 @@
             <div class="stat-icon"><img src="../assets/map_mngment.png" alt="Total Services" /></div>
             <div class="stat-label">Total Offices</div>
           </div>
-          <div class="stat-value" id="total-offices-count">-</div>
+          <div class="stat-value" id="total-offices-count"><span class="skel skel-inline" style="width:72px;height:34px;" aria-hidden="true"></span></div>
         </div>
 
         <div class="stat-card">
@@ -124,7 +125,7 @@
             <div class="stat-icon"><img src="../assets/total_completed.png" alt="Total Users" /></div>
             <div class="stat-label">Total Services</div>
           </div>
-          <div class="stat-value" id="total-services-count">-</div>
+          <div class="stat-value" id="total-services-count"><span class="skel skel-inline" style="width:72px;height:34px;" aria-hidden="true"></span></div>
         </div>
 
         <div class="stat-card">
@@ -132,7 +133,7 @@
             <div class="stat-icon"><img src="../assets/total_users.png" alt="Active Users" /></div>
             <div class="stat-label">Total Users</div>
           </div>
-          <div class="stat-value" id="total-users-count">-</div>
+          <div class="stat-value" id="total-users-count"><span class="skel skel-inline" style="width:72px;height:34px;" aria-hidden="true"></span></div>
         </div>
       </div>
 
@@ -143,8 +144,12 @@
             <div class="card-title">Most Used Services</div>
             <a href="analytics.html" class="card-link">View Analytics →</a>
           </div>
-          <div class="service-rank-list" id="mostUsedServicesList">
-            <div style="font-size:0.83rem;color:#6b7a99;">Loading…</div>
+          <div class="service-rank-list" id="mostUsedServicesList" aria-busy="true">
+            <div class="service-rank-item"><span class="skel skel-circle" style="width:26px;height:26px;"></span><div class="rank-bar-wrap skel-stack" style="gap:8px;"><span class="skel skel-text" style="width:55%;"></span><span class="skel" style="height:7px;"></span></div><span class="skel skel-text" style="width:32px;"></span></div>
+            <div class="service-rank-item"><span class="skel skel-circle" style="width:26px;height:26px;"></span><div class="rank-bar-wrap skel-stack" style="gap:8px;"><span class="skel skel-text" style="width:70%;"></span><span class="skel" style="height:7px;"></span></div><span class="skel skel-text" style="width:32px;"></span></div>
+            <div class="service-rank-item"><span class="skel skel-circle" style="width:26px;height:26px;"></span><div class="rank-bar-wrap skel-stack" style="gap:8px;"><span class="skel skel-text" style="width:45%;"></span><span class="skel" style="height:7px;"></span></div><span class="skel skel-text" style="width:32px;"></span></div>
+            <div class="service-rank-item"><span class="skel skel-circle" style="width:26px;height:26px;"></span><div class="rank-bar-wrap skel-stack" style="gap:8px;"><span class="skel skel-text" style="width:60%;"></span><span class="skel" style="height:7px;"></span></div><span class="skel skel-text" style="width:32px;"></span></div>
+            <div class="service-rank-item"><span class="skel skel-circle" style="width:26px;height:26px;"></span><div class="rank-bar-wrap skel-stack" style="gap:8px;"><span class="skel skel-text" style="width:40%;"></span><span class="skel" style="height:7px;"></span></div><span class="skel skel-text" style="width:32px;"></span></div>
           </div>
         </div>
 
@@ -156,6 +161,7 @@
           </div>
           <div class="chart-wrap">
             <canvas id="completionTrendChart"></canvas>
+            <span class="skel skel-fill" id="trend-skel" aria-hidden="true"></span>
           </div>
         </div>
       </div>
@@ -298,6 +304,7 @@
         const adminData = adminDoc.data();
         const isSuperAdmin = adminData.role === 'super_admin' && adminData.status === 'active';
         document.getElementById(isSuperAdmin ? 'btn-add-office' : 'btn-add-service').style.display = '';
+        document.getElementById('main-content').classList.add('is-ready');
 
       } catch (error) {
         console.error("Auth check failed:", error);
@@ -319,6 +326,7 @@
 
     function renderRankList(containerId, items, maxCount) {
       const container = document.getElementById(containerId);
+      container.removeAttribute('aria-busy');
       if (!items.length) {
         container.innerHTML = '<div style="font-size:0.83rem;color:#6b7a99;">No data yet.</div>';
         return;
@@ -525,6 +533,11 @@
 
       } catch (error) {
         console.error("Error fetching counts: ", error);
+        // Replace any skeleton still showing
+        ['total-offices-count', 'total-services-count', 'total-users-count'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el.querySelector('.skel')) el.textContent = '-';
+        });
       }
     }
 
@@ -622,9 +635,16 @@
             }
           }
         });
+        document.getElementById('trend-skel')?.remove();
 
       } catch (error) {
         console.error('Failed to load most-used services / completion trend:', error);
+        document.getElementById('trend-skel')?.remove();
+        const list = document.getElementById('mostUsedServicesList');
+        if (list.getAttribute('aria-busy')) {
+          list.removeAttribute('aria-busy');
+          list.innerHTML = '<div style="font-size:0.83rem;color:#6b7a99;">Couldn\'t load data.</div>';
+        }
       }
     }
 

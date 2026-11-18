@@ -8,6 +8,7 @@
   <link rel="icon" type="image/png" href="../assets/logo_whitebg.png" />
   <link rel="stylesheet" href="../css/add_service.css" />
   <link rel="stylesheet" href="../css/toast.css" />
+  <link rel="stylesheet" href="../css/page_transition.css" />
   <script src="../functions/toast.js"></script>
   <script type="module" src="../functions/role-guard.js"></script>
   <script type="module" src="../functions/office-destinations.js"></script>
@@ -74,7 +75,7 @@
       <div id="profile-placeholder"></div>
     </header>
 
-    <div class="form-wrapper">
+    <div class="form-wrapper page-fade" id="main-content">
 
       <div class="tab-bar" id="tabs-header">
         <div class="tab-btn active default" onclick="switchTab('tab-1', this)">
@@ -107,7 +108,9 @@
                 onclick="toggleCombo(this.nextElementSibling)" oninput="filterOfficeMenu(this)" autocomplete="off" />
               <button type="button" class="btn-drop" onclick="toggleCombo(this)">▼</button>
               <div class="combo-menu" id="office-menu">
-                <div class="combo-item">Loading offices...</div>
+                <div class="combo-item" aria-hidden="true" style="pointer-events:none;"><span class="skel skel-text" style="width:70%;"></span></div>
+                <div class="combo-item" aria-hidden="true" style="pointer-events:none;"><span class="skel skel-text" style="width:55%;"></span></div>
+                <div class="combo-item" aria-hidden="true" style="pointer-events:none;"><span class="skel skel-text" style="width:80%;"></span></div>
               </div>
             </div>
           </div>
@@ -486,6 +489,7 @@
           }
           lockOfficeField(myOffice);
         }
+        document.getElementById('main-content').classList.add('is-ready');
 
         officesLoadPromise = loadOffices();
       } catch (error) {

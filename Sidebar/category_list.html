@@ -114,7 +114,15 @@
       <div class="panel-card">
         <div class="services-scroll">
           <div class="services-grid page-fade" id="services-grid"></div>
-          <p id="loading" class="delayed-loading" style="text-align: center; color:#6b7a99; font-size:1rem; font-weight:600; margin-top:40px;">Loading services...</p>
+          <div class="services-grid skel-group" id="page-skel" aria-hidden="true">
+            <div class="service-card" style="pointer-events:none;background:#d9e2f1;"><span class="skel skel-title" style="width:60%;margin:0 auto;background:#c8d4e8;"></span></div>
+            <div class="service-card" style="pointer-events:none;background:#d9e2f1;"><span class="skel skel-title" style="width:45%;margin:0 auto;background:#c8d4e8;"></span></div>
+            <div class="service-card" style="pointer-events:none;background:#d9e2f1;"><span class="skel skel-title" style="width:70%;margin:0 auto;background:#c8d4e8;"></span></div>
+            <div class="service-card" style="pointer-events:none;background:#d9e2f1;"><span class="skel skel-title" style="width:55%;margin:0 auto;background:#c8d4e8;"></span></div>
+            <div class="service-card" style="pointer-events:none;background:#d9e2f1;"><span class="skel skel-title" style="width:40%;margin:0 auto;background:#c8d4e8;"></span></div>
+            <div class="service-card" style="pointer-events:none;background:#d9e2f1;"><span class="skel skel-title" style="width:65%;margin:0 auto;background:#c8d4e8;"></span></div>
+          </div>
+          <p id="loading" style="display:none; text-align: center; color:#6b7a99; font-size:1rem; font-weight:600; margin-top:40px;"></p>
           <p id="no-results" style="display:none; text-align:center; color:#6b7a99; font-size:1rem; font-weight:600; margin-top:40px;">No services found.</p>
         </div>
       </div>
@@ -141,6 +149,14 @@
       }
       title.textContent = currentOffice + " Services";
       subtitle.textContent = `Monitor and manage service items listed under ${currentOffice}.`;
+    }
+
+    // Swap the skeleton for a status message
+    function showStatus(msg) {
+      document.getElementById('page-skel').hidden = true;
+      const loadingText = document.getElementById('loading');
+      loadingText.innerText = msg;
+      loadingText.style.display = 'block';
     }
 
     function revealContent() {
@@ -179,8 +195,7 @@
         if (!isSuperAdmin) {
           const myOffice = (adminData.admin_office || '').trim();
           if (!myOffice) {
-            document.getElementById('loading').innerText =
-              'Your account has no office assigned yet. Please contact the Super Admin.';
+            showStatus('Your account has no office assigned yet. Please contact the Super Admin.');
             revealContent();
             return;
           }
@@ -207,19 +222,18 @@
       const loadingText = document.getElementById('loading');
 
       if (!currentOffice) {
-        loadingText.innerText = 'No office selected.';
+        showStatus('No office selected.');
         return;
       }
 
       try {
-        loadingText.style.display = 'block';
 
         const officesRef = collection(db, "offices");
         const officeQuery = query(officesRef, where("office_name", "==", currentOffice));
         const officeSnapshot = await getDocs(officeQuery);
 
         if (officeSnapshot.empty) {
-          loadingText.innerText = 'Office not found in the database.';
+          showStatus('Office not found in the database.');
           return;
         }
 
@@ -230,11 +244,10 @@
         const querySnapshot = await getDocs(servicesRef);
 
         if (querySnapshot.empty) {
-          loadingText.innerText = 'No services found for this office yet.';
+          showStatus('No services found for this office yet.');
           return;
-        } else {
-          loadingText.style.display = 'none';
         }
+        document.getElementById('page-skel').hidden = true;
 
         // Build all cards first, then insert and fade them in together
         let cardsHTML = '';
@@ -255,7 +268,7 @@
 
       } catch (error) {
         console.error("Error fetching services: ", error);
-        loadingText.innerText = 'Failed to load services. Check your permissions.';
+        showStatus('Failed to load services. Check your permissions.');
       }
     }
   </script>

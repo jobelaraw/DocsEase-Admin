@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="../css/profile.css" />
   <link rel="stylesheet" href="../css/toast.css" />
   <link rel="stylesheet" href="../css/review_queue.css" />
+  <link rel="stylesheet" href="../css/page_transition.css" />
   <script src="../functions/toast.js"></script>
   <script type="module" src="../functions/role-guard.js"></script>
   <script src="../functions/sidebar.js"></script>
@@ -83,7 +84,7 @@
       <div id="profile-placeholder"></div>
     </header>
 
-    <div class="content">
+    <div class="content page-fade" id="main-content">
       <div class="rq-banner">
         
         <div class="rq-banner-body">
@@ -115,8 +116,22 @@
         </div>
       </div>
 
-      <div class="rq-grid" id="rq-grid">
-        <div class="rq-empty">Loading requests…</div>
+      <div class="rq-grid" id="rq-grid" aria-busy="true">
+        <div class="rq-card" aria-hidden="true">
+          <div class="rq-card-top"><span class="skel skel-circle" style="width:40px;height:40px;"></span><div class="skel-stack" style="flex:1;gap:6px;"><span class="skel skel-text" style="width:55%;"></span><span class="skel skel-text" style="width:30%;height:10px;"></span></div><div class="skel-stack" style="align-items:flex-end;gap:6px;"><span class="skel skel-text" style="width:64px;height:10px;"></span><span class="skel" style="width:90px;height:24px;border-radius:10px;"></span></div></div>
+          <div class="skel-stack"><span class="skel skel-text"></span><span class="skel skel-text" style="width:85%;"></span><span class="skel skel-text" style="width:60%;"></span></div>
+          <span class="skel" style="height:38px;border-radius:6px;"></span>
+        </div>
+        <div class="rq-card" aria-hidden="true">
+          <div class="rq-card-top"><span class="skel skel-circle" style="width:40px;height:40px;"></span><div class="skel-stack" style="flex:1;gap:6px;"><span class="skel skel-text" style="width:55%;"></span><span class="skel skel-text" style="width:30%;height:10px;"></span></div><div class="skel-stack" style="align-items:flex-end;gap:6px;"><span class="skel skel-text" style="width:64px;height:10px;"></span><span class="skel" style="width:90px;height:24px;border-radius:10px;"></span></div></div>
+          <div class="skel-stack"><span class="skel skel-text"></span><span class="skel skel-text" style="width:85%;"></span><span class="skel skel-text" style="width:60%;"></span></div>
+          <span class="skel" style="height:38px;border-radius:6px;"></span>
+        </div>
+        <div class="rq-card" aria-hidden="true">
+          <div class="rq-card-top"><span class="skel skel-circle" style="width:40px;height:40px;"></span><div class="skel-stack" style="flex:1;gap:6px;"><span class="skel skel-text" style="width:55%;"></span><span class="skel skel-text" style="width:30%;height:10px;"></span></div><div class="skel-stack" style="align-items:flex-end;gap:6px;"><span class="skel skel-text" style="width:64px;height:10px;"></span><span class="skel" style="width:90px;height:24px;border-radius:10px;"></span></div></div>
+          <div class="skel-stack"><span class="skel skel-text"></span><span class="skel skel-text" style="width:85%;"></span><span class="skel skel-text" style="width:60%;"></span></div>
+          <span class="skel" style="height:38px;border-radius:6px;"></span>
+        </div>
       </div>
 
     </div>
@@ -259,6 +274,7 @@
         if (userNameEl) userNameEl.textContent = adminData.full_name || user.email;
         if (userRoleEl) userRoleEl.textContent = 'Super Admin ✓';
 
+        document.getElementById('main-content').classList.add('is-ready');
         listenToRequests();
       } catch (error) {
         console.error('Auth check failed:', error);
@@ -412,6 +428,7 @@
       if (searchQuery) items = items.filter(r => matchesSearch(r, wantStatus));
 
       const grid = document.getElementById('rq-grid');
+      grid.removeAttribute('aria-busy');
       if (!items.length) {
         grid.innerHTML = searchQuery
           ? `<div class="rq-empty">No ${wantStatus} requests match "${escapeHtml(document.getElementById('search-input').value.trim())}".</div>`
