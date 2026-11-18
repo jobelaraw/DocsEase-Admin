@@ -242,8 +242,10 @@
 
         const servicesRef = collection(db, "offices", actualOfficeId, "services");
         const querySnapshot = await getDocs(servicesRef);
+        // Services in Deleted Records are hidden; older docs without isDeleted stay visible
+        const activeDocs = querySnapshot.docs.filter(d => d.data().isDeleted !== true);
 
-        if (querySnapshot.empty) {
+        if (!activeDocs.length) {
           showStatus('No services found for this office yet.');
           return;
         }
@@ -251,7 +253,7 @@
 
         // Build all cards first, then insert and fade them in together
         let cardsHTML = '';
-        querySnapshot.forEach((doc) => {
+        activeDocs.forEach((doc) => {
           const serviceData = doc.data();
           const serviceId = doc.id;
 

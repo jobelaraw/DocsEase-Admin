@@ -682,6 +682,11 @@
         showToast('loading', 'Adding Service', 'The service is currently being processed. Please wait.', '');
 
         const serviceRef = doc(db, "offices", officeId, "services", customServiceId);
+        // Same name as a service in Deleted Records would overwrite it
+        const existingSnap = await getDoc(serviceRef);
+        if (existingSnap.exists() && existingSnap.data().isDeleted === true) {
+          throw new Error('A service with this name is in Deleted Records. Recover it from the Review Queue, or delete it permanently first.');
+        }
         await setDoc(serviceRef, serviceData);
 
         //DISTRIBUTE NOTIFICATION TO ALL REGISTERED USERS

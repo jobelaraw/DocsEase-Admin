@@ -441,3 +441,97 @@
   60%  { transform: scale(1.15); }
   100% { transform: scale(1); }
 }
+/* Deleted Records tab */
+.rq-type-filters[hidden],
+.rq-date-filters[hidden] {
+  display: none;
+}
+
+.rq-avatar--deleted {
+  background: linear-gradient(135deg, #6b7a99, #9aa3b2);
+}
+
+.rq-status-badge.deleted {
+  background: #9aa3b2;
+  color: #ffffff;
+  text-transform: uppercase;
+}
+
+.rq-status-badge.deleted.expiring {
+  background: #e97070;
+}
+
+.rq-btn.recover {
+  background: #27ae60;
+  color: #fff;
+  width: auto;
+  padding: 5px 16px;
+}
+
+.rq-btn.purge {
+  background: #e97070;
+  color: #fff;
+  width: auto;
+  padding: 5px 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.rq-btn.purge img {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.rq-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.rq-retry {
+  border: none;
+  background: none;
+  color: #2057CE;
+  font-weight: 700;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* Permanent delete verification input (inside the confirm toast) */
+.rq-verify-input {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.rq-verify-input:focus {
+  border-color: #e97070;
+}
+
+@media (max-width: 768px) {
+  .rq-banner-tabs {
+    flex-wrap: wrap;
+  }
+
+  .rq-card-actions {
+    flex-wrap: wrap;
+  }
+
+  .rq-btn.recover,
+  .rq-btn.purge {
+    flex: 1;
+  }
+}

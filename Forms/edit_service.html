@@ -189,7 +189,7 @@
     import { auth, db } from '../Firebase/firebase-config.js';
     import { doc, getDoc, getDocs, setDoc, serverTimestamp, addDoc, collection, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { deleteOrRequestServiceDeletion } from '../functions/service-delete.js';
+    import { deleteOrRequestServiceDeletion, trashServiceAsSuperAdmin } from '../functions/service-delete.js';
 
     // Activity log helper
     let _logActor = null;
@@ -365,6 +365,10 @@
         }
 
         serviceData = serviceSnap.data();
+        if (serviceData.isDeleted === true) {
+          showFatalError('This service is in Deleted Records. Recover it from the Review Queue before editing.');
+          return;
+        }
         if (!Array.isArray(serviceData.tabs) || serviceData.tabs.length === 0) {
           serviceData.tabs = [{ tab_name: 'Walk in', requirements: [], procedures: [] }];
         }
@@ -941,6 +945,11 @@
       try {
         showToast('loading', 'Saving Changes', 'The service changes are currently being processed. Please wait.', '');
         const serviceRef = doc(db, 'offices', officeId, 'services', serviceId);
+        // Don't let a stale edit page bring a deleted service back
+        const latest = await getDoc(serviceRef);
+        if (latest.exists() && latest.data().isDeleted === true) {
+          throw new Error('This service was moved to Deleted Records while you were editing. Recover it first.');
+        }
         await setDoc(serviceRef, payload);
 
         //DISTRIBUTE NOTIFICATION TO ALL REGISTERED USERS
@@ -1030,7 +1039,7 @@
         title: asRequest ? 'Request Service Deletion?' : 'Delete Service?',
         msg: asRequest
           ? 'This will send a deletion request to the Super Admin. The service stays in the list until the request is approved.'
-          : 'This service will be permanently removed from the list.',
+          : 'This service will be moved to Deleted Records in the Review Queue. You can recover it within 30 days.',
         confirmText: asRequest ? 'Send Request' : 'Delete',
         cancelText: 'Cancel',
         onConfirm: async () => {
@@ -1043,11 +1052,10 @@
             };
 
             if (isSuperAdmin) {
-              //SUPER ADMIN DIRECT DELETION
-              const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js");
-              await deleteDoc(doc(db, 'offices', officeId, 'services', serviceId));
+              //SUPER ADMIN DIRECT DELETION -> Deleted Records (soft delete)
+              await trashServiceAsSuperAdmin(officeId, serviceId);
               await logActivity('service_deleted', logDetails);
-              showToast('success', 'Deleted', 'The service has been deleted successfully.', 'Continue', backToList);
+              showToast('success', 'Moved to Deleted Records', 'The service was moved to Deleted Records. You can recover it from the Review Queue within 30 days.', 'Continue', backToList);
             } else {
               //NORMAL ADMIN REQUEST WORKFLOW
               const result = await deleteOrRequestServiceDeletion({

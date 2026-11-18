@@ -309,13 +309,14 @@
         for (const officeDoc of officesSnap.docs) {
           const officeData = officeDoc.data();
           const servicesSnap = await getDocs(collection(db, 'offices', officeDoc.id, 'services'));
-          totalServices += servicesSnap.size;
-          servicesSnap.forEach(s => {
+          const activeServices = servicesSnap.docs.filter(s => s.data().isDeleted !== true);
+          totalServices += activeServices.length;
+          activeServices.forEach(s => {
             if (s.data()._translated !== true) untranslated++;
           });
           servicesPerOffice.push({
             name: officeData.office_name || officeDoc.id,
-            count: servicesSnap.size
+            count: activeServices.length
           });
         }
 

@@ -79,6 +79,7 @@
       <div class="rq-banner-tabs">
         <button type="button" class="rq-maintab active" id="tab-pending" onclick="setMainTab('pending')">Pending Request <span class="rq-notif-badge rq-notif-badge--inline" id="rq-tab-badge" hidden></span></button>
         <button type="button" class="rq-maintab" id="tab-completed" onclick="setMainTab('completed')">Completed Request</button>
+        <button type="button" class="rq-maintab" id="tab-deleted" onclick="setMainTab('deleted')">Deleted Records</button>
       </div>
 
       <div id="profile-placeholder"></div>
@@ -89,10 +90,10 @@
         
         <div class="rq-banner-body">
           <div>
-            <h1>Review Request</h1>
-            <p>Manage request, accept or decline request admin.</p>
+            <h1 id="rq-banner-title">Review Request</h1>
+            <p id="rq-banner-sub">Manage request, accept or decline request admin.</p>
           </div>
-          <div class="rq-date-filters">
+          <div class="rq-date-filters" id="rq-date-filters">
             <button type="button" class="rq-datechip active" data-range="today" onclick="setDateFilter('today')">Today</button>
             <button type="button" class="rq-datechip" data-range="week" onclick="setDateFilter('week')">This Week</button>
             <button type="button" class="rq-datechip" data-range="earlier" onclick="setDateFilter('earlier')">Earlier</button>
@@ -218,6 +219,21 @@
 
     // TODO: create this Cloud Function (like adminResetUserPassword, calling admin.auth().deleteUser(uid))
     const DELETE_AUTH_USER_ENDPOINT = 'https://us-central1-docsease-efacc.cloudfunctions.net/adminDeleteAuthUser';
+    const FUNCTIONS_BASE = 'https://us-central1-docsease-efacc.cloudfunctions.net/';
+
+    // Calls a Super Admin Cloud Function; throws with the server's message on failure
+    async function callAdminFunction(name, body = {}) {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(FUNCTIONS_BASE + name, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify(body)
+      });
+      let data = {};
+      try { data = await res.json(); } catch (e) { /* non-JSON error */ }
+      if (!res.ok) throw new Error(data.error || ('Request failed (' + res.status + ')'));
+      return data;
+    }
 
     console.log('[review_queue] v2 loaded (batch accept/decline)');
 
@@ -238,7 +254,10 @@
     let allRequests = [];
     let pendingRequests = []; // from 'requests'
     let completedRequests = []; // from 'completed_requests'
-    let mainTab = 'pending'; // 'pending' | 'completed'
+    let mainTab = 'pending'; // 'pending' | 'completed' | 'deleted'
+    let deletedServices = []; // from adminListDeletedServices
+    let deletedState = 'idle'; // 'idle' | 'loading' | 'ready' | 'error'
+    const busyServices = new Set(); // "officeId/serviceId" with an action in progress
     let typeFilter = 'all'; // 'all' | 'new_admin' | 'delete_admin' | 'delete_service'
     let dateFilter = 'today'; // 'today' | 'week' | 'earlier'
     let searchQuery = ''; // lowercased, trimmed
@@ -370,15 +389,45 @@
 
     window.setMainTab = function (tab) {
       mainTab = tab;
+      const isDeleted = tab === 'deleted';
       document.getElementById('tab-pending').classList.toggle('active', tab === 'pending');
       document.getElementById('tab-completed').classList.toggle('active', tab === 'completed');
+      document.getElementById('tab-deleted').classList.toggle('active', isDeleted);
+
+      // Deleted Records shows every trashed service, so the request filters don't apply
+      document.getElementById('rq-type-filters').hidden = isDeleted;
+      document.getElementById('rq-date-filters').hidden = isDeleted;
+      document.getElementById('rq-banner-title').textContent = isDeleted ? 'Deleted Records' : 'Review Request';
+      document.getElementById('rq-banner-sub').textContent = isDeleted
+        ? 'Deleted services are kept for 30 days. Recover them or delete them permanently.'
+        : 'Manage request, accept or decline request admin.';
+      document.getElementById('search-input').placeholder = isDeleted
+        ? 'Search service, office or admin...'
+        : 'Search name, email, office or service...';
+
       document.querySelectorAll('#rq-type-filters .rq-typechip').forEach(chip => {
         const type = chip.dataset.type;
         if (type === 'all') { chip.textContent = 'All'; return; }
         chip.textContent = TYPE_LABELS[type][tab === 'completed' ? 'completed' : 'pending'];
       });
+
+      if (isDeleted && deletedState !== 'loading') loadDeletedServices();
       render();
     };
+
+    async function loadDeletedServices() {
+      deletedState = 'loading';
+      if (mainTab === 'deleted') render();
+      try {
+        const data = await callAdminFunction('adminListDeletedServices');
+        deletedServices = data.services || [];
+        deletedState = 'ready';
+      } catch (error) {
+        console.error('Could not load deleted services:', error);
+        deletedState = 'error';
+      }
+      if (mainTab === 'deleted') render();
+    }
 
     window.setTypeFilter = function (type) {
       typeFilter = type;
@@ -415,6 +464,7 @@
     });
 
     function render() {
+      if (mainTab === 'deleted') { renderDeleted(); return; }
       const wantStatus = mainTab === 'completed' ? 'completed' : 'pending';
       let items = allRequests.filter(r => (r.status || 'pending') === wantStatus);
 
@@ -487,6 +537,8 @@
       if (action === 'accept') acceptRequest(id, type);
       if (action === 'decline') declineRequest(id, type);
       if (action === 'delete') deleteCompletedRequest(id);
+      if (action === 'recover') recoverService(btn.dataset.office, btn.dataset.service);
+      if (action === 'purge') purgeService(btn.dataset.office, btn.dataset.service);
     });
 
     // Permanently deletes a completed_requests record (Super Admin only)
@@ -508,6 +560,186 @@
           }
         }
       });
+    }
+
+    // ---------- Deleted Records (trashed services) ----------
+    const DAY_MS = 24 * 60 * 60 * 1000;
+
+    function formatDate(ms) {
+      return ms ? new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-';
+    }
+
+    function daysLeft(permanentDeleteAt) {
+      if (!permanentDeleteAt) return null;
+      return Math.max(0, Math.ceil((permanentDeleteAt - Date.now()) / DAY_MS));
+    }
+
+    function escapeAttr(str) {
+      return escapeHtml(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function findDeleted(officeId, serviceId) {
+      return deletedServices.find(s => s.officeId === officeId && s.serviceId === serviceId);
+    }
+
+    function renderDeleted() {
+      const grid = document.getElementById('rq-grid');
+      if (deletedState === 'loading' || deletedState === 'idle') {
+        grid.setAttribute('aria-busy', 'true');
+        grid.innerHTML = '<div class="rq-empty">Loading deleted records...</div>';
+        return;
+      }
+      grid.removeAttribute('aria-busy');
+      if (deletedState === 'error') {
+        grid.innerHTML = '<div class="rq-empty">Couldn\'t load deleted records. <button type="button" class="rq-retry" data-action="retry-deleted">Try again</button></div>';
+        return;
+      }
+
+      let items = deletedServices;
+      if (searchQuery) {
+        items = items.filter(s => [s.serviceName, s.officeName, s.requestedByName, s.deletedByName]
+          .some(v => String(v || '').toLowerCase().includes(searchQuery)));
+      }
+
+      if (!items.length) {
+        grid.innerHTML = searchQuery
+          ? `<div class="rq-empty">No deleted records match "${escapeHtml(document.getElementById('search-input').value.trim())}".</div>`
+          : '<div class="rq-empty">No deleted services. Services you delete will stay here for 30 days.</div>';
+        return;
+      }
+
+      grid.innerHTML = items.map(s => {
+        const left = daysLeft(s.permanentDeleteAt);
+        const busy = busyServices.has(s.officeId + '/' + s.serviceId);
+        const leftLabel = left === null ? '' : left === 0 ? 'Deletes today' : left + (left === 1 ? ' day left' : ' days left');
+        const who = s.requestedByName
+          ? `Deletion requested by ${escapeHtml(s.requestedByName)}`
+          : `Deleted by ${escapeHtml(s.deletedByName || 'Super Admin')}`;
+        const dataAttrs = `data-office="${escapeAttr(s.officeId)}" data-service="${escapeAttr(s.serviceId)}"`;
+
+        return `
+          <div class="rq-card">
+            <div class="rq-card-top">
+              <div class="rq-avatar rq-avatar--deleted">${escapeHtml((s.serviceName || '?').charAt(0).toUpperCase())}</div>
+              <div class="rq-card-who">
+                <div class="rq-name">${escapeHtml(s.serviceName)}</div>
+                <div class="rq-role">${who}</div>
+              </div>
+              <div class="rq-card-meta">
+                <div class="rq-time">Deleted ${escapeHtml(timeAgo(s.deletedAt ? new Date(s.deletedAt) : null))}</div>
+                <span class="rq-status-badge deleted${left !== null && left <= 3 ? ' expiring' : ''}">${escapeHtml(leftLabel || 'DELETED')}</span>
+              </div>
+            </div>
+            <div class="rq-card-desc">
+              Deleted on ${escapeHtml(formatDate(s.deletedAt))}. It will be permanently deleted on
+              <strong>${escapeHtml(formatDate(s.permanentDeleteAt))}</strong> unless recovered.
+            </div>
+            <div class="rq-office-badge-row">
+              <div class="rq-office-badge"><span>${escapeHtml(s.officeName)}</span></div>
+            </div>
+            <div class="rq-card-actions">
+              <button type="button" class="rq-btn purge" data-action="purge" ${dataAttrs} ${busy ? 'disabled' : ''}>
+                <img src="../assets/delete.png" alt="" /> Delete Permanently
+              </button>
+              <button type="button" class="rq-btn recover" data-action="recover" ${dataAttrs} ${busy ? 'disabled' : ''}>Recover Service</button>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    document.getElementById('rq-grid').addEventListener('click', (e) => {
+      if (e.target.closest('[data-action="retry-deleted"]')) loadDeletedServices();
+    });
+
+    async function runServiceAction(s, work) {
+      const key = s.officeId + '/' + s.serviceId;
+      if (busyServices.has(key)) return;
+      busyServices.add(key);
+      render();
+      try {
+        await work();
+      } finally {
+        busyServices.delete(key);
+        render();
+      }
+    }
+
+    function recoverService(officeId, serviceId) {
+      const s = findDeleted(officeId, serviceId);
+      if (!s || busyServices.has(officeId + '/' + serviceId)) return;
+      showConfirmToast({
+        type: 'info',
+        title: 'Recover Service',
+        msg: `Recover "${s.serviceName}" to ${s.officeName}? It will appear again in Service Management.`,
+        confirmText: 'Yes, Recover',
+        cancelText: 'Cancel',
+        onConfirm: () => runServiceAction(s, async () => {
+          showLoadingToast('Recovering...', 'Restoring the service to its office.');
+          try {
+            await callAdminFunction('adminRestoreService', { officeId, serviceId });
+            deletedServices = deletedServices.filter(x => x !== s);
+            await logActivity('service_restored', { office_name: s.officeName, service_name: s.serviceName });
+            showToast('success', 'Service Recovered', `"${s.serviceName}" is back in ${s.officeName}.`, 'OK');
+          } catch (error) {
+            console.error('Recover failed:', error);
+            showToast('error', 'Recover Failed', error.message, 'OK');
+            loadDeletedServices();
+          }
+        })
+      });
+    }
+
+    function purgeService(officeId, serviceId) {
+      const s = findDeleted(officeId, serviceId);
+      if (!s || busyServices.has(officeId + '/' + serviceId)) return;
+
+      // Step 1: warning
+      showConfirmToast({
+        type: 'warning',
+        title: 'Delete Permanently?',
+        msg: `"${s.serviceName}" (${s.officeName}) and all of its saved data will be permanently deleted. This cannot be recovered.`,
+        confirmText: 'Continue',
+        cancelText: 'Cancel',
+        onConfirm: () => setTimeout(() => askPurgeVerification(s), 0)
+      });
+    }
+
+    // Step 2: type the service name to verify (checked again on the server)
+    function askPurgeVerification(s) {
+      showConfirmToast({
+        type: 'error',
+        title: 'Confirm Permanent Deletion',
+        msg: `Type the service name to confirm:`,
+        confirmText: 'Delete Permanently',
+        cancelText: 'Cancel',
+        onConfirm: () => {
+          const typed = (document.getElementById('rq-verify-input')?.value || '').trim();
+          runServiceAction(s, async () => {
+            showLoadingToast('Deleting...', 'Permanently deleting the service and its data.');
+            try {
+              await callAdminFunction('adminPurgeService', { officeId: s.officeId, serviceId: s.serviceId, confirmName: typed });
+              deletedServices = deletedServices.filter(x => x !== s);
+              await logActivity('service_purged', { office_name: s.officeName, service_name: s.serviceName });
+              showToast('success', 'Permanently Deleted', `"${s.serviceName}" has been permanently deleted.`, 'OK');
+            } catch (error) {
+              console.error('Permanent delete failed:', error);
+              showToast('error', 'Delete Failed', error.message, 'OK');
+              loadDeletedServices();
+            }
+          });
+        }
+      });
+
+      const msgEl = document.getElementById('toast-msg');
+      const confirmBtn = document.getElementById('toast-btn');
+      const expected = String(s.serviceName).trim();
+      msgEl.innerHTML = `Type <strong>${escapeHtml(expected)}</strong> to confirm.
+        <input type="text" id="rq-verify-input" class="rq-verify-input" autocomplete="off" spellcheck="false" aria-label="Type the service name to confirm" />`;
+      const input = document.getElementById('rq-verify-input');
+      confirmBtn.disabled = true;
+      input.addEventListener('input', () => { confirmBtn.disabled = input.value.trim() !== expected; });
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !confirmBtn.disabled) confirmBtn.click(); });
+      setTimeout(() => input.focus(), 50);
     }
 
     function declineReasonFor(type) {
@@ -584,20 +816,28 @@
               });
             } else if (type === 'delete_admin' && reqData.target_admin_uid) {
               batch.delete(doc(db, 'admin', reqData.target_admin_uid));
-            } else if (type === 'delete_service' && reqData.office_id && reqData.service_id) {
-              batch.delete(doc(db, 'offices', reqData.office_id, 'services', reqData.service_id));
             }
 
-            batch.set(doc(db, 'completed_requests', reqId), {
-              ...reqData,
-              status: 'completed',
-              resolvedAt: serverTimestamp(),
-              resolvedBy_uid: currentSuperAdmin.uid,
-              resolvedBy_name: currentSuperAdmin.name
-            });
-            batch.delete(reqRef);
+            if (type === 'delete_service' && reqData.office_id && reqData.service_id) {
+              // Moves the service to Deleted Records and completes the request in one server-side transaction
+              await callAdminFunction('adminTrashService', {
+                requestId: reqId,
+                officeId: reqData.office_id,
+                serviceId: reqData.service_id
+              });
+              deletedState = 'idle'; // reload Deleted Records next time it opens
+            } else {
+              batch.set(doc(db, 'completed_requests', reqId), {
+                ...reqData,
+                status: 'completed',
+                resolvedAt: serverTimestamp(),
+                resolvedBy_uid: currentSuperAdmin.uid,
+                resolvedBy_name: currentSuperAdmin.name
+              });
+              batch.delete(reqRef);
 
-            await batch.commit();
+              await batch.commit();
+            }
 
             const acceptedLog = { new_admin: 'admin_account_accepted', delete_service: 'service_delete_accepted' }[type];
             if (acceptedLog) {
@@ -654,7 +894,9 @@
               'Request Accepted',
               type === 'new_admin'
                 ? 'The admin account is now active and can sign in.'
-                : 'The request has been processed successfully.' + (authRemoved ? '' : ' The login account could not be removed automatically.'),
+                : type === 'delete_service'
+                  ? 'The service was moved to Deleted Records. It can be recovered within 30 days.'
+                  : 'The request has been processed successfully.' + (authRemoved ? '' : ' The login account could not be removed automatically.'),
               'OK'
             );
           } catch (error) {

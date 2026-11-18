@@ -344,3 +344,259 @@ exports.adminSetAccountStatus = onRequest({ invoker: "public" }, (req, res) => {
     }
   });
 });
+
+// ---------------------------------------------------------------------------
+// Service Trash (soft delete / recover / permanent delete) - Super Admin only
+// Trashed services stay at offices/{officeId}/services/{serviceId} with
+// isDeleted: true, so the document ID, fields and subcollections are kept.
+// ---------------------------------------------------------------------------
+const { onSchedule } = require("firebase-functions/v2/scheduler");
+
+const TRASH_RETENTION_DAYS = 30;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// Every trash field written on the service doc; recovery removes all of them.
+const TRASH_FIELDS = [
+  "deletedAt", "deletedBy_uid", "deletedBy_name", "permanentDeleteAt",
+  "deletedFromOffice_id", "deletedFromOffice_name",
+  "deletionRequest_id", "deletionRequestedBy_uid", "deletionRequestedBy_name"
+];
+
+function serviceRef(officeId, serviceId) {
+  return admin.firestore().collection("offices").doc(officeId).collection("services").doc(serviceId);
+}
+
+function validIds(officeId, serviceId) {
+  const ok = v => typeof v === "string" && v.length > 0 && v.length <= 1500 && !v.includes("/");
+  return ok(officeId) && ok(serviceId);
+}
+
+function trashedServiceInfo(officeDoc, serviceDoc) {
+  const d = serviceDoc.data() || {};
+  const officeData = officeDoc ? (officeDoc.data() || {}) : {};
+  return {
+    officeId: serviceDoc.ref.parent.parent.id,
+    serviceId: serviceDoc.id,
+    serviceName: d.service_name || serviceDoc.id,
+    officeName: d.deletedFromOffice_name || officeData.office_name || serviceDoc.ref.parent.parent.id,
+    deletedAt: toMillis(d.deletedAt),
+    permanentDeleteAt: toMillis(d.permanentDeleteAt),
+    deletedByName: d.deletedBy_name || "",
+    requestedByName: d.deletionRequestedBy_name || ""
+  };
+}
+
+// Moves a service to trash. With requestId, also completes that delete_service
+// request (copy to completed_requests + remove from requests) in the same transaction.
+exports.adminTrashService = onRequest({ invoker: "public" }, (req, res) => {
+  cors(req, res, async () => {
+    if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+    try {
+      const caller = await requireSuperAdmin(req, res);
+      if (!caller) return;
+
+      const { officeId, serviceId, requestId } = parseBody(req);
+      if (!validIds(officeId, serviceId)) return res.status(400).json({ error: "officeId and serviceId are required" });
+      if (requestId !== undefined && (typeof requestId !== "string" || !requestId || requestId.includes("/"))) {
+        return res.status(400).json({ error: "Invalid requestId" });
+      }
+
+      const db = admin.firestore();
+      const FieldValue = admin.firestore.FieldValue;
+      const sRef = serviceRef(officeId, serviceId);
+      const oRef = db.collection("offices").doc(officeId);
+      const rRef = requestId ? db.collection("requests").doc(requestId) : null;
+
+      const result = await db.runTransaction(async (tx) => {
+        const [sSnap, oSnap, rSnap] = await Promise.all([
+          tx.get(sRef), tx.get(oRef), rRef ? tx.get(rRef) : Promise.resolve(null)
+        ]);
+
+        let reqData = null;
+        if (rRef) {
+          if (!rSnap.exists) throw Object.assign(new Error("This request no longer exists."), { status: 404 });
+          reqData = rSnap.data() || {};
+          if (reqData.type !== "delete_service" || reqData.office_id !== officeId || reqData.service_id !== serviceId) {
+            throw Object.assign(new Error("Request does not match this service."), { status: 400 });
+          }
+        }
+
+        let trashed = false;
+        let alreadyTrashed = false;
+        let permanentDeleteAt = null;
+        if (sSnap.exists) {
+          const sData = sSnap.data() || {};
+          if (sData.isDeleted === true) {
+            alreadyTrashed = true;
+            permanentDeleteAt = toMillis(sData.permanentDeleteAt);
+          } else {
+            const now = Date.now();
+            permanentDeleteAt = now + TRASH_RETENTION_DAYS * DAY_MS;
+            tx.update(sRef, {
+              isDeleted: true,
+              deletedAt: admin.firestore.Timestamp.fromMillis(now),
+              deletedBy_uid: caller.uid,
+              deletedBy_name: caller.name,
+              permanentDeleteAt: admin.firestore.Timestamp.fromMillis(permanentDeleteAt),
+              deletedFromOffice_id: officeId,
+              deletedFromOffice_name: (oSnap.exists && oSnap.data().office_name) || (reqData && reqData.office_name) || officeId,
+              deletionRequest_id: requestId || FieldValue.delete(),
+              deletionRequestedBy_uid: (reqData && reqData.requested_by_uid) || FieldValue.delete(),
+              deletionRequestedBy_name: (reqData && reqData.requested_by_name) || FieldValue.delete()
+            });
+            trashed = true;
+          }
+        }
+
+        if (rRef) {
+          tx.set(db.collection("completed_requests").doc(requestId), {
+            ...reqData,
+            status: "completed",
+            resolvedAt: FieldValue.serverTimestamp(),
+            resolvedBy_uid: caller.uid,
+            resolvedBy_name: caller.name
+          });
+          tx.delete(rRef);
+        }
+
+        return { trashed, alreadyTrashed, serviceFound: sSnap.exists, permanentDeleteAt };
+      });
+
+      return res.status(200).json({ success: true, ...result });
+    } catch (error) {
+      console.error("adminTrashService failed:", error);
+      return res.status(error.status || 500).json({ error: error.message });
+    }
+  });
+});
+
+// Lists every trashed service. Queries each office's services with a
+// single-field equality filter, so no collection group index is needed.
+exports.adminListDeletedServices = onRequest({ invoker: "public" }, (req, res) => {
+  cors(req, res, async () => {
+    if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+    try {
+      const caller = await requireSuperAdmin(req, res);
+      if (!caller) return;
+
+      const officesSnap = await admin.firestore().collection("offices").get();
+      const perOffice = await Promise.all(officesSnap.docs.map(async (officeDoc) => {
+        const snap = await officeDoc.ref.collection("services").where("isDeleted", "==", true).get();
+        return snap.docs.map(s => trashedServiceInfo(officeDoc, s));
+      }));
+      const services = perOffice.flat().sort((a, b) => (b.deletedAt || 0) - (a.deletedAt || 0));
+      return res.status(200).json({ services, retentionDays: TRASH_RETENTION_DAYS });
+    } catch (error) {
+      console.error("adminListDeletedServices failed:", error);
+      return res.status(500).json({ error: error.message });
+    }
+  });
+});
+
+// Recovers a trashed service in place: same path, same ID, same subcollections.
+exports.adminRestoreService = onRequest({ invoker: "public" }, (req, res) => {
+  cors(req, res, async () => {
+    if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+    try {
+      const caller = await requireSuperAdmin(req, res);
+      if (!caller) return;
+
+      const { officeId, serviceId } = parseBody(req);
+      if (!validIds(officeId, serviceId)) return res.status(400).json({ error: "officeId and serviceId are required" });
+
+      const FieldValue = admin.firestore.FieldValue;
+      const sRef = serviceRef(officeId, serviceId);
+      const restored = await admin.firestore().runTransaction(async (tx) => {
+        const snap = await tx.get(sRef);
+        if (!snap.exists) throw Object.assign(new Error("This service no longer exists. It may have been permanently deleted."), { status: 404 });
+        const data = snap.data() || {};
+        if (data.isDeleted !== true) throw Object.assign(new Error("This service is not in Deleted Records."), { status: 409 });
+
+        const update = {
+          isDeleted: false,
+          restoredAt: FieldValue.serverTimestamp(),
+          restoredBy_uid: caller.uid
+        };
+        TRASH_FIELDS.forEach(f => { update[f] = FieldValue.delete(); });
+        tx.update(sRef, update);
+        return { serviceName: data.service_name || serviceId };
+      });
+
+      return res.status(200).json({ success: true, ...restored });
+    } catch (error) {
+      console.error("adminRestoreService failed:", error);
+      return res.status(error.status || 500).json({ error: error.message });
+    }
+  });
+});
+
+// Permanently deletes a trashed service and all nested subcollections.
+// Requires the exact service name as a second verification step.
+exports.adminPurgeService = onRequest({ invoker: "public", timeoutSeconds: 300 }, (req, res) => {
+  cors(req, res, async () => {
+    if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+    try {
+      const caller = await requireSuperAdmin(req, res);
+      if (!caller) return;
+
+      const { officeId, serviceId, confirmName } = parseBody(req);
+      if (!validIds(officeId, serviceId)) return res.status(400).json({ error: "officeId and serviceId are required" });
+
+      const sRef = serviceRef(officeId, serviceId);
+      const snap = await sRef.get();
+      if (!snap.exists) return res.status(404).json({ error: "This service no longer exists." });
+      const data = snap.data() || {};
+
+      // Only trashed services can be purged; active services are never touched here.
+      if (data.isDeleted !== true) return res.status(409).json({ error: "Only services in Deleted Records can be permanently deleted." });
+
+      const expected = String(data.service_name || serviceId).trim();
+      if (String(confirmName || "").trim() !== expected) {
+        return res.status(400).json({ error: "The service name you typed does not match." });
+      }
+
+      await admin.firestore().recursiveDelete(sRef);
+      console.log(`adminPurgeService: ${caller.uid} permanently deleted offices/${officeId}/services/${serviceId}`);
+      return res.status(200).json({ success: true, serviceName: expected });
+    } catch (error) {
+      console.error("adminPurgeService failed:", error);
+      return res.status(500).json({ error: error.message });
+    }
+  });
+});
+
+// Daily cleanup: permanently deletes services whose 30-day recovery window has passed.
+// Recovered services have no permanentDeleteAt, so they never match the query.
+exports.purgeExpiredDeletedServices = onSchedule(
+  { schedule: "every day 03:00", timeZone: "Asia/Manila", timeoutSeconds: 540 },
+  async () => {
+    const db = admin.firestore();
+    const now = admin.firestore.Timestamp.now();
+    const officesSnap = await db.collection("offices").get();
+    let purged = 0;
+    let failed = 0;
+
+    for (const officeDoc of officesSnap.docs) {
+      let expired;
+      try {
+        expired = await officeDoc.ref.collection("services").where("permanentDeleteAt", "<=", now).get();
+      } catch (error) {
+        failed++;
+        console.error(`purgeExpiredDeletedServices: could not query offices/${officeDoc.id}/services`, error);
+        continue;
+      }
+      for (const serviceDoc of expired.docs) {
+        if (serviceDoc.data().isDeleted !== true) continue; // safety: never purge active services
+        try {
+          await db.recursiveDelete(serviceDoc.ref);
+          purged++;
+          console.log(`purgeExpiredDeletedServices: deleted ${serviceDoc.ref.path}`);
+        } catch (error) {
+          failed++;
+          console.error(`purgeExpiredDeletedServices: failed to delete ${serviceDoc.ref.path}`, error);
+        }
+      }
+    }
+    console.log(`purgeExpiredDeletedServices: done, purged=${purged}, failed=${failed}`);
+  }
+);

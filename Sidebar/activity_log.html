@@ -207,6 +207,12 @@
         case 'service_delete_declined':
           return { title: 'Hi there! Declined a request.',
                    desc: `${isMe ? 'You' : name} declined the request to delete ${svc} in ${office}.` };
+        case 'service_restored':
+          return { title: 'Hi there! A service was recovered.',
+                   desc: `${isMe ? 'You' : name} recovered ${svc} in ${office} from Deleted Records.` };
+        case 'service_purged':
+          return { title: 'Hi there! A service was permanently deleted.',
+                   desc: `${isMe ? 'You' : name} permanently deleted ${svc} in ${office}.` };
         case 'office_added':
           return { title: 'Hi there! Added an office.',
                    desc: `${isMe ? 'You' : name} added ${office} successfully. Check it out.` };

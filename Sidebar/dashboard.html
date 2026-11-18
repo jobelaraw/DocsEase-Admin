@@ -524,7 +524,7 @@
         let totalServices = 0;
         for (const officeDoc of officesSnap.docs) {
           const servicesSnap = await getDocs(collection(db, 'offices', officeDoc.id, 'services'));
-          totalServices += servicesSnap.size;
+          totalServices += servicesSnap.docs.filter(s => s.data().isDeleted !== true).length;
         }
         document.getElementById('total-services-count').innerText = totalServices;
 
