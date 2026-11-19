@@ -8,6 +8,7 @@
   <link rel="icon" type="image/png" href="../assets/logo_whitebg.png" />
   <link rel="stylesheet" href="../css/add_service.css" />
   <link rel="stylesheet" href="../css/toast.css" />
+  <link rel="stylesheet" href="../css/page_transition.css" />
   <script src="../functions/toast.js"></script>
   <script type="module" src="../functions/role-guard.js"></script>
   <script type="module" src="../functions/office-destinations.js"></script>
@@ -42,6 +43,11 @@
           <div class="nav-icon"><img src="../assets/review_queue.png" alt="Review Queue" /></div>
           <span class="nav-label">Review Queue</span>
         </a>
+
+        <a href="../Sidebar/account_management.html" class="nav-item" title="Account Management">
+          <div class="nav-icon"><img src="../assets/account_management.svg" alt="Account Management" /></div>
+          <span class="nav-label">Account Management</span>
+        </a>
         <a href="../Sidebar/activity_log.html" class="nav-item" title="Activity Log">
           <div class="nav-icon"><img src="../assets/activity_log.png" alt="Activity Log" /></div>
           <span class="nav-label">Activity Log</span>
@@ -69,7 +75,7 @@
       <div id="profile-placeholder"></div>
     </header>
 
-    <div class="form-wrapper">
+    <div class="form-wrapper page-fade" id="main-content">
 
       <div class="tab-bar" id="tabs-header">
         <div class="tab-btn active default" onclick="switchTab('tab-1', this)">
@@ -102,7 +108,9 @@
                 onclick="toggleCombo(this.nextElementSibling)" oninput="filterOfficeMenu(this)" autocomplete="off" />
               <button type="button" class="btn-drop" onclick="toggleCombo(this)">▼</button>
               <div class="combo-menu" id="office-menu">
-                <div class="combo-item">Loading offices...</div>
+                <div class="combo-item" aria-hidden="true" style="pointer-events:none;"><span class="skel skel-text" style="width:70%;"></span></div>
+                <div class="combo-item" aria-hidden="true" style="pointer-events:none;"><span class="skel skel-text" style="width:55%;"></span></div>
+                <div class="combo-item" aria-hidden="true" style="pointer-events:none;"><span class="skel skel-text" style="width:80%;"></span></div>
               </div>
             </div>
           </div>
@@ -412,6 +420,20 @@
 
     let officesMap = {};
     let officesLoadPromise;
+    let myOffice = null; // null = Super Admin (may pick any office)
+
+    // Regular admin: fill in their office and make the field read-only
+    function lockOfficeField(name) {
+      const input = document.getElementById('office-input');
+      input.value = name;
+      input.readOnly = true;
+      input.removeAttribute('onclick');
+      input.removeAttribute('oninput');
+      input.style.cursor = 'default';
+      const dropBtn = input.closest('.combo-box')?.querySelector('.btn-drop');
+      if (dropBtn) dropBtn.style.display = 'none';
+      window.__officeLocked = true;
+    }
 
     function sanitizeForFirestore(value) {
       if (Array.isArray(value)) {
@@ -456,6 +478,19 @@
         if (userNameEl) userNameEl.textContent = user.displayName || user.email;
         if (userRoleEl) userRoleEl.textContent = 'Admin ✓';
 
+        const adminData = adminDoc.data();
+        if (adminData.role !== 'super_admin') {
+          myOffice = (adminData.admin_office || '').trim();
+          if (!myOffice) {
+            window.showToast('error', 'No Office Assigned',
+              'Your account has no office assigned yet. Please contact the Super Admin.', 'OK',
+              () => { window.location.href = '../Sidebar/dashboard.html'; });
+            return;
+          }
+          lockOfficeField(myOffice);
+        }
+        document.getElementById('main-content').classList.add('is-ready');
+
         officesLoadPromise = loadOffices();
       } catch (error) {
         console.error('Auth check failed:', error);
@@ -469,13 +504,15 @@
       try {
         const querySnapshot = await getDocs(collection(db, "offices"));
         officeMenu.innerHTML = '';
+        // Offices in Deleted Records can't receive new services
+        const activeOffices = querySnapshot.docs.filter(d => d.data().isDeleted !== true);
 
-        if (querySnapshot.empty) {
+        if (!activeOffices.length) {
           officeMenu.innerHTML = '<div class="combo-item">No offices found</div>';
           return;
         }
 
-        querySnapshot.forEach((doc) => {
+        activeOffices.forEach((doc) => {
           const data = doc.data();
           const officeName = data.office_name || doc.id;
 
@@ -494,7 +531,9 @@
       if (officesLoadPromise) await officesLoadPromise;
 
       const serviceName = document.getElementById('service-name-input').value.trim();
-      const officeName = document.getElementById('office-input').value.trim();
+      const officeName = myOffice !== null
+        ? myOffice
+        : document.getElementById('office-input').value.trim();
       const description = document.getElementById('service-desc-input').value.trim();
 
       const location = document.getElementById('location-input').value.trim();
@@ -645,6 +684,11 @@
         showToast('loading', 'Adding Service', 'The service is currently being processed. Please wait.', '');
 
         const serviceRef = doc(db, "offices", officeId, "services", customServiceId);
+        // Same name as a service in Deleted Records would overwrite it
+        const existingSnap = await getDoc(serviceRef);
+        if (existingSnap.exists() && existingSnap.data().isDeleted === true) {
+          throw new Error('A service with this name is in Deleted Records. Recover it from the Review Queue, or delete it permanently first.');
+        }
         await setDoc(serviceRef, serviceData);
 
         //DISTRIBUTE NOTIFICATION TO ALL REGISTERED USERS
@@ -786,7 +830,7 @@
     function hasAddedInformation() {
       const mainFields = [
         document.getElementById('service-name-input'),
-        document.getElementById('office-input'),
+        window.__officeLocked ? null : document.getElementById('office-input'),
         document.getElementById('service-desc-input'),
         document.getElementById('location-input'),
         document.getElementById('contact-input'),

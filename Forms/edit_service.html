@@ -8,6 +8,7 @@
   <link rel="icon" type="image/png" href="../assets/logo_whitebg.png" />
   <link rel="stylesheet" href="../css/edit_service.css" />
   <link rel="stylesheet" href="../css/toast.css" />
+  <link rel="stylesheet" href="../css/page_transition.css" />
   <script src="../functions/toast.js"></script>
   <script type="module" src="../functions/role-guard.js"></script>
   <script type="module" src="../functions/office-destinations.js"></script>
@@ -43,6 +44,11 @@
           <span class="nav-label">Review Queue</span>
         </a>
 
+        <a href="../Sidebar/account_management.html" class="nav-item" title="Account Management">
+          <div class="nav-icon"><img src="../assets/account_management.svg" alt="Account Management" /></div>
+          <span class="nav-label">Account Management</span>
+        </a>
+
         <a href="../Sidebar/activity_log.html" class="nav-item" title="Activity Log">
           <div class="nav-icon"><img src="../assets/activity_log.png" alt="Activity Log" /></div>
           <span class="nav-label">Activity Log</span>
@@ -73,11 +79,25 @@
     <div class="form-wrapper">
 
       <!-- Tab Bar -->
-      <div class="tab-bar" id="tabs-header"></div>
+      <div class="tab-bar page-fade" id="tabs-header"></div>
 
-      <p id="loading-msg" style="text-align:center;color:#6b7a99;font-weight:600;margin:40px 0;">Loading service...</p>
+      <div class="skel-group" id="page-skel" aria-hidden="true">
+        <div class="tab-bar"><span class="skel" style="width:140px;height:34px;border-radius:8px;"></span><span class="skel" style="width:120px;height:34px;border-radius:8px;"></span></div>
+        <div class="form-section">
+          <span class="skel skel-title" style="width:180px;margin-bottom:16px;"></span>
+          <div class="form-row"><div class="form-group"><span class="skel skel-text" style="width:35%;height:10px;"></span><span class="skel" style="height:42px;border-radius:10px;"></span></div><div class="form-group"><span class="skel skel-text" style="width:35%;height:10px;"></span><span class="skel" style="height:42px;border-radius:10px;"></span></div></div>
+          <div class="form-row"><div class="form-group"><span class="skel skel-text" style="width:35%;height:10px;"></span><span class="skel" style="height:42px;border-radius:10px;"></span></div><div class="form-group"><span class="skel skel-text" style="width:35%;height:10px;"></span><span class="skel" style="height:42px;border-radius:10px;"></span></div></div>
+        </div>
+        <div class="form-section">
+          <span class="skel skel-title" style="width:180px;margin-bottom:16px;"></span>
+          <div class="form-row"><div class="form-group"><span class="skel skel-text" style="width:35%;height:10px;"></span><span class="skel" style="height:42px;border-radius:10px;"></span></div><div class="form-group"><span class="skel skel-text" style="width:35%;height:10px;"></span><span class="skel" style="height:42px;border-radius:10px;"></span></div></div>
+          <div class="form-row"><div class="form-group"><span class="skel skel-text" style="width:35%;height:10px;"></span><span class="skel" style="height:42px;border-radius:10px;"></span></div><div class="form-group"><span class="skel skel-text" style="width:35%;height:10px;"></span><span class="skel" style="height:42px;border-radius:10px;"></span></div></div>
+        </div>
+      </div>
 
-      <div id="form-body" style="display:none;">
+      <p id="loading-msg" style="display:none;text-align:center;color:#6b7a99;font-weight:600;margin:40px 0;"></p>
+
+      <div id="form-body" class="page-fade" style="display:none;">
 
         <!-- General Details -->
         <div class="form-section">
@@ -169,7 +189,7 @@
     import { auth, db } from '../Firebase/firebase-config.js';
     import { doc, getDoc, getDocs, setDoc, serverTimestamp, addDoc, collection, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { deleteOrRequestServiceDeletion } from '../functions/service-delete.js';
+    import { deleteOrRequestServiceDeletion, trashServiceAsSuperAdmin } from '../functions/service-delete.js';
 
     // Activity log helper
     let _logActor = null;
@@ -278,6 +298,7 @@
     // ---- State ----
     let serviceData = null;
     let isSuperAdmin = false; // role flag
+    let adminOffice = '';
     let currentTabIndex = 0;
     let uidCounter = 0;
     const nextUid = () => 'u' + (++uidCounter) + '-' + Math.random().toString(36).slice(2, 7);
@@ -310,7 +331,10 @@
     }
 
     function showFatalError(message) {
-      document.getElementById('loading-msg').textContent = message;
+      document.getElementById('page-skel').hidden = true;
+      const msg = document.getElementById('loading-msg');
+      msg.textContent = message;
+      msg.style.display = 'block';
     }
 
     async function loadService() {
@@ -320,9 +344,21 @@
       }
       try {
         const officeSnap = await getDoc(doc(db, 'offices', officeId));
-        document.getElementById('office-display').value = officeSnap.exists()
+        if (officeSnap.exists() && officeSnap.data().isDeleted === true) {
+          showFatalError('This office is in Deleted Records. Recover it from the Review Queue before editing its services.');
+          return;
+        }
+        const officeNameForCheck = officeSnap.exists()
           ? (officeSnap.data().office_name || officeId)
           : officeId;
+
+        if (!isSuperAdmin &&
+            officeNameForCheck.trim().toLowerCase() !== adminOffice.toLowerCase()) {
+          showFatalError('You can only manage services that belong to your own office.');
+          return;
+        }
+
+        document.getElementById('office-display').value = officeNameForCheck;
 
         const serviceRef = doc(db, 'offices', officeId, 'services', serviceId);
         const serviceSnap = await getDoc(serviceRef);
@@ -333,6 +369,10 @@
         }
 
         serviceData = serviceSnap.data();
+        if (serviceData.isDeleted === true) {
+          showFatalError('This service is in Deleted Records. Recover it from the Review Queue before editing.');
+          return;
+        }
         if (!Array.isArray(serviceData.tabs) || serviceData.tabs.length === 0) {
           serviceData.tabs = [{ tab_name: 'Walk in', requirements: [], procedures: [] }];
         }
@@ -370,8 +410,14 @@
 
         populateForm();
 
+        document.getElementById('page-skel').hidden = true;
         document.getElementById('loading-msg').style.display = 'none';
-        document.getElementById('form-body').style.display = 'block';
+        const formBody = document.getElementById('form-body');
+        formBody.style.display = 'block';
+        requestAnimationFrame(() => {
+          formBody.classList.add('is-ready');
+          document.getElementById('tabs-header').classList.add('is-ready');
+        });
       } catch (error) {
         console.error('Error fetching service:', error);
         showFatalError('Failed to load service. Check your permissions or connection.');
@@ -903,6 +949,14 @@
       try {
         showToast('loading', 'Saving Changes', 'The service changes are currently being processed. Please wait.', '');
         const serviceRef = doc(db, 'offices', officeId, 'services', serviceId);
+        // Don't let a stale edit page bring a deleted service back
+        const [latest, latestOffice] = await Promise.all([getDoc(serviceRef), getDoc(doc(db, 'offices', officeId))]);
+        if (latest.exists() && latest.data().isDeleted === true) {
+          throw new Error('This service was moved to Deleted Records while you were editing. Recover it first.');
+        }
+        if (latestOffice.exists() && latestOffice.data().isDeleted === true) {
+          throw new Error('This office was moved to Deleted Records while you were editing. Recover it first.');
+        }
         await setDoc(serviceRef, payload);
 
         //DISTRIBUTE NOTIFICATION TO ALL REGISTERED USERS
@@ -992,7 +1046,7 @@
         title: asRequest ? 'Request Service Deletion?' : 'Delete Service?',
         msg: asRequest
           ? 'This will send a deletion request to the Super Admin. The service stays in the list until the request is approved.'
-          : 'This service will be permanently removed from the list.',
+          : 'This service will be moved to Deleted Records in the Review Queue. You can recover it within 30 days.',
         confirmText: asRequest ? 'Send Request' : 'Delete',
         cancelText: 'Cancel',
         onConfirm: async () => {
@@ -1005,11 +1059,10 @@
             };
 
             if (isSuperAdmin) {
-              //SUPER ADMIN DIRECT DELETION
-              const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js");
-              await deleteDoc(doc(db, 'offices', officeId, 'services', serviceId));
+              //SUPER ADMIN DIRECT DELETION -> Deleted Records (soft delete)
+              await trashServiceAsSuperAdmin(officeId, serviceId);
               await logActivity('service_deleted', logDetails);
-              showToast('success', 'Deleted', 'The service has been deleted successfully.', 'Continue', backToList);
+              showToast('success', 'Moved to Deleted Records', 'The service was moved to Deleted Records. You can recover it from the Review Queue within 30 days.', 'Continue', backToList);
             } else {
               //NORMAL ADMIN REQUEST WORKFLOW
               const result = await deleteOrRequestServiceDeletion({
@@ -1030,7 +1083,8 @@
           } catch (error) {
             console.error('Error deleting / requesting deletion of service:', error);
             showToast('error', asRequest ? 'Request Failed' : 'Delete Failed',
-              asRequest ? 'Could not send the deletion request. Please try again.' : 'Failed to delete service. Please try again.');
+              asRequest ? 'Could not send the deletion request. Please try again.'
+                : 'Failed to delete service: ' + ((error && error.message) || 'Please try again.'));
           }
         },
         onCancel: () => { }
@@ -1053,6 +1107,7 @@
         }
 
         isSuperAdmin = adminDoc.data().role === 'super_admin';
+        adminOffice = (adminDoc.data().admin_office || '').trim();
 
         const userNameEl = document.querySelector('.user-name');
         const userRoleEl = document.querySelector('.user-role');

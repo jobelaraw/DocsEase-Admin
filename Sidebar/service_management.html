@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="../css/sidebar.css" />
   <link rel="stylesheet" href="../css/profile.css" />
   <link rel="stylesheet" href="../css/toast.css" />
+  <link rel="stylesheet" href="../css/page_transition.css" />
   <link rel="stylesheet" href="../css/add_office_modal.css" />
   <script src="../functions/toast.js"></script>
   <script type="module" src="../functions/role-guard.js"></script>
@@ -53,6 +54,11 @@
       <div class="nav-icon"><img src="../assets/review_queue.png" alt="Review Queue" /></div>
         <span class="nav-label">Review Queue</span>
       </a>
+
+        <a href="account_management.html" class="nav-item" title="Account Management">
+          <div class="nav-icon"><img src="../assets/account_management.svg" alt="Account Management" /></div>
+          <span class="nav-label">Account Management</span>
+        </a>
       <a href="activity_log.html" class="nav-item" title="Activity Log">
       <div class="nav-icon"><img src="../assets/activity_log.png" alt="Activity Log" /></div>
         <span class="nav-label">Activity Log</span>
@@ -72,7 +78,7 @@
       <div id="profile-placeholder"></div>
     </header>
 
-    <div class="content">
+      <div class="content page-fade" id="main-content">
       <div class="header-group">
         <div class="title-area">
           <h1>Office Category List</h1>
@@ -100,8 +106,16 @@
       </div>
 
       <div class="grid-container">
-        <div class="office-grid" id="office-grid"></div>
-        <p id="loading" style="text-align: center; color:#6b7a99; font-size:1rem; font-weight:600; margin-top:40px;">Loading offices...</p>
+        <div class="office-grid page-fade" id="office-grid"></div>
+        <div class="office-grid skel-group" id="page-skel" aria-hidden="true">
+            <div class="office-card" style="pointer-events:none;"><span class="skel skel-title" style="width:60%;"></span></div>
+            <div class="office-card" style="pointer-events:none;"><span class="skel skel-title" style="width:45%;"></span></div>
+            <div class="office-card" style="pointer-events:none;"><span class="skel skel-title" style="width:70%;"></span></div>
+            <div class="office-card" style="pointer-events:none;"><span class="skel skel-title" style="width:55%;"></span></div>
+            <div class="office-card" style="pointer-events:none;"><span class="skel skel-title" style="width:40%;"></span></div>
+            <div class="office-card" style="pointer-events:none;"><span class="skel skel-title" style="width:65%;"></span></div>
+        </div>
+        <p id="loading" style="display:none; text-align: center; color:#6b7a99; font-size:1rem; font-weight:600; margin-top:40px;"></p>
         <p id="no-results" style="display:none; text-align:center; color:#6b7a99; font-size:1rem; font-weight:600; margin-top:40px;">No offices found.</p>
       </div>
 
@@ -176,7 +190,8 @@
 
   <script type="module">
     import { auth, db } from '../Firebase/firebase-config.js';
-    import { collection, getDocs, getDoc, doc, deleteDoc, setDoc, addDoc, serverTimestamp, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { collection, getDocs, getDoc, doc, setDoc, addDoc, serverTimestamp, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { trashOfficeAsSuperAdmin } from '../functions/service-delete.js';
     // Activity log helper
     let _logActor = null;
     let _superAdminUids = null;
@@ -276,10 +291,27 @@
         if (userNameEl) userNameEl.textContent = user.displayName || user.email;
         if (userRoleEl) userRoleEl.textContent = 'Admin ✓';
 
-        // Set label by role
         const adminData = adminDoc.data();
         isSuperAdmin = adminData.role === 'super_admin' && adminData.status === 'active';
-        document.getElementById(isSuperAdmin ? 'btn-add-office' : 'btn-add-service').style.display = '';
+
+        // Regular admin: skip the office list and open their own office directly
+        if (!isSuperAdmin) {
+          const myOffice = (adminData.admin_office || '').trim();
+          if (myOffice) {
+            window.location.replace('category_list.html?office=' + encodeURIComponent(myOffice));
+            return;
+          }
+          // No office assigned (older account): show a message instead of the list
+          document.getElementById('main-content').classList.add('is-ready');
+          document.getElementById('page-skel').hidden = true;
+          document.getElementById('loading').style.display = 'block';
+          document.getElementById('loading').innerText =
+            'Your account has no office assigned yet. Please contact the Super Admin.';
+          return;
+        }
+
+        document.getElementById('main-content').classList.add('is-ready');
+        document.getElementById('btn-add-office').style.display = '';
 
         // Load offices after role is known
         loadOffices();
@@ -297,22 +329,28 @@
     async function loadOffices() {
       const grid = document.getElementById('office-grid');
       const loadingText = document.getElementById('loading');
+      const skel = document.getElementById('page-skel');
 
       try {
         grid.innerHTML = '';
-        loadingText.innerText = 'Loading offices...';
-        loadingText.style.display = 'block';
+        grid.classList.remove('is-ready');
+        loadingText.style.display = 'none';
+        skel.hidden = false;
 
         const querySnapshot = await getDocs(collection(db, "offices"));
+        // Offices in Deleted Records are hidden; older docs without isDeleted stay visible
+        const activeOffices = querySnapshot.docs.filter(d => d.data().isDeleted !== true);
 
-        if (querySnapshot.empty) {
+        skel.hidden = true;
+        if (!activeOffices.length) {
           loadingText.innerText = 'No offices found. Add one to get started!';
+          loadingText.style.display = 'block';
           return;
-        } else {
-          loadingText.style.display = 'none';
         }
 
-        querySnapshot.forEach((officeDoc) => {
+        // Build all cards first, then insert and fade them in together
+        let cardsHTML = '';
+        activeOffices.forEach((officeDoc) => {
           const officeData = officeDoc.data();
           const officeName = officeData.office_name || officeDoc.id;
           const cardHTML = `
@@ -324,12 +362,17 @@
               <h3 class="card-title" style="color: var(--navy);">${escapeHtml(officeName)}</h3>
             </div>
           `;
-          grid.insertAdjacentHTML('beforeend', cardHTML);
+          cardsHTML += cardHTML;
         });
+
+        grid.innerHTML = cardsHTML;
+        requestAnimationFrame(() => grid.classList.add('is-ready'));
 
       } catch (error) {
         console.error("Error fetching offices: ", error);
+        skel.hidden = true;
         loadingText.innerText = 'Failed to load offices. Ensure you have admin access.';
+        loadingText.style.display = 'block';
       }
     }
 
@@ -454,13 +497,16 @@
           catch (err) { console.warn(`[add-office] could not read "${name}":`, err); return []; }
         };
         const [officeDocs, roomDocs] = await Promise.all([readDocs('offices'), readDocs('other_room')]);
-        const duplicate = [...officeDocs, ...roomDocs].some(d => {
+        const duplicate = [...officeDocs, ...roomDocs].find(d => {
           const data = d.data();
           return d.id === officeId ||
             String(data.office_name || data.room_name || d.id).trim().toLowerCase() === officeName.toLowerCase();
         });
         if (duplicate) {
-          showAoError('An office or room with this name already exists.', aoInput);
+          // A deleted office keeps its document, so a new one with the same ID would overwrite it
+          showAoError(duplicate.data().isDeleted === true
+            ? 'An office with this name is in Deleted Records. Recover it from the Review Queue, or delete it permanently first.'
+            : 'An office or room with this name already exists.', aoInput);
           return;
         }
 
@@ -506,25 +552,28 @@
       window.showConfirmToast({
         type: 'warning',
         title: 'Delete Office Category?',
-        msg: `This will permanently delete "${officeName}" and all of its services.`,
+        msg: `"${officeName}" and all of its services will be moved to Deleted Records in the Review Queue. You can recover it within 30 days.`,
         confirmText: 'Yes, Delete',
         cancelText: 'No',
         onConfirm: async () => {
           button.disabled = true;
-          window.showToast('loading', 'Deleting Office Category', 'The office category and its services are being deleted.', '');
+          window.showToast('loading', 'Deleting Office Category', 'The office category is being moved to Deleted Records.', '');
 
           try {
-            const servicesRef = collection(db, 'offices', officeId, 'services');
-            const servicesSnapshot = await getDocs(servicesRef);
-            await Promise.all(servicesSnapshot.docs.map(serviceDoc => deleteDoc(serviceDoc.ref)));
-            await deleteDoc(doc(db, 'offices', officeId));
+            // Soft delete: the office and its services stay in Firestore until recovered or permanently deleted
+            await trashOfficeAsSuperAdmin(officeId);
             await logActivity('office_deleted', { office_name: officeName });
             officeCard.remove();
-            window.showToast('success', 'Deletion Successful', `"${officeName}" and all of its services have been deleted.`, 'OK');
+            if (!document.querySelector('#office-grid .office-card')) {
+              const loadingText = document.getElementById('loading');
+              loadingText.innerText = 'No offices found. Add one to get started!';
+              loadingText.style.display = 'block';
+            }
+            window.showToast('success', 'Moved to Deleted Records', `"${officeName}" was moved to Deleted Records. You can recover it from the Review Queue within 30 days.`, 'OK');
           } catch (error) {
             console.error('Error deleting office category:', error);
             button.disabled = false;
-            window.showToast('error', 'Delete Failed', 'The office category could not be deleted. Please try again.', 'OK');
+            window.showToast('error', 'Delete Failed', error.message || 'The office category could not be deleted. Please try again.', 'OK');
           }
         }
       });

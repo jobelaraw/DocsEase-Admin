@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="../css/profile.css" />
   <link rel="stylesheet" href="../css/toast.css" />
   <link rel="stylesheet" href="../css/add_office_modal.css" />
+  <link rel="stylesheet" href="../css/page_transition.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.js"
     integrity="sha384-tgbB5AKnszdcfwcZtTfuhR3Ko1XZdlDfsLtkxiiAZiVkkXCkFmp+FQFh+V/UTo54"
     crossorigin="anonymous"></script>
@@ -62,6 +63,11 @@
           <span class="nav-label">Review Queue</span>
         </a>
 
+        <a href="account_management.html" class="nav-item" title="Account Management">
+          <div class="nav-icon"><img src="../assets/account_management.svg" alt="Account Management" /></div>
+          <span class="nav-label">Account Management</span>
+        </a>
+
       <a href="activity_log.html" class="nav-item" title="Activity Log">
       <div class="nav-icon"><img src="../assets/activity_log.png" alt="Activity Log" /></div>
         <span class="nav-label">Activity Log</span>
@@ -81,7 +87,7 @@
       <div id="profile-placeholder"></div>
     </header>
 
-    <div class="content">
+    <div class="content page-fade" id="main-content">
       <div class="welcome-banner">
         <div>
           <h1>Welcome Back, Admin!</h1>
@@ -111,7 +117,7 @@
             <div class="stat-icon"><img src="../assets/map_mngment.png" alt="Total Services" /></div>
             <div class="stat-label">Total Offices</div>
           </div>
-          <div class="stat-value" id="total-offices-count">-</div>
+          <div class="stat-value" id="total-offices-count"><span class="skel skel-inline" style="width:72px;height:34px;" aria-hidden="true"></span></div>
         </div>
 
         <div class="stat-card">
@@ -119,7 +125,7 @@
             <div class="stat-icon"><img src="../assets/total_completed.png" alt="Total Users" /></div>
             <div class="stat-label">Total Services</div>
           </div>
-          <div class="stat-value" id="total-services-count">-</div>
+          <div class="stat-value" id="total-services-count"><span class="skel skel-inline" style="width:72px;height:34px;" aria-hidden="true"></span></div>
         </div>
 
         <div class="stat-card">
@@ -127,7 +133,7 @@
             <div class="stat-icon"><img src="../assets/total_users.png" alt="Active Users" /></div>
             <div class="stat-label">Total Users</div>
           </div>
-          <div class="stat-value" id="total-users-count">-</div>
+          <div class="stat-value" id="total-users-count"><span class="skel skel-inline" style="width:72px;height:34px;" aria-hidden="true"></span></div>
         </div>
       </div>
 
@@ -138,8 +144,12 @@
             <div class="card-title">Most Used Services</div>
             <a href="analytics.html" class="card-link">View Analytics →</a>
           </div>
-          <div class="service-rank-list" id="mostUsedServicesList">
-            <div style="font-size:0.83rem;color:#6b7a99;">Loading…</div>
+          <div class="service-rank-list" id="mostUsedServicesList" aria-busy="true">
+            <div class="service-rank-item"><span class="skel skel-circle" style="width:26px;height:26px;"></span><div class="rank-bar-wrap skel-stack" style="gap:8px;"><span class="skel skel-text" style="width:55%;"></span><span class="skel" style="height:7px;"></span></div><span class="skel skel-text" style="width:32px;"></span></div>
+            <div class="service-rank-item"><span class="skel skel-circle" style="width:26px;height:26px;"></span><div class="rank-bar-wrap skel-stack" style="gap:8px;"><span class="skel skel-text" style="width:70%;"></span><span class="skel" style="height:7px;"></span></div><span class="skel skel-text" style="width:32px;"></span></div>
+            <div class="service-rank-item"><span class="skel skel-circle" style="width:26px;height:26px;"></span><div class="rank-bar-wrap skel-stack" style="gap:8px;"><span class="skel skel-text" style="width:45%;"></span><span class="skel" style="height:7px;"></span></div><span class="skel skel-text" style="width:32px;"></span></div>
+            <div class="service-rank-item"><span class="skel skel-circle" style="width:26px;height:26px;"></span><div class="rank-bar-wrap skel-stack" style="gap:8px;"><span class="skel skel-text" style="width:60%;"></span><span class="skel" style="height:7px;"></span></div><span class="skel skel-text" style="width:32px;"></span></div>
+            <div class="service-rank-item"><span class="skel skel-circle" style="width:26px;height:26px;"></span><div class="rank-bar-wrap skel-stack" style="gap:8px;"><span class="skel skel-text" style="width:40%;"></span><span class="skel" style="height:7px;"></span></div><span class="skel skel-text" style="width:32px;"></span></div>
           </div>
         </div>
 
@@ -151,6 +161,7 @@
           </div>
           <div class="chart-wrap">
             <canvas id="completionTrendChart"></canvas>
+            <span class="skel skel-fill" id="trend-skel" aria-hidden="true"></span>
           </div>
         </div>
       </div>
@@ -293,6 +304,7 @@
         const adminData = adminDoc.data();
         const isSuperAdmin = adminData.role === 'super_admin' && adminData.status === 'active';
         document.getElementById(isSuperAdmin ? 'btn-add-office' : 'btn-add-service').style.display = '';
+        document.getElementById('main-content').classList.add('is-ready');
 
       } catch (error) {
         console.error("Auth check failed:", error);
@@ -314,6 +326,7 @@
 
     function renderRankList(containerId, items, maxCount) {
       const container = document.getElementById(containerId);
+      container.removeAttribute('aria-busy');
       if (!items.length) {
         container.innerHTML = '<div style="font-size:0.83rem;color:#6b7a99;">No data yet.</div>';
         return;
@@ -447,13 +460,16 @@
           catch (err) { console.warn(`[add-office] could not read "${name}":`, err); return []; }
         };
         const [officeDocs, roomDocs] = await Promise.all([readDocs('offices'), readDocs('other_room')]);
-        const duplicate = [...officeDocs, ...roomDocs].some(d => {
+        const duplicate = [...officeDocs, ...roomDocs].find(d => {
           const data = d.data();
           return d.id === officeId ||
             String(data.office_name || data.room_name || d.id).trim().toLowerCase() === officeName.toLowerCase();
         });
         if (duplicate) {
-          showAoError('An office or room with this name already exists.', aoInput);
+          // A deleted office keeps its document, so a new one with the same ID would overwrite it
+          showAoError(duplicate.data().isDeleted === true
+            ? 'An office with this name is in Deleted Records. Recover it from the Review Queue, or delete it permanently first.'
+            : 'An office or room with this name already exists.', aoInput);
           return;
         }
 
@@ -506,12 +522,14 @@
     async function loadDashboardCounts() {
       try {
         const officesSnap = await getDocs(collection(db, "offices"));
-        document.getElementById('total-offices-count').innerText = officesSnap.size;
+        // Offices in Deleted Records (and their services) are not counted
+        const activeOffices = officesSnap.docs.filter(d => d.data().isDeleted !== true);
+        document.getElementById('total-offices-count').innerText = activeOffices.length;
 
         let totalServices = 0;
-        for (const officeDoc of officesSnap.docs) {
+        for (const officeDoc of activeOffices) {
           const servicesSnap = await getDocs(collection(db, 'offices', officeDoc.id, 'services'));
-          totalServices += servicesSnap.size;
+          totalServices += servicesSnap.docs.filter(s => s.data().isDeleted !== true).length;
         }
         document.getElementById('total-services-count').innerText = totalServices;
 
@@ -520,6 +538,11 @@
 
       } catch (error) {
         console.error("Error fetching counts: ", error);
+        // Replace any skeleton still showing
+        ['total-offices-count', 'total-services-count', 'total-users-count'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el.querySelector('.skel')) el.textContent = '-';
+        });
       }
     }
 
@@ -617,9 +640,16 @@
             }
           }
         });
+        document.getElementById('trend-skel')?.remove();
 
       } catch (error) {
         console.error('Failed to load most-used services / completion trend:', error);
+        document.getElementById('trend-skel')?.remove();
+        const list = document.getElementById('mostUsedServicesList');
+        if (list.getAttribute('aria-busy')) {
+          list.removeAttribute('aria-busy');
+          list.innerHTML = '<div style="font-size:0.83rem;color:#6b7a99;">Couldn\'t load data.</div>';
+        }
       }
     }
 

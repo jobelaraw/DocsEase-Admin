@@ -1,0 +1,112 @@
+/* Smooth page/content reveal used across Service Management pages */
+.page-fade {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.page-fade.is-ready {
+  opacity: 1;
+  transform: none;
+}
+
+/* Loading text only appears if loading takes longer than ~0.4s */
+.delayed-loading {
+  opacity: 0;
+  animation: pageTransitionShowLoading 0.2s ease 0.4s forwards;
+}
+
+@keyframes pageTransitionShowLoading {
+  to { opacity: 1; }
+}
+
+/* Back button: shown on first paint for super admins (hint set by sidebar.js) */
+#btn-back.role-back { visibility: hidden; }
+html.is-super-admin #btn-back.role-back { visibility: visible; }
+
+@media (prefers-reduced-motion: reduce) {
+  .page-fade { transition: none; transform: none; }
+  .delayed-loading { animation-duration: 0s; }
+}
+
+/* ---------- Smooth navigation between pages ----------
+   Browsers that support cross-document View Transitions cross-fade
+   from one page to the next; the sidebar stays put. Others ignore this. */
+@view-transition {
+  navigation: auto;
+}
+
+.sidebar {
+  view-transition-name: app-sidebar;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.22s;
+  animation-timing-function: ease;
+}
+
+/* ---------- Skeleton loading ----------
+   .skel is a grey shimmering placeholder block. Size it with the helpers
+   below or with inline width/height. Wrap groups in aria-hidden="true". */
+.skel {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  background: #e6ebf2;
+  border-radius: 8px;
+}
+
+.skel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  animation: skelShimmer 1.3s ease-in-out infinite;
+}
+
+@keyframes skelShimmer {
+  to { transform: translateX(100%); }
+}
+
+.skel-text   { height: 12px; border-radius: 6px; }
+.skel-title  { height: 18px; border-radius: 6px; }
+.skel-circle { border-radius: 50%; flex-shrink: 0; }
+.skel-pill   { height: 28px; border-radius: 50px; }
+.skel-inline { display: inline-block; vertical-align: middle; }
+
+.skel-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.skel-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* A plain card shell for skeleton cards that have no real card class */
+.skel-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+/* Fill the parent (e.g. a chart area) */
+.skel-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+}
+
+.skel-group[hidden] { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .skel::after { animation: none; }
+  ::view-transition-old(root),
+  ::view-transition-new(root) { animation: none; }
+}

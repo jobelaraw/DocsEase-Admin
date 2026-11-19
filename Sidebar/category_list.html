@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="../css/sidebar.css" />
   <link rel="stylesheet" href="../css/profile.css" />
   <link rel="stylesheet" href="../css/toast.css" />
+  <link rel="stylesheet" href="../css/page_transition.css" />
   <script src="../functions/toast.js"></script>
   <script type="module" src="../functions/role-guard.js"></script>
   <script src="../functions/sidebar.js"></script>
@@ -56,6 +57,11 @@
         <span class="nav-label">Review Queue</span>
       </a>
 
+        <a href="account_management.html" class="nav-item" title="Account Management">
+          <div class="nav-icon"><img src="../assets/account_management.svg" alt="Account Management" /></div>
+          <span class="nav-label">Account Management</span>
+        </a>
+
       <a href="activity_log.html" class="nav-item" title="Activity Log">
       <div class="nav-icon"><img src="../assets/activity_log.png" alt="Activity Log" /></div>
         <span class="nav-label">Activity Log</span>
@@ -72,7 +78,7 @@
 
   <div class="main">
     <header class="topbar">
-      <button class="btn-back" onclick="window.location.href='service_management.html'">
+      <button class="btn-back role-back" id="btn-back" onclick="window.location.href='service_management.html'">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
           stroke-linecap="round" stroke-linejoin="round">
           <polyline points="15 18 9 12 15 6" />
@@ -83,11 +89,11 @@
       <div id="profile-placeholder"></div>
     </header>
 
-    <div class="content">
+    <div class="content page-fade" id="main-content">
       <div class="header-group">
         <div class="title-area">
-          <h2 id="page-title">Service List</h2>
-          <p id="page-subtitle">Monitor and manage document processes.</p>
+          <h2 id="page-title"></h2>
+          <p id="page-subtitle"></p>
         </div>
       </div>
 
@@ -107,8 +113,16 @@
 
       <div class="panel-card">
         <div class="services-scroll">
-          <div class="services-grid" id="services-grid"></div>
-          <p id="loading" style="text-align: center; color:#6b7a99; font-size:1rem; font-weight:600; margin-top:40px;">Loading services...</p>
+          <div class="services-grid page-fade" id="services-grid"></div>
+          <div class="services-grid skel-group" id="page-skel" aria-hidden="true">
+            <div class="service-card" style="pointer-events:none;background:#d9e2f1;"><span class="skel skel-title" style="width:60%;margin:0 auto;background:#c8d4e8;"></span></div>
+            <div class="service-card" style="pointer-events:none;background:#d9e2f1;"><span class="skel skel-title" style="width:45%;margin:0 auto;background:#c8d4e8;"></span></div>
+            <div class="service-card" style="pointer-events:none;background:#d9e2f1;"><span class="skel skel-title" style="width:70%;margin:0 auto;background:#c8d4e8;"></span></div>
+            <div class="service-card" style="pointer-events:none;background:#d9e2f1;"><span class="skel skel-title" style="width:55%;margin:0 auto;background:#c8d4e8;"></span></div>
+            <div class="service-card" style="pointer-events:none;background:#d9e2f1;"><span class="skel skel-title" style="width:40%;margin:0 auto;background:#c8d4e8;"></span></div>
+            <div class="service-card" style="pointer-events:none;background:#d9e2f1;"><span class="skel skel-title" style="width:65%;margin:0 auto;background:#c8d4e8;"></span></div>
+          </div>
+          <p id="loading" style="display:none; text-align: center; color:#6b7a99; font-size:1rem; font-weight:600; margin-top:40px;"></p>
           <p id="no-results" style="display:none; text-align:center; color:#6b7a99; font-size:1rem; font-weight:600; margin-top:40px;">No services found.</p>
         </div>
       </div>
@@ -119,6 +133,38 @@
     import { auth, db } from '../Firebase/firebase-config.js';
     import { collection, query, where, getDocs, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+    const params = new URLSearchParams(window.location.search);
+    let currentOffice = params.get('office');
+    const sameName = (a, b) =>
+      String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase();
+
+    function showOfficeTitle() {
+      const title = document.getElementById('page-title');
+      const subtitle = document.getElementById('page-subtitle');
+      if (!currentOffice) {
+        title.textContent = 'Service List';
+        subtitle.textContent = 'Monitor and manage document processes.';
+        return;
+      }
+      title.textContent = currentOffice + " Services";
+      subtitle.textContent = `Monitor and manage service items listed under ${currentOffice}.`;
+    }
+
+    // Swap the skeleton for a status message
+    function showStatus(msg) {
+      document.getElementById('page-skel').hidden = true;
+      const loadingText = document.getElementById('loading');
+      loadingText.innerText = msg;
+      loadingText.style.display = 'block';
+    }
+
+    function revealContent() {
+      document.getElementById('main-content').classList.add('is-ready');
+    }
+
+    // Office is already known from the URL: show the right title on first paint
+    showOfficeTitle();
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -139,6 +185,31 @@
         const userRoleEl = document.querySelector('.user-role');
         if (userNameEl) userNameEl.textContent = user.displayName || user.email;
         if (userRoleEl) userRoleEl.textContent = 'Admin ✓';
+
+        const adminData = adminDoc.data();
+        const isSuperAdmin = adminData.role === 'super_admin' && adminData.status === 'active';
+
+        // Only the Super Admin has an office list to go back to
+        document.getElementById('btn-back').style.visibility = isSuperAdmin ? 'visible' : 'hidden';
+
+        if (!isSuperAdmin) {
+          const myOffice = (adminData.admin_office || '').trim();
+          if (!myOffice) {
+            showStatus('Your account has no office assigned yet. Please contact the Super Admin.');
+            revealContent();
+            return;
+          }
+          // Wrong or missing office in the URL: go to their own office
+          if (!sameName(currentOffice, myOffice)) {
+            window.location.replace('category_list.html?office=' + encodeURIComponent(myOffice));
+            return;
+          }
+          currentOffice = myOffice;
+        }
+
+        showOfficeTitle();
+        revealContent();
+        loadServices();
       } catch (error) {
         console.error('Auth check failed:', error);
         await signOut(auth);
@@ -146,32 +217,27 @@
       }
     });
 
-    const params = new URLSearchParams(window.location.search);
-    const currentOffice = params.get('office');
-
-    if (currentOffice) {
-      document.getElementById('page-title').textContent = currentOffice + " Services";
-      document.getElementById('page-subtitle').textContent = `Monitor and manage service items listed under ${currentOffice}.`;
-    }
-
     async function loadServices() {
       const listContainer = document.getElementById('services-grid');
       const loadingText = document.getElementById('loading');
-      
+
       if (!currentOffice) {
-        loadingText.innerText = 'No office selected.';
+        showStatus('No office selected.');
         return;
       }
 
       try {
-        loadingText.style.display = 'block';
 
         const officesRef = collection(db, "offices");
         const officeQuery = query(officesRef, where("office_name", "==", currentOffice));
         const officeSnapshot = await getDocs(officeQuery);
 
         if (officeSnapshot.empty) {
-          loadingText.innerText = 'Office not found in the database.';
+          showStatus('Office not found in the database.');
+          return;
+        }
+        if (officeSnapshot.docs[0].data().isDeleted === true) {
+          showStatus('This office is in Deleted Records. A Super Admin can recover it from the Review Queue.');
           return;
         }
 
@@ -180,35 +246,37 @@
 
         const servicesRef = collection(db, "offices", actualOfficeId, "services");
         const querySnapshot = await getDocs(servicesRef);
+        // Services in Deleted Records are hidden; older docs without isDeleted stay visible
+        const activeDocs = querySnapshot.docs.filter(d => d.data().isDeleted !== true);
 
-        if (querySnapshot.empty) {
-          loadingText.innerText = 'No services found for this office yet.';
+        if (!activeDocs.length) {
+          showStatus('No services found for this office yet.');
           return;
-        } else {
-          loadingText.style.display = 'none';
         }
+        document.getElementById('page-skel').hidden = true;
 
-        querySnapshot.forEach((doc) => {
+        // Build all cards first, then insert and fade them in together
+        let cardsHTML = '';
+        activeDocs.forEach((doc) => {
           const serviceData = doc.data();
-          const serviceId = doc.id; 
-          
+          const serviceId = doc.id;
+
           const safeId = serviceId.replace(/'/g, "\\'");
-          const serviceHTML = `
+          cardsHTML += `
             <div class="service-card" onclick="openService('${safeId}')">
               <p class="card-title">${serviceData.service_name || serviceId}</p>
             </div>
           `;
-          
-          listContainer.insertAdjacentHTML('beforeend', serviceHTML);
         });
+
+        listContainer.innerHTML = cardsHTML;
+        requestAnimationFrame(() => listContainer.classList.add('is-ready'));
 
       } catch (error) {
         console.error("Error fetching services: ", error);
-        loadingText.innerText = 'Failed to load services. Check your permissions.';
+        showStatus('Failed to load services. Check your permissions.');
       }
     }
-
-    loadServices();
   </script>
   
   <script>
