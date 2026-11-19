@@ -581,11 +581,11 @@
         onConfirm: async () => {
           showLoadingToast('Deleting...', 'Removing the record.');
           try {
-            await deleteDoc(doc(db, 'completed_requests', reqId));
+            await callAdminFunction('adminDeleteCompletedRequest', { requestId: reqId });
             showToast('success', 'Deleted', 'The record has been removed.');
           } catch (error) {
             console.error('Could not delete completed request:', error);
-            showToast('error', 'Delete Failed', 'Could not delete this record (' + (error.code || error.message) + ').');
+            showToast('error', 'Delete Failed', 'Could not delete this record (' + error.message + ').');
           }
         }
       });

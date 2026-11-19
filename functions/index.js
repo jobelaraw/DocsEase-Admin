@@ -769,6 +769,34 @@ async function purgeExpired(querySnap, label, counts) {
   }
 }
 
+// Permanently deletes a completed_requests history record. Done server-side
+// because Firestore rules don't allow clients to delete from this collection.
+exports.adminDeleteCompletedRequest = onRequest({ invoker: "public" }, (req, res) => {
+  cors(req, res, async () => {
+    if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+    try {
+      const caller = await requireSuperAdmin(req, res);
+      if (!caller) return;
+
+      const { requestId } = parseBody(req);
+      if (typeof requestId !== "string" || !requestId || requestId.includes("/")) {
+        return res.status(400).json({ error: "requestId is required" });
+      }
+
+      const ref = admin.firestore().collection("completed_requests").doc(requestId);
+      const snap = await ref.get();
+      if (!snap.exists) return res.status(404).json({ error: "Record not found" });
+
+      await ref.delete();
+      console.log(`adminDeleteCompletedRequest: ${caller.uid} deleted completed_requests/${requestId}`);
+      return res.status(200).json({ success: true });
+    } catch (error) {
+      console.error("adminDeleteCompletedRequest failed:", error);
+      return res.status(500).json({ error: error.message });
+    }
+  });
+});
+
 // Daily cleanup: permanently deletes offices (with all nested services) and
 // services whose 30-day recovery window has passed. Recovered docs have no
 // permanentDeleteAt, so they never match the query.
