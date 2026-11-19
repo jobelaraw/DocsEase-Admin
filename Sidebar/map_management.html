@@ -277,6 +277,7 @@
         const add = (snap, coll, nameField) => snap.forEach(d => {
           if (FIXED_IDS.has(d.id)) return;
           const x = d.data();
+          if (x.isDeleted === true) return; // office is in Deleted Records
           let slot = x.map_slot || null, old = false;
           if (slot && x.map_slot_v !== SLOT_VERSION) { slot = OLD_TO_NEW[slot] || null; old = true; }
           const rec = {

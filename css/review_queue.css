@@ -551,3 +551,30 @@
     flex: 1;
   }
 }
+
+/* Deleted Records: office vs service label */
+.rq-avatar--office {
+  background: linear-gradient(135deg, #2b3f6c, #6b7a99);
+}
+
+.rq-kind-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 50px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.rq-kind-badge--office {
+  background: #dbe5fb;
+  color: #2057CE;
+}
+
+.rq-kind-badge--service {
+  background: #e7ebf1;
+  color: #4a5568;
+}

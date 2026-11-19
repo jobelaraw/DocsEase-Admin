@@ -236,6 +236,10 @@
           showStatus('Office not found in the database.');
           return;
         }
+        if (officeSnapshot.docs[0].data().isDeleted === true) {
+          showStatus('This office is in Deleted Records. A Super Admin can recover it from the Review Queue.');
+          return;
+        }
 
         const actualOfficeId = officeSnapshot.docs[0].id;
         window.currentOfficeId = actualOfficeId; // used by openService()

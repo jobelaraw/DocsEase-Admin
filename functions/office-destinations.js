@@ -236,7 +236,7 @@ onAuthStateChanged(auth, (user) => {
     collection(db, 'offices'),
     (snap) => {
       officeList = snap.docs
-        .filter((d) => isFirstFloor(d.data()[FLOOR_FIELD]))
+        .filter((d) => d.data().isDeleted !== true && isFirstFloor(d.data()[FLOOR_FIELD]))
         .map(nameOf);
       rebuildNames();
     },

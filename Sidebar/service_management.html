@@ -190,7 +190,8 @@
 
   <script type="module">
     import { auth, db } from '../Firebase/firebase-config.js';
-    import { collection, getDocs, getDoc, doc, deleteDoc, setDoc, addDoc, serverTimestamp, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { collection, getDocs, getDoc, doc, setDoc, addDoc, serverTimestamp, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { trashOfficeAsSuperAdmin } from '../functions/service-delete.js';
     // Activity log helper
     let _logActor = null;
     let _superAdminUids = null;
@@ -337,9 +338,11 @@
         skel.hidden = false;
 
         const querySnapshot = await getDocs(collection(db, "offices"));
+        // Offices in Deleted Records are hidden; older docs without isDeleted stay visible
+        const activeOffices = querySnapshot.docs.filter(d => d.data().isDeleted !== true);
 
         skel.hidden = true;
-        if (querySnapshot.empty) {
+        if (!activeOffices.length) {
           loadingText.innerText = 'No offices found. Add one to get started!';
           loadingText.style.display = 'block';
           return;
@@ -347,7 +350,7 @@
 
         // Build all cards first, then insert and fade them in together
         let cardsHTML = '';
-        querySnapshot.forEach((officeDoc) => {
+        activeOffices.forEach((officeDoc) => {
           const officeData = officeDoc.data();
           const officeName = officeData.office_name || officeDoc.id;
           const cardHTML = `
@@ -494,13 +497,16 @@
           catch (err) { console.warn(`[add-office] could not read "${name}":`, err); return []; }
         };
         const [officeDocs, roomDocs] = await Promise.all([readDocs('offices'), readDocs('other_room')]);
-        const duplicate = [...officeDocs, ...roomDocs].some(d => {
+        const duplicate = [...officeDocs, ...roomDocs].find(d => {
           const data = d.data();
           return d.id === officeId ||
             String(data.office_name || data.room_name || d.id).trim().toLowerCase() === officeName.toLowerCase();
         });
         if (duplicate) {
-          showAoError('An office or room with this name already exists.', aoInput);
+          // A deleted office keeps its document, so a new one with the same ID would overwrite it
+          showAoError(duplicate.data().isDeleted === true
+            ? 'An office with this name is in Deleted Records. Recover it from the Review Queue, or delete it permanently first.'
+            : 'An office or room with this name already exists.', aoInput);
           return;
         }
 
@@ -546,25 +552,28 @@
       window.showConfirmToast({
         type: 'warning',
         title: 'Delete Office Category?',
-        msg: `This will permanently delete "${officeName}" and all of its services.`,
+        msg: `"${officeName}" and all of its services will be moved to Deleted Records in the Review Queue. You can recover it within 30 days.`,
         confirmText: 'Yes, Delete',
         cancelText: 'No',
         onConfirm: async () => {
           button.disabled = true;
-          window.showToast('loading', 'Deleting Office Category', 'The office category and its services are being deleted.', '');
+          window.showToast('loading', 'Deleting Office Category', 'The office category is being moved to Deleted Records.', '');
 
           try {
-            const servicesRef = collection(db, 'offices', officeId, 'services');
-            const servicesSnapshot = await getDocs(servicesRef);
-            await Promise.all(servicesSnapshot.docs.map(serviceDoc => deleteDoc(serviceDoc.ref)));
-            await deleteDoc(doc(db, 'offices', officeId));
+            // Soft delete: the office and its services stay in Firestore until recovered or permanently deleted
+            await trashOfficeAsSuperAdmin(officeId);
             await logActivity('office_deleted', { office_name: officeName });
             officeCard.remove();
-            window.showToast('success', 'Deletion Successful', `"${officeName}" and all of its services have been deleted.`, 'OK');
+            if (!document.querySelector('#office-grid .office-card')) {
+              const loadingText = document.getElementById('loading');
+              loadingText.innerText = 'No offices found. Add one to get started!';
+              loadingText.style.display = 'block';
+            }
+            window.showToast('success', 'Moved to Deleted Records', `"${officeName}" was moved to Deleted Records. You can recover it from the Review Queue within 30 days.`, 'OK');
           } catch (error) {
             console.error('Error deleting office category:', error);
             button.disabled = false;
-            window.showToast('error', 'Delete Failed', 'The office category could not be deleted. Please try again.', 'OK');
+            window.showToast('error', 'Delete Failed', error.message || 'The office category could not be deleted. Please try again.', 'OK');
           }
         }
       });

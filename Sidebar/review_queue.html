@@ -115,6 +115,11 @@
           <button type="button" class="rq-typechip" data-type="delete_admin" onclick="setTypeFilter('delete_admin')">Pending Admin Deleted Account</button>
           <button type="button" class="rq-typechip" data-type="delete_service" onclick="setTypeFilter('delete_service')">Pending Deleted Service</button>
         </div>
+        <div class="rq-type-filters" id="rq-kind-filters" hidden>
+          <button type="button" class="rq-typechip active" data-kind="all" onclick="setKindFilter('all')">All</button>
+          <button type="button" class="rq-typechip" data-kind="office" onclick="setKindFilter('office')">Deleted Offices</button>
+          <button type="button" class="rq-typechip" data-kind="service" onclick="setKindFilter('service')">Deleted Services</button>
+        </div>
       </div>
 
       <div class="rq-grid" id="rq-grid" aria-busy="true">
@@ -255,9 +260,10 @@
     let pendingRequests = []; // from 'requests'
     let completedRequests = []; // from 'completed_requests'
     let mainTab = 'pending'; // 'pending' | 'completed' | 'deleted'
-    let deletedServices = []; // from adminListDeletedServices
+    let deletedRecords = []; // trashed offices + services from adminListDeletedServices
     let deletedState = 'idle'; // 'idle' | 'loading' | 'ready' | 'error'
-    const busyServices = new Set(); // "officeId/serviceId" with an action in progress
+    let kindFilter = 'all'; // 'all' | 'office' | 'service' (Deleted Records only)
+    const busyRecords = new Set(); // record keys with an action in progress
     let typeFilter = 'all'; // 'all' | 'new_admin' | 'delete_admin' | 'delete_service'
     let dateFilter = 'today'; // 'today' | 'week' | 'earlier'
     let searchQuery = ''; // lowercased, trimmed
@@ -402,15 +408,16 @@
       document.getElementById('tab-completed').classList.toggle('active', tab === 'completed');
       document.getElementById('tab-deleted').classList.toggle('active', isDeleted);
 
-      // Deleted Records shows every trashed service, so the request filters don't apply
+      // Deleted Records shows every trashed office and service, so the request filters don't apply
       document.getElementById('rq-type-filters').hidden = isDeleted;
+      document.getElementById('rq-kind-filters').hidden = !isDeleted;
       document.getElementById('rq-date-filters').hidden = isDeleted;
       document.getElementById('rq-banner-title').textContent = isDeleted ? 'Deleted Records' : 'Review Request';
       document.getElementById('rq-banner-sub').textContent = isDeleted
-        ? 'Deleted services are kept for 30 days. Recover them or delete them permanently.'
+        ? 'Deleted offices and services are kept for 30 days. Recover them or delete them permanently.'
         : 'Manage request, accept or decline request admin.';
       document.getElementById('search-input').placeholder = isDeleted
-        ? 'Search deleted services...'
+        ? 'Search deleted records...'
         : 'Search requests...';
 
       document.querySelectorAll('#rq-type-filters .rq-typechip').forEach(chip => {
@@ -419,19 +426,33 @@
         chip.textContent = TYPE_LABELS[type][tab === 'completed' ? 'completed' : 'pending'];
       });
 
-      if (isDeleted && deletedState !== 'loading') loadDeletedServices();
+      if (isDeleted && deletedState !== 'loading') loadDeletedRecords();
       render();
     };
 
-    async function loadDeletedServices() {
+    window.setKindFilter = function (kind) {
+      kindFilter = kind;
+      document.querySelectorAll('#rq-kind-filters .rq-typechip').forEach(chip => {
+        chip.classList.toggle('active', chip.dataset.kind === kind);
+      });
+      render();
+    };
+
+    async function loadDeletedRecords() {
       deletedState = 'loading';
       if (mainTab === 'deleted') render();
       try {
         const data = await callAdminFunction('adminListDeletedServices');
-        deletedServices = data.services || [];
+        const offices = (data.offices || []).map(o => ({
+          ...o, kind: 'office', key: 'office:' + o.officeId, name: o.officeName
+        }));
+        const services = (data.services || []).map(s => ({
+          ...s, kind: 'service', key: 'service:' + s.officeId + '/' + s.serviceId, name: s.serviceName
+        }));
+        deletedRecords = [...offices, ...services].sort((a, b) => (b.deletedAt || 0) - (a.deletedAt || 0));
         deletedState = 'ready';
       } catch (error) {
-        console.error('Could not load deleted services:', error);
+        console.error('Could not load deleted records:', error);
         deletedState = 'error';
       }
       if (mainTab === 'deleted') render();
@@ -545,8 +566,8 @@
       if (action === 'accept') acceptRequest(id, type);
       if (action === 'decline') declineRequest(id, type);
       if (action === 'delete') deleteCompletedRequest(id);
-      if (action === 'recover') recoverService(btn.dataset.office, btn.dataset.service);
-      if (action === 'purge') purgeService(btn.dataset.office, btn.dataset.service);
+      if (action === 'recover') recoverRecord(btn.dataset.key);
+      if (action === 'purge') purgeRecord(btn.dataset.key);
     });
 
     // Permanently deletes a completed_requests record (Super Admin only)
@@ -570,8 +591,45 @@
       });
     }
 
-    // ---------- Deleted Records (trashed services) ----------
+    // ---------- Deleted Records (trashed offices and services) ----------
     const DAY_MS = 24 * 60 * 60 * 1000;
+
+    // Per-kind wording and backend calls; everything else is shared
+    const TRASH_KINDS = {
+      service: {
+        label: 'Service',
+        restoreFn: 'adminRestoreService',
+        purgeFn: 'adminPurgeService',
+        ids: r => ({ officeId: r.officeId, serviceId: r.serviceId }),
+        restoredLog: 'service_restored',
+        purgedLog: 'service_purged',
+        logDetails: r => ({ office_name: r.officeName, service_name: r.name }),
+        recoverMsg: r => `Recover "${r.name}" to ${r.officeName}? It will appear again in Service Management.`,
+        recoverLoading: 'Restoring the service to its office.',
+        recoveredMsg: r => `"${r.name}" is back in ${r.officeName}.`,
+        purgeMsg: r => `"${r.name}" (${r.officeName}) and all of its saved data will be permanently deleted. This cannot be recovered.`,
+        purgeLoading: 'Permanently deleting the service and its data.'
+      },
+      office: {
+        label: 'Office',
+        restoreFn: 'adminRestoreOffice',
+        purgeFn: 'adminPurgeOffice',
+        ids: r => ({ officeId: r.officeId }),
+        restoredLog: 'office_restored',
+        purgedLog: 'office_purged',
+        logDetails: r => ({ office_name: r.name }),
+        recoverMsg: r => `Recover "${r.name}"? It will appear again in Service Management with all of its services.`,
+        recoverLoading: 'Restoring the office and its services.',
+        recoveredMsg: (r, data) => `"${r.name}" is back in Service Management with all of its services.` +
+          (data.hadMapSlot && !data.mapSlotRestored ? ' Its map room is now used by another office, so place it again in Map Management.' : ''),
+        purgeMsg: r => `"${r.name}", its ${serviceCountLabel(r.serviceCount)} and all of their saved data will be permanently deleted. This cannot be recovered.`,
+        purgeLoading: 'Permanently deleting the office, its services and all of their data.'
+      }
+    };
+
+    function serviceCountLabel(n) {
+      return n === 1 ? '1 service' : (n || 0) + ' services';
+    }
 
     function formatDate(ms) {
       return ms ? new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-';
@@ -586,8 +644,8 @@
       return escapeHtml(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
-    function findDeleted(officeId, serviceId) {
-      return deletedServices.find(s => s.officeId === officeId && s.serviceId === serviceId);
+    function findDeleted(key) {
+      return deletedRecords.find(r => r.key === key);
     }
 
     function renderDeleted() {
@@ -603,136 +661,155 @@
         return;
       }
 
-      let items = deletedServices;
+      let items = deletedRecords;
+      if (kindFilter !== 'all') items = items.filter(r => r.kind === kindFilter);
       if (searchQuery) {
-        items = items.filter(s => [s.serviceName, s.officeName, s.requestedByName, s.deletedByName]
+        items = items.filter(r => [r.name, r.officeName, r.requestedByName, r.deletedByName, TRASH_KINDS[r.kind].label]
           .some(v => String(v || '').toLowerCase().includes(searchQuery)));
       }
 
       if (!items.length) {
+        const what = kindFilter === 'office' ? 'offices' : kindFilter === 'service' ? 'services' : 'offices or services';
         grid.innerHTML = searchQuery
           ? `<div class="rq-empty">No deleted records match "${escapeHtml(document.getElementById('search-input').value.trim())}".</div>`
-          : '<div class="rq-empty">No deleted services. Services you delete will stay here for 30 days.</div>';
+          : `<div class="rq-empty">No deleted ${what}. Offices and services you delete will stay here for 30 days.</div>`;
         return;
       }
 
-      grid.innerHTML = items.map(s => {
-        const left = daysLeft(s.permanentDeleteAt);
-        const busy = busyServices.has(s.officeId + '/' + s.serviceId);
+      grid.innerHTML = items.map(r => {
+        const kind = TRASH_KINDS[r.kind];
+        const isOffice = r.kind === 'office';
+        const left = daysLeft(r.permanentDeleteAt);
+        const busy = busyRecords.has(r.key);
         const leftLabel = left === null ? '' : left === 0 ? 'Deletes today' : left + (left === 1 ? ' day left' : ' days left');
-        const who = s.requestedByName
-          ? `Deletion requested by ${escapeHtml(s.requestedByName)}`
-          : `Deleted by ${escapeHtml(s.deletedByName || 'Super Admin')}`;
-        const dataAttrs = `data-office="${escapeAttr(s.officeId)}" data-service="${escapeAttr(s.serviceId)}"`;
+        const who = r.requestedByName
+          ? `Deletion requested by ${escapeHtml(r.requestedByName)}`
+          : `Deleted by ${escapeHtml(r.deletedByName || 'Super Admin')}`;
+        // A service can't be recovered into an office that is itself in Deleted Records
+        const blockedByOffice = !isOffice && r.officeDeleted;
+        const dataAttrs = `data-key="${escapeAttr(r.key)}"`;
+        const contents = isOffice
+          ? ` Includes ${escapeHtml(serviceCountLabel(r.serviceCount))}, which will be recovered or deleted with it.`
+          : blockedByOffice ? ' Its office is also in Deleted Records. Recover the office first.' : '';
 
         return `
           <div class="rq-card">
             <div class="rq-card-top">
-              <div class="rq-avatar rq-avatar--deleted">${escapeHtml((s.serviceName || '?').charAt(0).toUpperCase())}</div>
+              <div class="rq-avatar rq-avatar--deleted${isOffice ? ' rq-avatar--office' : ''}">${escapeHtml((r.name || '?').charAt(0).toUpperCase())}</div>
               <div class="rq-card-who">
-                <div class="rq-name">${escapeHtml(s.serviceName)}</div>
+                <div class="rq-name">${escapeHtml(r.name)} <span class="rq-kind-badge rq-kind-badge--${r.kind}">${kind.label}</span></div>
                 <div class="rq-role">${who}</div>
               </div>
               <div class="rq-card-meta">
-                <div class="rq-time">Deleted ${escapeHtml(timeAgo(s.deletedAt ? new Date(s.deletedAt) : null))}</div>
+                <div class="rq-time">Deleted ${escapeHtml(timeAgo(r.deletedAt ? new Date(r.deletedAt) : null))}</div>
                 <span class="rq-status-badge deleted${left !== null && left <= 3 ? ' expiring' : ''}">${escapeHtml(leftLabel || 'DELETED')}</span>
               </div>
             </div>
             <div class="rq-card-desc">
-              Deleted on ${escapeHtml(formatDate(s.deletedAt))}. It will be permanently deleted on
-              <strong>${escapeHtml(formatDate(s.permanentDeleteAt))}</strong> unless recovered.
+              Deleted on ${escapeHtml(formatDate(r.deletedAt))}. It will be permanently deleted on
+              <strong>${escapeHtml(formatDate(r.permanentDeleteAt))}</strong> unless recovered.${contents}
             </div>
             <div class="rq-office-badge-row">
-              <div class="rq-office-badge"><span>${escapeHtml(s.officeName)}</span></div>
+              <div class="rq-office-badge"><span>${escapeHtml(r.officeName)}</span></div>
             </div>
             <div class="rq-card-actions">
               <button type="button" class="rq-btn purge" data-action="purge" ${dataAttrs} ${busy ? 'disabled' : ''}>
                 <img src="../assets/delete.png" alt="" /> Delete Permanently
               </button>
-              <button type="button" class="rq-btn recover" data-action="recover" ${dataAttrs} ${busy ? 'disabled' : ''}>Recover Service</button>
+              <button type="button" class="rq-btn recover" data-action="recover" ${dataAttrs} ${busy || blockedByOffice ? 'disabled' : ''}
+                ${blockedByOffice ? 'title="Recover the office first"' : ''}>Recover ${kind.label}</button>
             </div>
           </div>`;
       }).join('');
     }
 
     document.getElementById('rq-grid').addEventListener('click', (e) => {
-      if (e.target.closest('[data-action="retry-deleted"]')) loadDeletedServices();
+      if (e.target.closest('[data-action="retry-deleted"]')) loadDeletedRecords();
     });
 
-    async function runServiceAction(s, work) {
-      const key = s.officeId + '/' + s.serviceId;
-      if (busyServices.has(key)) return;
-      busyServices.add(key);
+    async function runRecordAction(r, work) {
+      if (busyRecords.has(r.key)) return;
+      busyRecords.add(r.key);
       render();
       try {
         await work();
       } finally {
-        busyServices.delete(key);
+        busyRecords.delete(r.key);
         render();
       }
     }
 
-    function recoverService(officeId, serviceId) {
-      const s = findDeleted(officeId, serviceId);
-      if (!s || busyServices.has(officeId + '/' + serviceId)) return;
+    function recoverRecord(key) {
+      const r = findDeleted(key);
+      if (!r || busyRecords.has(key)) return;
+      const kind = TRASH_KINDS[r.kind];
       showConfirmToast({
         type: 'info',
-        title: 'Recover Service',
-        msg: `Recover "${s.serviceName}" to ${s.officeName}? It will appear again in Service Management.`,
+        title: `Recover ${kind.label}`,
+        msg: kind.recoverMsg(r),
         confirmText: 'Yes, Recover',
         cancelText: 'Cancel',
-        onConfirm: () => runServiceAction(s, async () => {
-          showLoadingToast('Recovering...', 'Restoring the service to its office.');
+        onConfirm: () => runRecordAction(r, async () => {
+          showLoadingToast('Recovering...', kind.recoverLoading);
           try {
-            await callAdminFunction('adminRestoreService', { officeId, serviceId });
-            deletedServices = deletedServices.filter(x => x !== s);
-            await logActivity('service_restored', { office_name: s.officeName, service_name: s.serviceName });
-            showToast('success', 'Service Recovered', `"${s.serviceName}" is back in ${s.officeName}.`, 'OK');
+            const data = await callAdminFunction(kind.restoreFn, kind.ids(r));
+            deletedRecords = deletedRecords.filter(x => x !== r);
+            // Services inside a recovered office can be recovered again
+            if (r.kind === 'office') {
+              deletedRecords.forEach(x => { if (x.kind === 'service' && x.officeId === r.officeId) x.officeDeleted = false; });
+            }
+            await logActivity(kind.restoredLog, kind.logDetails(r));
+            showToast('success', `${kind.label} Recovered`, kind.recoveredMsg(r, data), 'OK');
           } catch (error) {
             console.error('Recover failed:', error);
             showToast('error', 'Recover Failed', error.message, 'OK');
-            loadDeletedServices();
+            loadDeletedRecords();
           }
         })
       });
     }
 
-    function purgeService(officeId, serviceId) {
-      const s = findDeleted(officeId, serviceId);
-      if (!s || busyServices.has(officeId + '/' + serviceId)) return;
+    function purgeRecord(key) {
+      const r = findDeleted(key);
+      if (!r || busyRecords.has(key)) return;
+      const kind = TRASH_KINDS[r.kind];
 
       // Step 1: warning
       showConfirmToast({
         type: 'warning',
         title: 'Delete Permanently?',
-        msg: `"${s.serviceName}" (${s.officeName}) and all of its saved data will be permanently deleted. This cannot be recovered.`,
+        msg: kind.purgeMsg(r),
         confirmText: 'Continue',
         cancelText: 'Cancel',
-        onConfirm: () => setTimeout(() => askPurgeVerification(s), 0)
+        onConfirm: () => setTimeout(() => askPurgeVerification(r), 0)
       });
     }
 
-    // Step 2: type the service name to verify (checked again on the server)
-    function askPurgeVerification(s) {
+    // Step 2: type the office/service name to verify (checked again on the server)
+    function askPurgeVerification(r) {
+      const kind = TRASH_KINDS[r.kind];
+      const noun = kind.label.toLowerCase();
       showConfirmToast({
         type: 'error',
         title: 'Confirm Permanent Deletion',
-        msg: `Type the service name to confirm:`,
+        msg: `Type the ${noun} name to confirm:`,
         confirmText: 'Delete Permanently',
         cancelText: 'Cancel',
         onConfirm: () => {
           const typed = (document.getElementById('rq-verify-input')?.value || '').trim();
-          runServiceAction(s, async () => {
-            showLoadingToast('Deleting...', 'Permanently deleting the service and its data.');
+          runRecordAction(r, async () => {
+            showLoadingToast('Deleting...', kind.purgeLoading);
             try {
-              await callAdminFunction('adminPurgeService', { officeId: s.officeId, serviceId: s.serviceId, confirmName: typed });
-              deletedServices = deletedServices.filter(x => x !== s);
-              await logActivity('service_purged', { office_name: s.officeName, service_name: s.serviceName });
-              showToast('success', 'Permanently Deleted', `"${s.serviceName}" has been permanently deleted.`, 'OK');
+              await callAdminFunction(kind.purgeFn, { ...kind.ids(r), confirmName: typed });
+              // Deleting an office also removed its trashed services
+              deletedRecords = deletedRecords.filter(x => x !== r &&
+                !(r.kind === 'office' && x.kind === 'service' && x.officeId === r.officeId));
+              await logActivity(kind.purgedLog, kind.logDetails(r));
+              showToast('success', 'Permanently Deleted', `"${r.name}" has been permanently deleted.`, 'OK');
             } catch (error) {
               console.error('Permanent delete failed:', error);
               showToast('error', 'Delete Failed', error.message, 'OK');
-              loadDeletedServices();
+              loadDeletedRecords();
             }
           });
         }
@@ -740,9 +817,9 @@
 
       const msgEl = document.getElementById('toast-msg');
       const confirmBtn = document.getElementById('toast-btn');
-      const expected = String(s.serviceName).trim();
+      const expected = String(r.name).trim();
       msgEl.innerHTML = `Type <strong>${escapeHtml(expected)}</strong> to confirm.
-        <input type="text" id="rq-verify-input" class="rq-verify-input" autocomplete="off" spellcheck="false" aria-label="Type the service name to confirm" />`;
+        <input type="text" id="rq-verify-input" class="rq-verify-input" autocomplete="off" spellcheck="false" aria-label="Type the ${noun} name to confirm" />`;
       const input = document.getElementById('rq-verify-input');
       confirmBtn.disabled = true;
       input.addEventListener('input', () => { confirmBtn.disabled = input.value.trim() !== expected; });

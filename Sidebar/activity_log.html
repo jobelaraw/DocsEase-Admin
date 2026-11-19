@@ -218,7 +218,13 @@
                    desc: `${isMe ? 'You' : name} added ${office} successfully. Check it out.` };
         case 'office_deleted':
           return { title: 'Hi there! Deleted an office.',
-                   desc: `${isMe ? 'You' : name} deleted ${office}.` };
+                   desc: `${isMe ? 'You' : name} moved ${office} to Deleted Records.` };
+        case 'office_restored':
+          return { title: 'Hi there! An office was recovered.',
+                   desc: `${isMe ? 'You' : name} recovered ${office} and its services from Deleted Records.` };
+        case 'office_purged':
+          return { title: 'Hi there! An office was permanently deleted.',
+                   desc: `${isMe ? 'You' : name} permanently deleted ${office} and all of its services.` };
         case 'admin_account_requested':
           return { title: 'Hi there! New admin request.',
                    desc: `${name} requested an admin account for ${office}.` };

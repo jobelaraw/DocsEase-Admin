@@ -460,13 +460,16 @@
           catch (err) { console.warn(`[add-office] could not read "${name}":`, err); return []; }
         };
         const [officeDocs, roomDocs] = await Promise.all([readDocs('offices'), readDocs('other_room')]);
-        const duplicate = [...officeDocs, ...roomDocs].some(d => {
+        const duplicate = [...officeDocs, ...roomDocs].find(d => {
           const data = d.data();
           return d.id === officeId ||
             String(data.office_name || data.room_name || d.id).trim().toLowerCase() === officeName.toLowerCase();
         });
         if (duplicate) {
-          showAoError('An office or room with this name already exists.', aoInput);
+          // A deleted office keeps its document, so a new one with the same ID would overwrite it
+          showAoError(duplicate.data().isDeleted === true
+            ? 'An office with this name is in Deleted Records. Recover it from the Review Queue, or delete it permanently first.'
+            : 'An office or room with this name already exists.', aoInput);
           return;
         }
 
@@ -519,10 +522,12 @@
     async function loadDashboardCounts() {
       try {
         const officesSnap = await getDocs(collection(db, "offices"));
-        document.getElementById('total-offices-count').innerText = officesSnap.size;
+        // Offices in Deleted Records (and their services) are not counted
+        const activeOffices = officesSnap.docs.filter(d => d.data().isDeleted !== true);
+        document.getElementById('total-offices-count').innerText = activeOffices.length;
 
         let totalServices = 0;
-        for (const officeDoc of officesSnap.docs) {
+        for (const officeDoc of activeOffices) {
           const servicesSnap = await getDocs(collection(db, 'offices', officeDoc.id, 'services'));
           totalServices += servicesSnap.docs.filter(s => s.data().isDeleted !== true).length;
         }

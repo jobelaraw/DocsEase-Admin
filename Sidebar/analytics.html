@@ -302,11 +302,13 @@
       try {
         // Offices + Services
         const officesSnap = await getDocs(collection(db, 'offices'));
+        // Offices in Deleted Records (and their services) are not counted
+        const activeOffices = officesSnap.docs.filter(d => d.data().isDeleted !== true);
         let totalServices = 0;
         let untranslated = 0;
         const servicesPerOffice = [];
 
-        for (const officeDoc of officesSnap.docs) {
+        for (const officeDoc of activeOffices) {
           const officeData = officeDoc.data();
           const servicesSnap = await getDocs(collection(db, 'offices', officeDoc.id, 'services'));
           const activeServices = servicesSnap.docs.filter(s => s.data().isDeleted !== true);
@@ -324,7 +326,7 @@
         const totalServicesEl = document.getElementById('totalServices');
         const untranslatedServicesEl = document.getElementById('untranslatedServices');
 
-        if (totalOfficesEl) totalOfficesEl.textContent = officesSnap.size.toLocaleString();
+        if (totalOfficesEl) totalOfficesEl.textContent = activeOffices.length.toLocaleString();
         if (totalServicesEl) totalServicesEl.textContent = totalServices.toLocaleString();
         if (untranslatedServicesEl) untranslatedServicesEl.textContent = untranslated.toLocaleString();
 

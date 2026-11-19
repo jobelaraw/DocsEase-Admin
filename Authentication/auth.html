@@ -546,6 +546,7 @@ async function populateOfficeDropdown() {
         const optionsHtml = ['<option value="" disabled selected>Select an office</option>'];
         officesSnap.forEach(docSnap => {
           const data = docSnap.data();
+          if (data.isDeleted === true) return; // office is in Deleted Records
           const value = data.office_name || docSnap.id;
           optionsHtml.push(`<option value="${value}">${value}</option>`);
         });

@@ -8,21 +8,31 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { notifySuperAdminDeleteRequest } from './email-service.js';
 
-const TRASH_SERVICE_ENDPOINT = 'https://us-central1-docsease-efacc.cloudfunctions.net/adminTrashService';
+const FUNCTIONS_BASE = 'https://us-central1-docsease-efacc.cloudfunctions.net/';
 
-// Soft-deletes a service (isDeleted: true, recoverable for 30 days). The Cloud Function checks Super Admin.
-export async function trashServiceAsSuperAdmin(officeId, serviceId) {
+// Calls a Super Admin trash Cloud Function; the function itself checks the caller is a Super Admin.
+async function callTrashFunction(name, body) {
   const user = auth.currentUser;
   if (!user) throw new Error('You are not signed in.');
-  const res = await fetch(TRASH_SERVICE_ENDPOINT, {
+  const res = await fetch(FUNCTIONS_BASE + name, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + await user.getIdToken() },
-    body: JSON.stringify({ officeId, serviceId })
+    body: JSON.stringify(body)
   });
   let data = {};
   try { data = await res.json(); } catch (e) { /* non-JSON error */ }
   if (!res.ok) throw new Error(data.error || ('Request failed (' + res.status + ')'));
   return data;
+}
+
+// Soft-deletes a service (isDeleted: true, recoverable for 30 days).
+export function trashServiceAsSuperAdmin(officeId, serviceId) {
+  return callTrashFunction('adminTrashService', { officeId, serviceId });
+}
+
+// Soft-deletes an office (isDeleted: true, recoverable for 30 days). Its services are left untouched.
+export function trashOfficeAsSuperAdmin(officeId) {
+  return callTrashFunction('adminTrashOffice', { officeId });
 }
 
 export async function deleteOrRequestServiceDeletion({ officeId, officeName, serviceId, serviceName }) {

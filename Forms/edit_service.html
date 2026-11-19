@@ -344,6 +344,10 @@
       }
       try {
         const officeSnap = await getDoc(doc(db, 'offices', officeId));
+        if (officeSnap.exists() && officeSnap.data().isDeleted === true) {
+          showFatalError('This office is in Deleted Records. Recover it from the Review Queue before editing its services.');
+          return;
+        }
         const officeNameForCheck = officeSnap.exists()
           ? (officeSnap.data().office_name || officeId)
           : officeId;
@@ -946,9 +950,12 @@
         showToast('loading', 'Saving Changes', 'The service changes are currently being processed. Please wait.', '');
         const serviceRef = doc(db, 'offices', officeId, 'services', serviceId);
         // Don't let a stale edit page bring a deleted service back
-        const latest = await getDoc(serviceRef);
+        const [latest, latestOffice] = await Promise.all([getDoc(serviceRef), getDoc(doc(db, 'offices', officeId))]);
         if (latest.exists() && latest.data().isDeleted === true) {
           throw new Error('This service was moved to Deleted Records while you were editing. Recover it first.');
+        }
+        if (latestOffice.exists() && latestOffice.data().isDeleted === true) {
+          throw new Error('This office was moved to Deleted Records while you were editing. Recover it first.');
         }
         await setDoc(serviceRef, payload);
 

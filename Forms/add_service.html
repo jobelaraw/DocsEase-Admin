@@ -504,13 +504,15 @@
       try {
         const querySnapshot = await getDocs(collection(db, "offices"));
         officeMenu.innerHTML = '';
+        // Offices in Deleted Records can't receive new services
+        const activeOffices = querySnapshot.docs.filter(d => d.data().isDeleted !== true);
 
-        if (querySnapshot.empty) {
+        if (!activeOffices.length) {
           officeMenu.innerHTML = '<div class="combo-item">No offices found</div>';
           return;
         }
 
-        querySnapshot.forEach((doc) => {
+        activeOffices.forEach((doc) => {
           const data = doc.data();
           const officeName = data.office_name || doc.id;
 
