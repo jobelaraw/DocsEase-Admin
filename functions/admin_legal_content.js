@@ -44,7 +44,7 @@ export const ADMIN_LEGAL = {
         'cannot sign in until approved. What you can do depends on your ' +
         'office and role. Some actions, such as deleting a service, may need ' +
         'the approval of the Super Admin. The Super Admin may approve, ' +
-        'change, suspend or remove any administrator account.',
+        'change, deactivate, reactivate or remove any administrator account.',
     },
     {
       heading: 'Accuracy of Published Content',
@@ -95,11 +95,15 @@ export const ADMIN_LEGAL = {
         'use that information for any other purpose.',
     },
     {
-      heading: 'Suspension and Removal',
+      heading: 'Inactive Accounts, Suspension and Removal',
       body:
-        'Your access may be suspended or removed if you break these Terms or ' +
-        'no longer work with the concerned office. You may delete your own ' +
-        'administrator account at any time.',
+        'For security, an administrator account that has not signed in for ' +
+        '30 days may be deactivated by the Super Admin. A deactivated ' +
+        'account cannot sign in, but it is not deleted, and the Super Admin ' +
+        'can reactivate it at any time. Your access may also be suspended or ' +
+        'removed if you break these Terms or no longer work with the ' +
+        'concerned office. You may delete your own administrator account at ' +
+        'any time.',
     },
     {
       heading: 'Disclaimer and Liability',
@@ -150,8 +154,10 @@ export const ADMIN_LEGAL = {
         '• Your password, which is handled by Firebase Authentication and ' +
         'cannot be read by us, or your Google sign-in details (name and ' +
         'email address) if you use Continue with Google.\n' +
-        '• Your sign-in method and the dates your account was created and ' +
+        '• Your sign-in method, and the dates your account was created and ' +
         'updated.\n' +
+        '• The date and time of your last sign-in, used to tell whether an ' +
+        'account is still in use.\n' +
         '• Requests you make, such as account approval and service deletion ' +
         'requests.\n' +
         '• Activity log entries: your name, role, office, the action taken ' +
@@ -163,9 +169,10 @@ export const ADMIN_LEGAL = {
       heading: 'How We Use Your Information',
       body:
         'We use your information to review and approve administrator access, ' +
-        'keep the web admin secure, show who made each change, send you ' +
-        'account emails such as registration updates and verification codes, ' +
-        'and comply with the law.',
+        'keep the web admin secure, show who made each change, find accounts ' +
+        'that have not been used for 30 days so the Super Admin can ' +
+        'deactivate them, send you account emails such as registration ' +
+        'updates and verification codes, and comply with the law.',
     },
     {
       heading: 'Legal Basis',
@@ -180,7 +187,10 @@ export const ADMIN_LEGAL = {
       body:
         'We do not sell your personal information. The Super Admin and other ' +
         'authorized administrators may see your name, office and actions in ' +
-        'the activity log and review queue, depending on their role.\n\n' +
+        'the activity log and review queue, depending on their role. The ' +
+        'Super Admin can also see your full name, email address, office, ' +
+        'registration date and last sign-in in the account management page, ' +
+        'where accounts can be deactivated or reactivated.\n\n' +
         'We use trusted service providers to run the web admin: Google ' +
         'Firebase (authentication, database and cloud functions), Google ' +
         'Sign-In, and EmailJS, which sends registration, notification and ' +
@@ -201,7 +211,9 @@ export const ADMIN_LEGAL = {
       heading: 'Retention',
       body:
         'We keep your information while your administrator account is ' +
-        'active. When you delete your account, your administrator profile is ' +
+        'active. A deactivated account and its information are kept until ' +
+        'the Super Admin reactivates or removes it. When you delete your ' +
+        'account, your administrator profile is ' +
         'removed. Activity log entries and past requests may be kept for ' +
         'accountability and audit purposes.',
     },
