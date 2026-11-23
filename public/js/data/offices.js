@@ -1,8 +1,9 @@
 // Offices and other rooms (Firestore: offices/{officeId}, other_room/{roomId}).
 // Offices in Deleted Records keep their document with isDeleted: true.
 import { db } from '../core/firebase.js';
-import { collection, doc, getDoc, getDocs, onSnapshot, query, where, limit, setDoc, updateDoc, serverTimestamp, writeBatch, deleteField } from '../core/sdk/firestore.js';
+import { collection, doc, getDoc, getDocs, query, where, limit, setDoc, updateDoc, serverTimestamp, writeBatch, deleteField } from '../core/sdk/firestore.js';
 import { newNotifyId } from '../core/api.js';
+import { liveQuery, liveDoc } from './live.js';
 import { OFFICE_CATEGORY } from '../core/constants.js';
 
 export const isActive = (data) => !!data && data.isDeleted !== true;
@@ -25,7 +26,7 @@ export async function getOffice(officeId) {
 
 // Live office doc: callback(office | null)
 export function watchOffice(officeId, callback, onError) {
-  return onSnapshot(doc(db, 'offices', officeId), (snap) => callback(snap.exists() ? officeFrom(snap) : null), onError);
+  return liveDoc(doc(db, 'offices', officeId), (snap) => callback(snap.exists() ? officeFrom(snap) : null), onError);
 }
 
 export async function findOfficeByName(name) {
@@ -35,7 +36,7 @@ export async function findOfficeByName(name) {
 
 // Live list of active offices, sorted by name: callback(offices)
 export function watchOffices(callback, onError) {
-  return onSnapshot(collection(db, 'offices'), (snap) => {
+  return liveQuery(collection(db, 'offices'), (snap) => {
     callback(snap.docs.map(officeFrom).filter(isActive).sort(byName));
   }, onError);
 }
@@ -51,7 +52,7 @@ export async function listRooms() {
 }
 
 export function watchRooms(callback, onError) {
-  return onSnapshot(collection(db, 'other_room'), (snap) => callback(snap.docs.map(roomFrom).sort(byName)), onError);
+  return liveQuery(collection(db, 'other_room'), (snap) => callback(snap.docs.map(roomFrom).sort(byName)), onError);
 }
 
 // Office document ID from its name (same scheme the panel has always used).

@@ -1,8 +1,9 @@
 // Services of an office (Firestore: offices/{officeId}/services/{serviceId}).
 // Services in Deleted Records keep their document with isDeleted: true.
 import { db } from '../core/firebase.js';
-import { collection, doc, getDoc, getDocs, onSnapshot, setDoc, addDoc, query, where, serverTimestamp } from '../core/sdk/firestore.js';
+import { collection, doc, getDoc, getDocs, setDoc, addDoc, query, where, serverTimestamp } from '../core/sdk/firestore.js';
 import { newNotifyId } from '../core/api.js';
+import { liveQuery } from './live.js';
 
 export const isActive = (data) => !!data && data.isDeleted !== true;
 
@@ -13,7 +14,7 @@ function serviceFrom(snap) {
 
 // Live list of an office's active services, sorted by name: callback(services)
 export function watchServices(officeId, callback, onError) {
-  return onSnapshot(collection(db, 'offices', officeId, 'services'), (snap) => {
+  return liveQuery(collection(db, 'offices', officeId, 'services'), (snap) => {
     const services = snap.docs.map(serviceFrom).filter(isActive)
       .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
     callback(services);
