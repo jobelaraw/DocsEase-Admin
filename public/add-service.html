@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GaBayan – Add Service</title>
+  <link rel="icon" type="image/png" href="assets/logo_whitebg.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/sidebar.css" />
+  <link rel="stylesheet" href="css/add_service.css" />
+  <link rel="stylesheet" href="css/toast.css" />
+  <link rel="stylesheet" href="css/page_transition.css" />
+  <script src="./js/toast.js"></script>
+  <script type="module" src="./js/role-guard.js"></script>
+  <script src="./js/sidebar.js"></script>
+  <script type="module" src="./js/office-destinations.js"></script>
+</head>
+
+<body>
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon"><img src="assets/logo_whitebg.png" alt="GaBayan Logo" /></div>
+      <div class="logo-text"><img src="assets/docsease_text.png" alt="GaBayan" class="brand-img" /></div>
+    </div>
+    <div class="sidebar-nav-container">
+      <nav class="sidebar-nav">
+        <a href="dashboard.html" class="nav-item">
+          <div class="nav-icon"><img src="assets/dashboard.svg" alt="Dashboard" /></div>
+          <span class="nav-label">Dashboard</span>
+        </a>
+        <a href="service-management.html" class="nav-item active">
+          <div class="nav-icon"><img src="assets/service_mngment.svg" alt="Service Management" /></div>
+          <span class="nav-label">Service Management</span>
+        </a>
+        <a href="map-management.html" class="nav-item" title="Map Management">
+          <div class="nav-icon"><img src="assets/map_mngment.svg" alt="Map Management" /></div>
+          <span class="nav-label">Map Management</span>
+        </a>
+        <a href="analytics.html" class="nav-item">
+          <div class="nav-icon"><img src="assets/analytics.svg" alt="Analytics" /></div>
+          <span class="nav-label">Analytics</span>
+        </a>
+        <a href="review-queue.html" class="nav-item" title="Review Queue">
+          <div class="nav-icon"><img src="assets/review_queue.svg" alt="Review Queue" /></div>
+          <span class="nav-label">Review Queue</span>
+        </a>
+
+        <a href="account-management.html" class="nav-item" title="Account Management">
+          <div class="nav-icon"><img src="assets/account_management.svg" alt="Account Management" /></div>
+          <span class="nav-label">Account Management</span>
+        </a>
+        <a href="activity-log.html" class="nav-item" title="Activity Log">
+          <div class="nav-icon"><img src="assets/activity_log.svg" alt="Activity Log" /></div>
+          <span class="nav-label">Activity Log</span>
+        </a>
+      </nav>
+    </div>
+    <div class="sidebar-bottom">
+      <button class="btn-collapse" onclick="toggleSidebar()" title="Collapse sidebar">
+        <img src="assets/collapse.svg" alt="Collapse" />
+      </button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="btn-back" onclick="window.confirmLeavePage()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </button>
+        <h1 class="page-title">Add Service</h1>
+      </div>
+      <div id="profile-placeholder"></div>
+    </header>
+
+    <div class="form-wrapper page-fade" id="main-content">
+
+      <div class="tab-bar" id="tabs-header">
+        <div class="tab-btn active default" onclick="switchTab('tab-1', this)">
+          <input type="text" value="Walk-In" placeholder="Tab Name" onclick="event.stopPropagation()"
+            oninput="updateTabWidth(this)" />
+        </div>
+        <button class="btn-add-tab" onclick="addNewTab()">+</button>
+      </div>
+
+
+      <div class="form-section">
+        <h3 class="section-title">General Details</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Service Name</label>
+            <div class="combo-box">
+              <input type="text" id="service-name-input" placeholder="Enter or select service name" />
+              <button type="button" class="btn-drop" onclick="toggleCombo(this)">▼</button>
+              <div class="combo-menu">
+                <div class="combo-item" onclick="selectCombo(this)">New Business Application</div>
+                <div class="combo-item" onclick="selectCombo(this)">Renewal of Business Application</div>
+                <div class="combo-item" onclick="selectCombo(this)">Retirement of Business</div>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Office</label>
+            <div class="combo-box">
+              <input type="text" id="office-input" placeholder="Select or search an office..."
+                onclick="toggleCombo(this.nextElementSibling)" oninput="filterOfficeMenu(this)" autocomplete="off" />
+              <button type="button" class="btn-drop" onclick="toggleCombo(this)">▼</button>
+              <div class="combo-menu" id="office-menu">
+                <div class="combo-item" aria-hidden="true" style="pointer-events:none;"><span class="skel skel-text" style="width:70%;"></span></div>
+                <div class="combo-item" aria-hidden="true" style="pointer-events:none;"><span class="skel skel-text" style="width:55%;"></span></div>
+                <div class="combo-item" aria-hidden="true" style="pointer-events:none;"><span class="skel skel-text" style="width:80%;"></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="form-group full-width">
+          <label>Service Description</label>
+          <textarea id="service-desc-input" placeholder="Provide a general description of this service..."></textarea>
+        </div>
+      </div>
+
+      <div id="tab-contents">
+        <div class="tab-pane active" id="tab-1">
+
+
+          <div class="form-section tab-service-details">
+            <h3 class="section-title">Transaction Details</h3>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Type of Transaction <span style="font-weight:400;color:#888;">(optional)</span></label>
+                <div class="combo-box">
+                  <input type="text" class="transaction-type-input" data-optional="true"
+                    placeholder="e.g. G2C – Government to Citizen" />
+                  <button type="button" class="btn-drop" onclick="toggleCombo(this)">▼</button>
+                  <div class="combo-menu">
+                    <div class="combo-item" onclick="selectCombo(this)">G2C – Government to Citizen</div>
+                    <div class="combo-item" onclick="selectCombo(this)">G2B – Government to Business</div>
+                    <div class="combo-item" onclick="selectCombo(this)">G2G – Government to Government</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Who May Avail <span style="font-weight:400;color:#888;">(optional)</span></label>
+                <input type="text" class="who-may-avail-input" data-optional="true"
+                  placeholder="e.g. Real property owners with no tax delinquency" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Total Fees <span style="font-weight:400;color:#888;">(optional)</span></label>
+                <input type="text" class="total-fee-input" data-optional="true"
+                  placeholder="e.g. As stated in the SOA plus banking charge" />
+              </div>
+
+              <div class="form-group">
+                <label>Total Processing Time <span style="font-weight:400;color:#888;">(optional)</span></label>
+                <input type="text" class="total-time-input" data-optional="true" placeholder="e.g. 25 Minutes" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3 class="section-title">Requirements Checklist</h3>
+            <div id="req-list-1">
+              <div class="req-item">
+                <div class="form-group" style="flex: 2;">
+                  <label>Requirement Name</label>
+                  <div class="combo-box">
+                    <input type="text" placeholder="e.g. Valid ID" />
+                    <button type="button" class="btn-drop" onclick="toggleCombo(this)">▼</button>
+                    <div class="combo-menu">
+                      <div class="combo-item" onclick="selectCombo(this)">BPLO FORM 001-2: Application Form</div>
+                      <div class="combo-item" onclick="selectCombo(this)">Occupancy Permit (if applicable)</div>
+                      <div class="combo-item" onclick="selectCombo(this)">Barangay Clearance</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                  <label>Secure at</label>
+                  <input type="text" placeholder="e.g. Barangay Hall" />
+                </div>
+                <button class="btn-delete" onclick="this.parentElement.remove()"><img src="assets/delete.svg"
+                    alt="Delete" /></button>
+              </div>
+            </div>
+            <button class="btn-add" onclick="addRequirement('req-list-1')">+ Click here to add new requirement</button>
+          </div>
+
+          <div class="form-section" style="margin-bottom: 0;">
+            <h3 class="section-title">Step-by-Step Guide</h3>
+            <div id="steps-list-1">
+              <div class="step-card open" draggable="true">
+                <div class="step-header" onclick="toggleStep(this)">
+                  <span class="drag-handle" title="Drag to reorder" onclick="event.stopPropagation()">⋮⋮</span>
+                  <span class="step-title-display">New Step</span>
+                  <span class="toggle-icon">▼</span>
+                </div>
+                <div class="step-body">
+                  <div style="display: flex; gap: 16px; align-items: flex-end; margin-bottom: 16px;">
+                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                      <label>Step Title</label>
+                      <div class="combo-box">
+                        <input type="text" placeholder="e.g. Application and Assessment"
+                          oninput="updateStepTitle(this)" />
+                        <button type="button" class="btn-drop" onclick="toggleCombo(this)">▼</button>
+                        <div class="combo-menu">
+                          <div class="combo-item" onclick="selectCombo(this)">Application and Assessment</div>
+                          <div class="combo-item" onclick="selectCombo(this)">Payment</div>
+                          <div class="combo-item" onclick="selectCombo(this)">Claiming of Permit</div>
+                        </div>
+                      </div>
+                    </div>
+                    <button class="btn-delete" onclick="this.closest('.step-card').remove()"><img
+                        src="assets/delete.svg" alt="Delete" /></button>
+                  </div>
+
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Fee</label>
+                      <div class="combo-box">
+                        <input type="text" placeholder="e.g. None" />
+                        <button type="button" class="btn-drop" onclick="toggleCombo(this)">▼</button>
+                        <div class="combo-menu">
+                          <div class="combo-item" onclick="selectCombo(this)">None</div>
+                          <div class="combo-item" onclick="selectCombo(this)">Based on the Revised Revenue Code</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Processing Time</label>
+                      <div class="combo-box">
+                        <input type="text" placeholder="e.g. 50 Minutes" />
+                        <button type="button" class="btn-drop" onclick="toggleCombo(this)">▼</button>
+                        <div class="combo-menu">
+                          <div class="combo-item" onclick="selectCombo(this)">15 Minutes</div>
+                          <div class="combo-item" onclick="selectCombo(this)">50 Minutes</div>
+                          <div class="combo-item" onclick="selectCombo(this)">1 Day</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="form-group full-width">
+                    <label>Description</label>
+                    <textarea placeholder="Submit the requirements and accomplish the Application Form..."></textarea>
+                  </div>
+                  <div class="form-group full-width" style="margin-top: 15px;">
+                    <label>People In-Charge / Office</label>
+                    <textarea placeholder="List the personnel or office window..."></textarea>
+                  </div>
+                  <div class="form-group full-width" style="margin-top: 15px;">
+                    <label>Agency Actions <span style="font-weight:400;color:#888;">(optional, one per
+                        line)</span></label>
+                    <textarea class="step-actions-input" data-optional="true"
+                      placeholder="Verification of documents&#10;Sending of SOA via email."></textarea>
+                  </div>
+                  <div class="form-group full-width" style="margin-top: 15px;">
+                    <label>Notes / Footnote <span style="font-weight:400;color:#888;">(optional)</span></label>
+                    <textarea class="step-notes-input" data-optional="true"
+                      placeholder="e.g. *Payment will be credited within 1 to 5 working days..."></textarea>
+                  </div>
+                  <div class="form-group full-width" style="margin-top: 15px;">
+                    <label>Online Link <span style="font-weight:400;color:#888;">(optional)</span></label>
+                    <input type="text" class="step-link-input" data-optional="true"
+                      placeholder="e.g. https://binancitybusinesspermit.online" />
+                  </div>
+                  <div class="form-group full-width" style="margin-top: 15px;">
+                    <label>Navigate to <span style="font-weight:400;color:#888;">(optional)</span></label>
+                    <div class="combo-box nav-combo">
+                      <input type="text" class="step-navigate-input" data-optional="true" autocomplete="off"
+                        placeholder="Type or select an office..." />
+                      <button type="button" class="btn-drop nav-drop" tabindex="-1">▼</button>
+                      <div class="combo-menu nav-combo-menu"></div>
+                    </div>
+                    <small style="color:#888;display:block;margin-top:4px;">Fill this in only if this step needs the
+                      citizen to go to an office or room inside City Hall. The app will show a "Start Navigation"
+                      button.</small>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+            <button class="btn-add" onclick="addStep('steps-list-1')">+ Click here to add new step</button>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="form-section" style="margin-top: 20px;">
+        <h3 class="section-title">Location and Contact</h3>
+
+        <div class="form-group full-width" style="margin-bottom: 16px;">
+          <label>LOCATION</label>
+          <div class="combo-box">
+            <input type="text" id="location-input" placeholder="Enter location" />
+            <button type="button" class="btn-drop" onclick="toggleCombo(this)">▼</button>
+            <div class="combo-menu">
+              <div class="combo-item" onclick="selectCombo(this)">1st Floor, City Hall Building, Brgy. Zapote, Binan
+                City, Laguna</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>CONTACT NUMBER</label>
+            <div class="combo-box">
+              <input type="text" id="contact-input" placeholder="Enter contact number" />
+              <button type="button" class="btn-drop" onclick="toggleCombo(this)">▼</button>
+              <div class="combo-menu">
+                <div class="combo-item" onclick="selectCombo(this)">(049)513-5084</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>EMAIL <span style="font-weight:400;color:#888;">(optional)</span></label>
+            <div class="combo-box">
+              <input type="text" id="website-input" data-optional="true" placeholder="Enter email or website" />
+              <button type="button" class="btn-drop" onclick="toggleCombo(this)">▼</button>
+              <div class="combo-menu">
+                <div class="combo-item" onclick="selectCombo(this)">bplo@binan.gov.ph</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions-bar">
+      <button class="btn-cancel" onclick="window.cancelAddService()">Cancel</button>
+      <button class="btn-save" onclick="saveService()">Add Service</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { auth, db } from './js/firebase-config.js';
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { collection, getDocs, getDoc, doc, setDoc, addDoc, serverTimestamp, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    // Activity log helper
+    let _logActor = null;
+    let _superAdminUids = null;
+
+    async function getSuperAdminUids() {
+      if (_superAdminUids) return _superAdminUids;
+      try {
+        const snap = await getDoc(doc(db, 'app_settings', 'super_admin'));
+        _superAdminUids = snap.exists() ? (snap.data().uids || []) : [];
+      } catch (err) {
+        console.error('[activity-log] could not read super admin list:', err);
+        return [];
+      }
+      return _superAdminUids;
+    }
+
+    async function logActivity(type, details = {}) {
+      try {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        if (!_logActor || _logActor.uid !== user.uid) {
+          let name = user.displayName || user.email || 'Admin';
+          let role = 'admin';
+          try {
+            const snap = await getDoc(doc(db, 'admin', user.uid));
+            if (snap.exists()) {
+              const data = snap.data();
+              name = data.full_name || name;
+              role = data.role || 'admin';
+            }
+          } catch (err) {
+            console.error('[activity-log] could not read actor profile:', err);
+          }
+          _logActor = { uid: user.uid, name, role };
+        }
+
+        // Super Admin(s) always get a copy, plus the target admin / all admins
+        const recipients = new Set(await getSuperAdminUids());
+        if (details.recipient_uid === 'all_admins') {
+          if (_logActor.role === 'super_admin') {
+            const adminsSnap = await getDocs(query(collection(db, 'admin'), where('status', '==', 'active')));
+            adminsSnap.forEach(d => recipients.add(d.id));
+          }
+        } else if (details.recipient_uid) {
+          recipients.add(details.recipient_uid);
+        }
+        if (!recipients.size) {
+          console.warn('[activity-log] no recipients - check app_settings/super_admin');
+          return;
+        }
+
+        const payload = {
+          type,
+          actor_uid: _logActor.uid,
+          actor_name: details.actor_name || _logActor.name,
+          actor_role: _logActor.role,
+          office_name: details.office_name || '',
+          service_name: details.service_name || '',
+          target_name: details.target_name || '',
+          target_uid: details.target_uid || '',
+          createdAt: serverTimestamp()
+        };
+
+        const uids = [...recipients];
+        for (let i = 0; i < uids.length; i += 400) {
+          const batch = writeBatch(db);
+          uids.slice(i, i + 400).forEach(uid => {
+            batch.set(doc(collection(db, 'admin', uid, 'activity_logs')), payload);
+          });
+          await batch.commit();
+        }
+      } catch (err) {
+        console.error('[activity-log] failed to log', type, err);
+      }
+    }
+
+    let officesMap = {};
+    let officesLoadPromise;
+    let myOffice = null; // null = Super Admin (may pick any office)
+
+    // Regular admin: fill in their office and make the field read-only
+    function lockOfficeField(name) {
+      const input = document.getElementById('office-input');
+      input.value = name;
+      input.readOnly = true;
+      input.removeAttribute('onclick');
+      input.removeAttribute('oninput');
+      input.style.cursor = 'default';
+      const dropBtn = input.closest('.combo-box')?.querySelector('.btn-drop');
+      if (dropBtn) dropBtn.style.display = 'none';
+      window.__officeLocked = true;
+    }
+
+    function sanitizeForFirestore(value) {
+      if (Array.isArray(value)) {
+        return value.map(item => sanitizeForFirestore(item)).filter(item => item !== undefined);
+      }
+
+      if (value && typeof value === 'object') {
+        const isFirestoreSentinel = value._methodName || value.type === 'SERVER_TIMESTAMP' || value.type === 'DELETE_FIELD';
+        if (isFirestoreSentinel || typeof value.toDate === 'function') {
+          return value;
+        }
+
+        const clean = {};
+        Object.entries(value).forEach(([key, item]) => {
+          if (key === '__uid') return;
+          const sanitized = sanitizeForFirestore(item);
+          if (sanitized !== undefined) clean[key] = sanitized;
+        });
+        return clean;
+      }
+
+      return value;
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      try {
+        const adminDoc = await getDoc(doc(db, 'admin', user.uid));
+
+        if (!adminDoc.exists()) {
+          await signOut(auth);
+          window.location.href = 'login.html';
+          return;
+        }
+
+        const userNameEl = document.querySelector('.user-name');
+        const userRoleEl = document.querySelector('.user-role');
+        if (userNameEl) userNameEl.textContent = user.displayName || user.email;
+        if (userRoleEl) userRoleEl.textContent = 'Admin ✓';
+
+        const adminData = adminDoc.data();
+        if (adminData.role !== 'super_admin') {
+          myOffice = (adminData.admin_office || '').trim();
+          if (!myOffice) {
+            window.showToast('error', 'No Office Assigned',
+              'Your account has no office assigned yet. Please contact the Super Admin.', 'OK',
+              () => { window.location.href = 'dashboard.html'; });
+            return;
+          }
+          lockOfficeField(myOffice);
+        }
+        document.getElementById('main-content').classList.add('is-ready');
+
+        officesLoadPromise = loadOffices();
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        await signOut(auth);
+        window.location.href = 'login.html';
+      }
+    });
+
+    async function loadOffices() {
+      const officeMenu = document.getElementById('office-menu');
+      try {
+        const querySnapshot = await getDocs(collection(db, "offices"));
+        officeMenu.innerHTML = '';
+        // Offices in Deleted Records can't receive new services
+        const activeOffices = querySnapshot.docs.filter(d => d.data().isDeleted !== true);
+
+        if (!activeOffices.length) {
+          officeMenu.innerHTML = '<div class="combo-item">No offices found</div>';
+          return;
+        }
+
+        activeOffices.forEach((doc) => {
+          const data = doc.data();
+          const officeName = data.office_name || doc.id;
+
+          officesMap[officeName.toLowerCase()] = doc.id;
+
+          const itemHTML = `<div class="combo-item" onclick="selectCombo(this)">${officeName}</div>`;
+          officeMenu.insertAdjacentHTML('beforeend', itemHTML);
+        });
+      } catch (error) {
+        console.error("Error loading offices:", error);
+        officeMenu.innerHTML = '<div class="combo-item">Failed to load offices</div>';
+      }
+    }
+
+    window.saveService = async function () {
+      if (officesLoadPromise) await officesLoadPromise;
+
+      const serviceName = document.getElementById('service-name-input').value.trim();
+      const officeName = myOffice !== null
+        ? myOffice
+        : document.getElementById('office-input').value.trim();
+      const description = document.getElementById('service-desc-input').value.trim();
+
+      const location = document.getElementById('location-input').value.trim();
+      const contactPhone = document.getElementById('contact-input').value.trim();
+      const contactEmail = document.getElementById('website-input').value.trim();
+
+
+      const allTextField = document.querySelectorAll('.combo-box input, input[type="text"], textarea');
+      let emptyFields = false;
+      allTextField.forEach(field => {
+        if (field.dataset.optional === 'true') return; // e.g. the optional Online Link field
+        if (field.value.trim() === '') {
+          emptyFields = true;
+          field.style.borderColor = 'red';
+          field.parentElement.style.borderColor = 'red';
+        } else {
+          field.style.borderColor = '';
+          field.parentElement.style.borderColor = '';
+        }
+      });
+
+      if (emptyFields) {
+        const successOverlay = document.createElement('div');
+        successOverlay.innerHTML = `
+          <div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999;">
+            <div style="background:#fff;border-radius:20px;padding:40px 36px 32px;text-align:center;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+              <div style="width:64px;height:64px;border:3px solid #e74c3c;border-radius:50%;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;position:relative;">
+                <div style="position:absolute;width:3.5px;height:26px;background:#e74c3c;border-radius:2px;transform:rotate(45deg);"></div>
+                <div style="position:absolute;width:3.5px;height:26px;background:#e74c3c;border-radius:2px;transform:rotate(-45deg);"></div>
+              </div>
+              <div style="font-size:1.3rem;font-weight:800;color:#1a2540;margin-bottom:8px;">Missing Fields</div>
+              <div style="font-size:0.88rem;color:#555;line-height:1.5;margin-bottom:24px;">Please fill in all required fields before adding the service.</div>
+              <button onclick="this.closest('div[style]').parentElement.remove()" style="width:100%;padding:14px;border:none;border-radius:50px;background:#4a7cff;color:#fff;font-size:0.95rem;font-weight:700;cursor:pointer;">OK</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(successOverlay);
+        return;
+      }
+
+      // "Navigate to" must be one of the dropdown choices (typed text is not accepted)
+      if (!window.validateNavigateInputs()) {
+        window.showToast('error', 'Invalid Destination', 'Please choose the "Navigate to" destination from the dropdown list. Text that is not in the list cannot be saved.', 'OK');
+        return;
+      }
+
+      // Office must already exist (created via Service Management)
+      const officeId = officesMap[officeName.toLowerCase()];
+      if (!officeId) {
+        const officeInput = document.getElementById('office-input');
+        officeInput.style.borderColor = 'red';
+        officeInput.parentElement.style.borderColor = 'red';
+        window.showToast('error', 'Office Not Found', "Please choose an office from the dropdown list. If it isn't listed, ask the Super Admin to add it first.", 'OK');
+        return;
+      }
+
+      const formattedServiceName = serviceName.toUpperCase().replace(/\s+/g, '-');
+      const customServiceId = `${officeId}-${formattedServiceName}`;
+
+      const channels = [];
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      const tabPanes = document.querySelectorAll('.tab-pane');
+
+      tabBtns.forEach((tabBtn, index) => {
+        const pane = tabPanes[index];   // ← must come first
+        const channelName = tabBtn.querySelector('input').value.trim() || "Unnamed Channel";
+        const transactionType = pane.querySelector('.transaction-type-input')?.value.trim() || '';
+        const whoMayAvail = pane.querySelector('.who-may-avail-input')?.value.trim() || '';
+        const totalFee = pane.querySelector('.total-fee-input')?.value.trim() || '';
+        const totalProcessingTime = pane.querySelector('.total-time-input')?.value.trim() || '';
+
+        const requirements = [];
+        pane.querySelectorAll('.req-item').forEach(req => {
+          const inputs = req.querySelectorAll('input');
+          if (inputs.length >= 2) {
+            const reqName = inputs[0].value.trim();
+            const secureAt = inputs[1].value.trim();
+            if (reqName) {
+              requirements.push({ requirement_name: reqName, secure_at: secureAt });
+            }
+          }
+        });
+
+        const steps = [];
+        pane.querySelectorAll('.step-card').forEach(step => {
+          const textInputs = step.querySelectorAll('input[type="text"]');
+          const textAreas = step.querySelectorAll('textarea');
+
+          if (textInputs.length >= 3 && textAreas.length >= 2) {
+            const stepTitle = textInputs[0].value.trim();
+            const fee = textInputs[1].value.trim();
+            const time = textInputs[2].value.trim();
+            const desc = textAreas[0].value.trim();
+            const person = textAreas[1].value.trim();
+            const linkInput = step.querySelector('.step-link-input');
+            const onlineLink = linkInput ? linkInput.value.trim() : '';
+            const navInput = step.querySelector('.step-navigate-input');
+            const navigateTo = navInput ? navInput.value.trim() : '';
+            const actionsInput = step.querySelector('.step-actions-input');
+            const notesInput = step.querySelector('.step-notes-input');
+            const agencyActions = actionsInput
+              ? actionsInput.value.split('\n').map(s => s.trim()).filter(Boolean)
+              : [];
+            const notes = notesInput ? notesInput.value.trim() : '';
+
+            if (stepTitle) {
+              steps.push({
+                process_name: stepTitle,
+                fee: fee,
+                processing_time: time,
+                process_description: desc,
+                person_in_charge: person,
+                online_link: onlineLink,
+                navigate_to: navigateTo,
+                agency_actions: agencyActions,
+                notes: notes
+              });
+            }
+          }
+        });
+
+        channels.push({
+          tab_name: channelName,
+          transaction_type: transactionType,
+          who_may_avail: whoMayAvail,
+          total_fee: totalFee,
+          total_processing_time: totalProcessingTime,
+          requirements: requirements,
+          procedures: steps
+        });
+      });
+
+      const serviceData = sanitizeForFirestore({
+        service_name: serviceName,
+        description: description,
+        location: location,
+        contact_phone: contactPhone,
+        contact_email: contactEmail,
+        tabs: channels,
+        created_at: serverTimestamp(),
+        updated_at: serverTimestamp()
+      });
+
+      try {
+        const saveBtn = document.querySelector('.btn-save');
+        saveBtn.textContent = "Saving...";
+        saveBtn.disabled = true;
+        showToast('loading', 'Adding Service', 'The service is currently being processed. Please wait.', '');
+
+        const serviceRef = doc(db, "offices", officeId, "services", customServiceId);
+        // Same name as a service in Deleted Records would overwrite it
+        const existingSnap = await getDoc(serviceRef);
+        if (existingSnap.exists() && existingSnap.data().isDeleted === true) {
+          throw new Error('A service with this name is in Deleted Records. Recover it from the Review Queue, or delete it permanently first.');
+        }
+        await setDoc(serviceRef, serviceData);
+
+        //DISTRIBUTE NOTIFICATION TO ALL REGISTERED USERS
+        const usersSnap = await getDocs(collection(db, "users"));
+
+        const notifPromises = usersSnap.docs.map(userDoc =>
+          addDoc(collection(db, "users", userDoc.id, "notifications"), {
+            title: "Hi Citizen! A new service added.",
+            body: `${serviceName} has been added to the ${officeName}.`,
+            service_id: customServiceId,
+            is_read: false,
+            timestamp: serverTimestamp()
+          })
+        );
+        await Promise.all(notifPromises);
+
+        await logActivity('service_added', { office_name: officeName, service_name: serviceName });
+
+        const successOverlay = document.createElement('div');
+        successOverlay.innerHTML = `
+          <div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999;">
+            <div style="background:#fff;border-radius:20px;padding:40px 36px 32px;text-align:center;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+              <div style="width:64px;height:64px;border:3px solid #27ae60;border-radius:50%;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;">
+                <div style="width:12px;height:22px;border:solid #27ae60;border-width:0 3.5px 3.5px 0;transform:rotate(45deg);margin-top:-4px;"></div>
+              </div>
+              <div style="font-size:1.3rem;font-weight:800;color:#1a2540;margin-bottom:8px;">Service Added!</div>
+              <div style="font-size:0.88rem;color:#555;line-height:1.5;margin-bottom:24px;">The service has been successfully added to ${officeName}.</div>
+              <button onclick="window.location.href='service-management.html'" style="width:100%;padding:14px;border:none;border-radius:50px;background:#4a7cff;color:#fff;font-size:0.95rem;font-weight:700;cursor:pointer;">Continue</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(successOverlay);
+
+      } catch (error) {
+        console.error("Error saving service:", error);
+        const errorMessage = error && error.message ? error.message : 'Something went wrong while saving the service. Please try again.';
+        const errorOverlay = document.createElement('div');
+        errorOverlay.innerHTML = `
+          <div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999;">
+            <div style="background:#fff;border-radius:20px;padding:40px 36px 32px;text-align:center;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+              <div style="width:64px;height:64px;border:3px solid #e74c3c;border-radius:50%;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;position:relative;">
+                <div style="position:absolute;width:3.5px;height:26px;background:#e74c3c;border-radius:2px;transform:rotate(45deg);"></div>
+                <div style="position:absolute;width:3.5px;height:26px;background:#e74c3c;border-radius:2px;transform:rotate(-45deg);"></div>
+              </div>
+              <div style="font-size:1.3rem;font-weight:800;color:#1a2540;margin-bottom:8px;">Save Failed</div>
+              <div style="font-size:0.88rem;color:#555;line-height:1.5;margin-bottom:24px;">${errorMessage}</div>
+              <button onclick="this.closest('div[style]').parentElement.remove()" style="width:100%;padding:14px;border:none;border-radius:50px;background:#4a7cff;color:#fff;font-size:0.95rem;font-weight:700;cursor:pointer;">OK</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(errorOverlay);
+
+        const saveBtn = document.querySelector('.btn-save');
+        saveBtn.textContent = "Add Service";
+        saveBtn.disabled = false;
+      }
+    };
+  </script>
+
+  <script>
+    function toggleDropdown(e) {
+      e.stopPropagation();
+      document.getElementById('profile-dropdown').classList.toggle('show');
+    }
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.user-profile')) {
+        document.getElementById('profile-dropdown').classList.remove('show');
+      }
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.combo-box')) {
+        document.querySelectorAll('.combo-menu.show').forEach(m => m.classList.remove('show'));
+      }
+    });
+
+    function toggleCombo(btn) {
+      const menu = btn.nextElementSibling;
+      const isShowing = menu.classList.contains('show');
+      document.querySelectorAll('.combo-menu.show').forEach(m => m.classList.remove('show'));
+      if (!isShowing) {
+        if (menu.id === 'office-menu') resetOfficeFilter();
+        menu.classList.add('show');
+      }
+    }
+
+    // Office box: search only, must pick from list
+    function filterOfficeMenu(input) {
+      const menu = document.getElementById('office-menu');
+      const q = input.value.trim().toLowerCase();
+      const items = menu.querySelectorAll('.combo-item[onclick]');
+      let visible = 0;
+      items.forEach(item => {
+        const match = item.textContent.toLowerCase().includes(q);
+        item.style.display = match ? '' : 'none';
+        if (match) visible++;
+      });
+
+      let empty = menu.querySelector('.combo-empty');
+      if (!empty) {
+        empty = document.createElement('div');
+        empty.className = 'combo-item combo-empty';
+        empty.style.cursor = 'default';
+        empty.textContent = 'No matching office. Ask the Super Admin to add it.';
+        menu.appendChild(empty);
+      }
+      empty.style.display = (items.length && visible === 0) ? '' : 'none';
+
+      document.querySelectorAll('.combo-menu.show').forEach(m => { if (m !== menu) m.classList.remove('show'); });
+      menu.classList.add('show');
+    }
+
+    function resetOfficeFilter() {
+      const menu = document.getElementById('office-menu');
+      menu.querySelectorAll('.combo-item[onclick]').forEach(item => { item.style.display = ''; });
+      const empty = menu.querySelector('.combo-empty');
+      if (empty) empty.style.display = 'none';
+    }
+
+    function selectCombo(item) {
+      const input = item.closest('.combo-box').querySelector('input');
+      input.value = item.textContent;
+      item.parentElement.classList.remove('show');
+      if (input.hasAttribute('oninput')) updateStepTitle(input);
+    }
+
+    function normalizeText(value) {
+      return (value || '').trim();
+    }
+
+    function isDefaultTabName(value) {
+      return ['Walk-In', 'New Tab'].includes(normalizeText(value));
+    }
+
+    function hasAddedInformation() {
+      const mainFields = [
+        document.getElementById('service-name-input'),
+        window.__officeLocked ? null : document.getElementById('office-input'),
+        document.getElementById('service-desc-input'),
+        document.getElementById('location-input'),
+        document.getElementById('contact-input'),
+        document.getElementById('website-input'),
+        ...document.querySelectorAll(
+          '.transaction-type-input, .who-may-avail-input, .total-fee-input, .total-time-input'
+        ),
+      ];
+
+      const mainHasData = mainFields.some(field => field && normalizeText(field.value) !== '');
+      if (mainHasData) return true;
+
+      const tabInputs = [...document.querySelectorAll('.tab-btn input')];
+      if (tabInputs.some(input => normalizeText(input.value) !== '' && !isDefaultTabName(input.value))) {
+        return true;
+      }
+
+      const nestedInputs = [
+        ...document.querySelectorAll('.req-item input'),
+        ...document.querySelectorAll('.step-card input'),
+        ...document.querySelectorAll('.step-card textarea'),
+        ...document.querySelectorAll('.tab-pane textarea')
+      ];
+
+      return nestedInputs.some(input => normalizeText(input.value) !== '');
+    }
+
+    const previousPageUrl = function () {
+      if (document.referrer && document.referrer.includes(window.location.origin)) {
+        return document.referrer;
+      }
+      return 'service-management.html';
+    };
+
+    window.navigateAway = function (targetUrl) {
+      if (targetUrl) {
+        window.location.href = targetUrl;
+        return;
+      }
+
+      window.location.href = previousPageUrl();
+    };
+
+    window.cancelAddService = function () {
+      if (!window.hasAddedInformation()) {
+        window.navigateAway();
+        return;
+      }
+
+      showConfirmToast({
+        type: 'warning',
+        title: 'Cancel and leave?',
+        msg: 'This service will not be saved and you will return to the previous page.',
+        confirmText: 'Leave',
+        cancelText: 'Stay',
+        onConfirm: () => {
+          window.navigateAway();
+        },
+        onCancel: () => { }
+      });
+    };
+
+    window.confirmLeavePage = function (targetUrl) {
+      if (!window.hasAddedInformation()) {
+        window.navigateAway(targetUrl);
+        return;
+      }
+
+      showConfirmToast({
+        type: 'warning',
+        title: 'Leave without saving?',
+        msg: 'Your form data will not be saved if you leave this page.',
+        confirmText: 'Leave',
+        cancelText: 'Stay',
+        onConfirm: () => {
+          window.navigateAway(targetUrl);
+        },
+        onCancel: () => { }
+      });
+    };
+
+    function confirmLeavePage(targetUrl) {
+      return window.confirmLeavePage(targetUrl);
+    }
+
+    window.hasAddedInformation = hasAddedInformation;
+
+    window.history.pushState({ docsEaseAddServiceLeaveGuard: true }, '', window.location.href);
+    window.addEventListener('popstate', function () {
+      if (!window.hasAddedInformation()) {
+        return;
+      }
+
+      window.history.pushState({ docsEaseAddServiceLeaveGuard: true }, '', window.location.href);
+      showConfirmToast({
+        type: 'warning',
+        title: 'Leave without saving?',
+        msg: 'Your form data will not be saved if you leave this page.',
+        confirmText: 'Leave',
+        cancelText: 'Stay',
+        onConfirm: function () {
+          window.location.href = previousPageUrl();
+        },
+        onCancel: function () {
+          window.history.pushState({ docsEaseAddServiceLeaveGuard: true }, '', window.location.href);
+        }
+      });
+    });
+
+    document.querySelectorAll('.sidebar-nav a.nav-item').forEach(link => {
+      link.addEventListener('click', function (event) {
+        const targetUrl = this.getAttribute('href');
+        if (!targetUrl) return;
+
+        const currentPath = window.location.pathname.split('/').pop();
+        if (targetUrl === currentPath || targetUrl === './' + currentPath || targetUrl === window.location.pathname) return;
+
+        event.preventDefault();
+
+        if (!window.hasAddedInformation()) {
+          window.location.href = targetUrl;
+          return;
+        }
+
+        window.confirmLeavePage(targetUrl);
+      });
+    });
+
+    let tabCounter = 1;
+
+    function switchTab(tabId, tabElement) {
+      document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+
+      tabElement.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    function addNewTab() {
+      tabCounter++;
+      const newTabId = 'tab-' + tabCounter;
+
+      const newTab = document.createElement('div');
+      newTab.className = 'tab-btn';
+      newTab.onclick = () => switchTab(newTabId, newTab);
+      newTab.innerHTML = `<input type="text" value="New Tab" placeholder="Tab Name" onclick="event.stopPropagation()" oninput="updateTabWidth(this)"/><button class="tab-delete" onclick="event.stopPropagation(); deleteTab(this)" title="Delete tab"><img src="assets/delete.svg" alt="Delete"/></button>`;
+
+      const addBtn = document.querySelector('.btn-add-tab');
+      addBtn.parentNode.insertBefore(newTab, addBtn);
+
+      const templatePane = document.getElementById('tab-1');
+      const newPane = templatePane.cloneNode(true);
+      newPane.id = newTabId;
+      newPane.classList.remove('active');
+
+      const reqList = newPane.querySelector('[id^="req-list"]');
+      reqList.id = 'req-list-' + tabCounter;
+      reqList.closest('.form-section').querySelector('.btn-add')
+        .setAttribute('onclick', `addRequirement('${reqList.id}')`);
+
+      const reqItems = reqList.querySelectorAll('.req-item');
+      for (let i = 1; i < reqItems.length; i++) reqItems[i].remove();
+
+      const stepList = newPane.querySelector('[id^="steps-list"]');
+      stepList.id = 'steps-list-' + tabCounter;
+      stepList.closest('.form-section').querySelector('.btn-add')
+        .setAttribute('onclick', `addStep('${stepList.id}')`);
+
+      const stepItems = stepList.querySelectorAll('.step-card');
+      for (let i = 1; i < stepItems.length; i++) stepItems[i].remove();
+
+      newPane.querySelectorAll('.step-card').forEach(card => card.classList.add('open'));
+      newPane.querySelectorAll('input, textarea').forEach(input => input.value = '');
+      newPane.querySelectorAll('.step-title-display').forEach(span => span.textContent = 'New Step');
+
+      document.getElementById('tab-contents').appendChild(newPane);
+      initDragAndDrop(stepList);
+      switchTab(newTabId, newTab);
+    }
+
+    function updateTabWidth(input) {
+      input.style.width = Math.max(90, input.value.length * 8) + 'px';
+    }
+
+    function deleteTab(btn) {
+      const tabBtn = btn.closest('.tab-btn');
+      if (tabBtn.classList.contains('default')) return;
+      const allTabs = document.querySelectorAll('.tab-btn');
+      const index = Array.from(allTabs).indexOf(tabBtn);
+      const panes = document.querySelectorAll('.tab-pane');
+      if (panes[index]) panes[index].remove();
+      tabBtn.remove();
+      const firstTab = document.querySelector('.tab-btn');
+      const firstPane = document.querySelector('.tab-pane');
+      if (firstTab && firstPane) {
+        firstTab.classList.add('active');
+        firstPane.classList.add('active');
+      }
+    }
+
+    function addRequirement(containerId) {
+      const container = document.getElementById(containerId);
+      const reqHTML = `
+        <div class="req-item">
+          <div class="form-group" style="flex: 2;">
+            <label>Requirement Name</label>
+            <div class="combo-box">
+              <input type="text" placeholder="e.g. Valid ID" />
+              <button type="button" class="btn-drop" onclick="toggleCombo(this)">▼</button>
+              <div class="combo-menu">
+                <div class="combo-item" onclick="selectCombo(this)">Valid ID</div>
+                <div class="combo-item" onclick="selectCombo(this)">Barangay Clearance</div>
+              </div>
+            </div>
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label>Secure at</label>
+            <input type="text" placeholder="e.g. Barangay Hall" />
+          </div>
+          <button class="btn-delete" onclick="this.parentElement.remove()"><img src="assets/delete.svg" alt="Delete" /></button>
+        </div>
+      `;
+      container.insertAdjacentHTML('beforeend', reqHTML);
+    }
+
+    function toggleStep(header) {
+      header.closest('.step-card').classList.toggle('open');
+    }
+
+    function updateStepTitle(input) {
+      const display = input.closest('.step-card').querySelector('.step-title-display');
+      display.textContent = input.value || 'New Step';
+    }
+
+    function addStep(containerId) {
+      const container = document.getElementById(containerId);
+      const stepHTML = `
+        <div class="step-card open" draggable="true">
+          <div class="step-header" onclick="toggleStep(this)">
+            <span class="drag-handle" title="Drag to reorder" onclick="event.stopPropagation()">⋮⋮</span>
+            <span class="step-title-display">New Step</span>
+            <span class="toggle-icon">▼</span>
+          </div>
+          <div class="step-body">
+            <div style="display: flex; gap: 16px; align-items: flex-end; margin-bottom: 16px;">
+              <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                <label>Step Title</label>
+                <div class="combo-box">
+                  <input type="text" placeholder="e.g. Application and Assessment" oninput="updateStepTitle(this)"/>
+                  <button type="button" class="btn-drop" onclick="toggleCombo(this)">▼</button>
+                  <div class="combo-menu">
+                    <div class="combo-item" onclick="selectCombo(this)">Application and Assessment</div>
+                    <div class="combo-item" onclick="selectCombo(this)">Payment</div>
+                    <div class="combo-item" onclick="selectCombo(this)">Claiming of Permit</div>
+                  </div>
+                </div>
+              </div>
+              <button class="btn-delete" onclick="this.closest('.step-card').remove()"><img src="assets/delete.svg" alt="Delete" /></button>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Fee</label>
+                <div class="combo-box">
+                  <input type="text" placeholder="e.g. None" />
+                  <button type="button" class="btn-drop" onclick="toggleCombo(this)">▼</button>
+                  <div class="combo-menu">
+                    <div class="combo-item" onclick="selectCombo(this)">None</div>
+                    <div class="combo-item" onclick="selectCombo(this)">Based on the Revised Revenue Code</div>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Processing Time</label>
+                <div class="combo-box">
+                  <input type="text" placeholder="e.g. 50 Minutes" />
+                  <button type="button" class="btn-drop" onclick="toggleCombo(this)">▼</button>
+                  <div class="combo-menu">
+                    <div class="combo-item" onclick="selectCombo(this)">15 Minutes</div>
+                    <div class="combo-item" onclick="selectCombo(this)">50 Minutes</div>
+                    <div class="combo-item" onclick="selectCombo(this)">1 Day</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="form-group full-width">
+              <label>Description</label>
+              <textarea placeholder="Submit the requirements and accomplish the Application Form..."></textarea>
+            </div>
+            <div class="form-group full-width" style="margin-top: 15px;">
+              <label>People In-Charge / Office</label>
+              <textarea placeholder="List the personnel or office window..."></textarea>
+            </div>
+            <div class="form-group full-width" style="margin-top: 15px;">
+  <label>Agency Actions <span style="font-weight:400;color:#888;">(optional, one per line)</span></label>
+  <textarea class="step-actions-input" data-optional="true" placeholder="Verification of documents&#10;Sending of SOA via email."></textarea>
+</div>
+<div class="form-group full-width" style="margin-top: 15px;">
+  <label>Notes / Footnote <span style="font-weight:400;color:#888;">(optional)</span></label>
+  <textarea class="step-notes-input" data-optional="true" placeholder="e.g. *Payment will be credited within 1 to 5 working days..."></textarea>
+</div>
+            <div class="form-group full-width" style="margin-top: 15px;">
+              <label>Online Link <span style="font-weight:400;color:#888;">(optional)</span></label>
+              <input type="text" class="step-link-input" data-optional="true" placeholder="e.g. https://binancitybusinesspermit.online" />
+            </div>
+            <div class="form-group full-width" style="margin-top: 15px;">
+            <label>Navigate to <span style="font-weight:400;color:#888;">(optional)</span></label>
+            <div class="combo-box nav-combo">
+              <input type="text" class="step-navigate-input" data-optional="true" autocomplete="off"
+                placeholder="Type or select an office..." />
+              <button type="button" class="btn-drop nav-drop" tabindex="-1">▼</button>
+              <div class="combo-menu nav-combo-menu"></div>
+            </div>
+            <small style="color:#888;display:block;margin-top:4px;">Fill this in only if this step needs the citizen to go to an office or room inside City Hall. The app will show a "Start Navigation" button.</small>
+          </div>
+          </div>
+        </div>
+      `;
+      container.insertAdjacentHTML('beforeend', stepHTML);
+      initDragAndDrop(container);
+    }
+
+    let draggedItem = null;
+
+    function initDragAndDrop(container) {
+      const cards = container.querySelectorAll('.step-card');
+      cards.forEach(card => {
+        card.removeEventListener('dragstart', handleDragStart);
+        card.removeEventListener('dragend', handleDragEnd);
+        card.addEventListener('dragstart', handleDragStart);
+        card.addEventListener('dragend', handleDragEnd);
+      });
+      container.removeEventListener('dragover', handleDragOver);
+      container.addEventListener('dragover', handleDragOver);
+    }
+
+    function handleDragStart(e) {
+      draggedItem = this;
+      setTimeout(() => this.classList.add('dragging'), 0);
+    }
+
+    function handleDragEnd(e) {
+      this.classList.remove('dragging');
+      draggedItem = null;
+    }
+
+    function handleDragOver(e) {
+      e.preventDefault();
+      const afterElement = getDragAfterElement(this, e.clientY);
+      if (draggedItem) {
+        if (afterElement == null) {
+          this.appendChild(draggedItem);
+        } else {
+          this.insertBefore(draggedItem, afterElement);
+        }
+      }
+    }
+
+    function getDragAfterElement(container, y) {
+      const draggableElements = [...container.querySelectorAll('.step-card:not(.dragging)')];
+      return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+          return { offset: offset, element: child };
+        } else {
+          return closest;
+        }
+      }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initDragAndDrop(document.getElementById('steps-list-1'));
+    });
+  </script>
+
+</body>
+
+</html>
