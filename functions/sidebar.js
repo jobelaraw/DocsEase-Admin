@@ -14,7 +14,7 @@ import('./review-badge.js');
     var icon = document.getElementById('collapse-icon') ||
                document.querySelector('.btn-collapse img');
     if (!icon) return;
-    icon.src = collapsed ? '../assets/collapse-right.png' : '../assets/collapse.png';
+    icon.src = collapsed ? '../assets/collapse-right.svg' : '../assets/collapse.svg';
     icon.alt = collapsed ? 'Expand' : 'Collapse';
   }
 

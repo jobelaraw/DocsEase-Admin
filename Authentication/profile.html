@@ -89,7 +89,7 @@
                  onkeydown="if(event.key==='Enter') submitDeleteAuth()" />
           <button type="button" id="del-eye-btn" onclick="toggleDeletePasswordEye()" aria-label="Toggle password"
                   style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 4px; cursor: pointer; display: flex; align-items: center;">
-            <img id="del-eye-img" src="../assets/eyeHide.png" alt="Show password" style="width: 20px; height: 20px; display: block;" />
+            <img id="del-eye-img" src="../assets/eyeHide.svg" alt="Show password" style="width: 20px; height: 20px; display: block;" />
           </button>
         </div>
       </div>
@@ -324,7 +324,7 @@ function resetDeleteEye() {
   const input = document.getElementById('del-password');
   const img = document.getElementById('del-eye-img');
   if (input) input.type = 'password';
-  if (img) { img.src = '../assets/eyeHide.png'; img.alt = 'Show password'; }
+  if (img) { img.src = '../assets/eyeHide.svg'; img.alt = 'Show password'; }
 }
 
 window.toggleDeletePasswordEye = function () {
@@ -332,7 +332,7 @@ window.toggleDeletePasswordEye = function () {
   const img = document.getElementById('del-eye-img');
   const isHidden = input.type === 'password';
   input.type = isHidden ? 'text' : 'password';
-  img.src = isHidden ? '../assets/eyeShow.png' : '../assets/eyeHide.png';
+  img.src = isHidden ? '../assets/eyeShow.svg' : '../assets/eyeHide.svg';
   img.alt = isHidden ? 'Hide password' : 'Show password';
 };
 

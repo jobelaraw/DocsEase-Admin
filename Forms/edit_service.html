@@ -24,23 +24,23 @@
     <div class="sidebar-nav-container">
       <nav class="sidebar-nav">
         <a href="../Sidebar/dashboard.html" class="nav-item">
-          <div class="nav-icon"><img src="../assets/dashboard.png" alt="Dashboard" /></div>
+          <div class="nav-icon"><img src="../assets/dashboard.svg" alt="Dashboard" /></div>
           <span class="nav-label">Dashboard</span>
         </a>
         <a href="../Sidebar/service_management.html" class="nav-item active">
-          <div class="nav-icon"><img src="../assets/service_mngment.png" alt="Service Management" /></div>
+          <div class="nav-icon"><img src="../assets/service_mngment.svg" alt="Service Management" /></div>
           <span class="nav-label">Service Management</span>
         </a>
         <a href="../Sidebar/map_management.html" class="nav-item" title="Map Management">
-          <div class="nav-icon"><img src="../assets/map_mngment.png" alt="Map Management" /></div>
+          <div class="nav-icon"><img src="../assets/map_mngment.svg" alt="Map Management" /></div>
           <span class="nav-label">Map Management</span>
         </a>
         <a href="../Sidebar/analytics.html" class="nav-item">
-          <div class="nav-icon"><img src="../assets/analytics.png" alt="Analytics" /></div>
+          <div class="nav-icon"><img src="../assets/analytics.svg" alt="Analytics" /></div>
           <span class="nav-label">Analytics</span>
         </a>
         <a href="../Sidebar/review_queue.html" class="nav-item" title="Review Queue">
-          <div class="nav-icon"><img src="../assets/review_queue.png" alt="Review Queue" /></div>
+          <div class="nav-icon"><img src="../assets/review_queue.svg" alt="Review Queue" /></div>
           <span class="nav-label">Review Queue</span>
         </a>
 
@@ -50,14 +50,14 @@
         </a>
 
         <a href="../Sidebar/activity_log.html" class="nav-item" title="Activity Log">
-          <div class="nav-icon"><img src="../assets/activity_log.png" alt="Activity Log" /></div>
+          <div class="nav-icon"><img src="../assets/activity_log.svg" alt="Activity Log" /></div>
           <span class="nav-label">Activity Log</span>
         </a>
       </nav>
     </div>
     <div class="sidebar-bottom">
       <button class="btn-collapse" onclick="toggleSidebar()" title="Collapse sidebar">
-        <img src="../assets/collapse.png" alt="Collapse" />
+        <img src="../assets/collapse.svg" alt="Collapse" />
       </button>
     </div>
   </aside>
@@ -177,7 +177,7 @@
 
     <div class="actions-bar">
       <button class="btn-delete-service" onclick="deleteService()">
-        <img src="../assets/delete.png" alt="Delete" />
+        <img src="../assets/delete.svg" alt="Delete" />
         Delete Service
       </button>
       <button class="btn-discard" onclick="discardChanges()">Discard Changes</button>
@@ -508,7 +508,7 @@
 
         const delBtn = document.createElement('button');
         delBtn.className = 'tab-delete';
-        delBtn.innerHTML = '<img src="../assets/delete.png" alt="Delete" />';
+        delBtn.innerHTML = '<img src="../assets/delete.svg" alt="Delete" />';
         delBtn.onclick = (e) => { e.stopPropagation(); deleteTab(i); };
         tabBtn.appendChild(delBtn);
 
@@ -672,7 +672,7 @@
               <label>Secure at</label>
               <input type="text" placeholder="e.g. Barangay Hall" value="${escapeHtml(req.secure_at || '')}" />
             </div>
-            <button class="btn-delete"><img src="../assets/delete.png" alt="Delete" /></button>
+            <button class="btn-delete"><img src="../assets/delete.svg" alt="Delete" /></button>
           `;
         const nameInput = row.querySelector('.combo-box input');
         const secureInput = row.querySelector('.form-group + .form-group input');
@@ -712,7 +712,7 @@
                   <label>Step Title</label>
                   ${comboBoxHTML(step.process_name, 'e.g. Application and Assessment', SUGGEST.stepTitle)}
                 </div>
-                <button class="btn-delete"><img src="../assets/delete.png" alt="Delete" /></button>
+                <button class="btn-delete"><img src="../assets/delete.svg" alt="Delete" /></button>
               </div>
               <div class="form-row">
                 <div class="form-group">

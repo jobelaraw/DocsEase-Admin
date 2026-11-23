@@ -24,23 +24,23 @@
     <div class="sidebar-nav-container">
       <nav class="sidebar-nav">
         <a href="../Sidebar/dashboard.html" class="nav-item">
-          <div class="nav-icon"><img src="../assets/dashboard.png" alt="Dashboard" /></div>
+          <div class="nav-icon"><img src="../assets/dashboard.svg" alt="Dashboard" /></div>
           <span class="nav-label">Dashboard</span>
         </a>
         <a href="../Sidebar/service_management.html" class="nav-item active">
-          <div class="nav-icon"><img src="../assets/service_mngment.png" alt="Service Management" /></div>
+          <div class="nav-icon"><img src="../assets/service_mngment.svg" alt="Service Management" /></div>
           <span class="nav-label">Service Management</span>
         </a>
         <a href="../Sidebar/map_management.html" class="nav-item" title="Map Management">
-          <div class="nav-icon"><img src="../assets/map_mngment.png" alt="Map Management" /></div>
+          <div class="nav-icon"><img src="../assets/map_mngment.svg" alt="Map Management" /></div>
           <span class="nav-label">Map Management</span>
         </a>
         <a href="../Sidebar/analytics.html" class="nav-item">
-          <div class="nav-icon"><img src="../assets/analytics.png" alt="Analytics" /></div>
+          <div class="nav-icon"><img src="../assets/analytics.svg" alt="Analytics" /></div>
           <span class="nav-label">Analytics</span>
         </a>
         <a href="../Sidebar/review_queue.html" class="nav-item" title="Review Queue">
-          <div class="nav-icon"><img src="../assets/review_queue.png" alt="Review Queue" /></div>
+          <div class="nav-icon"><img src="../assets/review_queue.svg" alt="Review Queue" /></div>
           <span class="nav-label">Review Queue</span>
         </a>
 
@@ -49,14 +49,14 @@
           <span class="nav-label">Account Management</span>
         </a>
         <a href="../Sidebar/activity_log.html" class="nav-item" title="Activity Log">
-          <div class="nav-icon"><img src="../assets/activity_log.png" alt="Activity Log" /></div>
+          <div class="nav-icon"><img src="../assets/activity_log.svg" alt="Activity Log" /></div>
           <span class="nav-label">Activity Log</span>
         </a>
       </nav>
     </div>
     <div class="sidebar-bottom">
       <button class="btn-collapse" onclick="toggleSidebar()" title="Collapse sidebar">
-        <img src="../assets/collapse.png" alt="Collapse" />
+        <img src="../assets/collapse.svg" alt="Collapse" />
       </button>
     </div>
   </aside>
@@ -184,7 +184,7 @@
                   <label>Secure at</label>
                   <input type="text" placeholder="e.g. Barangay Hall" />
                 </div>
-                <button class="btn-delete" onclick="this.parentElement.remove()"><img src="../assets/delete.png"
+                <button class="btn-delete" onclick="this.parentElement.remove()"><img src="../assets/delete.svg"
                     alt="Delete" /></button>
               </div>
             </div>
@@ -216,7 +216,7 @@
                       </div>
                     </div>
                     <button class="btn-delete" onclick="this.closest('.step-card').remove()"><img
-                        src="../assets/delete.png" alt="Delete" /></button>
+                        src="../assets/delete.svg" alt="Delete" /></button>
                   </div>
 
                   <div class="form-row">
@@ -976,7 +976,7 @@
       const newTab = document.createElement('div');
       newTab.className = 'tab-btn';
       newTab.onclick = () => switchTab(newTabId, newTab);
-      newTab.innerHTML = `<input type="text" value="New Tab" placeholder="Tab Name" onclick="event.stopPropagation()" oninput="updateTabWidth(this)"/><button class="tab-delete" onclick="event.stopPropagation(); deleteTab(this)" title="Delete tab"><img src="../assets/delete.png" alt="Delete"/></button>`;
+      newTab.innerHTML = `<input type="text" value="New Tab" placeholder="Tab Name" onclick="event.stopPropagation()" oninput="updateTabWidth(this)"/><button class="tab-delete" onclick="event.stopPropagation(); deleteTab(this)" title="Delete tab"><img src="../assets/delete.svg" alt="Delete"/></button>`;
 
       const addBtn = document.querySelector('.btn-add-tab');
       addBtn.parentNode.insertBefore(newTab, addBtn);
@@ -1050,7 +1050,7 @@
             <label>Secure at</label>
             <input type="text" placeholder="e.g. Barangay Hall" />
           </div>
-          <button class="btn-delete" onclick="this.parentElement.remove()"><img src="../assets/delete.png" alt="Delete" /></button>
+          <button class="btn-delete" onclick="this.parentElement.remove()"><img src="../assets/delete.svg" alt="Delete" /></button>
         </div>
       `;
       container.insertAdjacentHTML('beforeend', reqHTML);
@@ -1088,7 +1088,7 @@
                   </div>
                 </div>
               </div>
-              <button class="btn-delete" onclick="this.closest('.step-card').remove()"><img src="../assets/delete.png" alt="Delete" /></button>
+              <button class="btn-delete" onclick="this.closest('.step-card').remove()"><img src="../assets/delete.svg" alt="Delete" /></button>
             </div>
 
             <div class="form-row">
