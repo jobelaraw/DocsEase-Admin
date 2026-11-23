@@ -6,15 +6,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GaBayan – Add Service</title>
   <link rel="icon" type="image/png" href="../assets/logo_whitebg.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/sidebar.css" />
   <link rel="stylesheet" href="../css/add_service.css" />
   <link rel="stylesheet" href="../css/toast.css" />
   <link rel="stylesheet" href="../css/page_transition.css" />
   <script src="../functions/toast.js"></script>
-  <script>
-    // Show super-admin nav items on first paint (re-verified by role-guard.js)
-    try { if (sessionStorage.getItem('docsease_role_hint') === 'super_admin') document.documentElement.classList.add('is-super-admin'); } catch (e) {}
-  </script>
   <script type="module" src="../functions/role-guard.js"></script>
+  <script src="../functions/sidebar.js"></script>
   <script type="module" src="../functions/office-destinations.js"></script>
 </head>
 
@@ -753,10 +754,6 @@
   </script>
 
   <script>
-    function toggleSidebar() {
-      document.querySelector('.sidebar').classList.toggle('collapsed');
-    }
-
     function toggleDropdown(e) {
       e.stopPropagation();
       document.getElementById('profile-dropdown').classList.toggle('show');

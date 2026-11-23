@@ -2,12 +2,6 @@
   gap: 20px;
 }
 
-/* Sidebar Active Override */
-.sidebar-nav .nav-item.active {
-  background: #f0f4f8;
-  border-radius: 12px;
-}
-
 /* Banner + Main Tabs */
 .rq-banner-tabs {
   display: flex;
