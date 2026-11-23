@@ -21,6 +21,13 @@
   margin-left: auto;
 }
 
+/* On desktop the start slot only matters when it holds a Back button */
+@media (min-width: 769px) {
+  .topbar-start:not(:has(.btn-back)) {
+    display: none;
+  }
+}
+
 .btn-menu {
   display: none;
   width: 40px;
