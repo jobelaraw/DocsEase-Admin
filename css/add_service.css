@@ -830,6 +830,7 @@
 }
 
 html:not(.is-super-admin) .sidebar a.nav-item[href$="map_management.html"],
-html:not(.is-super-admin) .sidebar a.nav-item[href$="review_queue.html"] {
+html:not(.is-super-admin) .sidebar a.nav-item[href$="review_queue.html"],
+html:not(.is-super-admin) .sidebar a.nav-item[href$="account_management.html"] {
   display: none !important;
 }
