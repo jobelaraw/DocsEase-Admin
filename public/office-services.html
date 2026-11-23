@@ -1,324 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GaBayan – Category List</title>
+  <title>GaBayan – Office Services</title>
+  <link rel="icon" type="image/png" href="assets/logo_whitebg.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="icon" type="image/png" href="assets/logo_whitebg.png" />
-  <link rel="stylesheet" href="css/category_list.css" />
-  <link rel="stylesheet" href="css/sidebar.css" />
-  <link rel="stylesheet" href="css/profile.css" />
-  <link rel="stylesheet" href="css/toast.css" />
-  <link rel="stylesheet" href="css/page_transition.css" />
-  <script src="./js/toast.js"></script>
-  <script type="module" src="./js/role-guard.js"></script>
-  <script src="./js/sidebar.js"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+  <link rel="stylesheet" href="css/app.css" />
+  <script src="js/shell.js"></script>
+  <script type="module" src="js/pages/office-services.js"></script>
 </head>
-
 <body>
+  <app-sidebar active="services"></app-sidebar>
 
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-icon">
-        <img src="assets/logo.png" alt="GaBayan Logo" />
-      </div>
-      <div class="logo-text">
-        <img src="assets/docsease_text.png" alt="GaBayan" class="brand-img" />
-      </div>
-    </div>
+  <main class="main main--fixed">
+    <app-topbar back="service-management.html" back-role="super_admin"></app-topbar>
 
-    <div class="sidebar-nav-container">
-      <nav class="sidebar-nav">
-        <a href="dashboard.html" class="nav-item">
-          <div class="nav-icon"><img src="assets/dashboard.svg" alt="Dashboard" /></div>
-          <span class="nav-label">Dashboard</span>
-        </a>
-        <a href="service-management.html" class="nav-item active">
-          <div class="nav-icon"><img src="assets/service_mngment.svg" alt="Service Management" /></div>
-          <span class="nav-label">Service Management</span>
-        </a>
-
-        <a href="map-management.html" class="nav-item" title="Map Management">
-          <div class="nav-icon"><img src="assets/map_mngment.svg" alt="Map Management" /></div>
-          <span class="nav-label">Map Management</span>
-        </a>
-
-        <a href="analytics.html" class="nav-item">
-          <div class="nav-icon"><img src="assets/analytics.svg" alt="Analytics" /></div>
-          <span class="nav-label">Analytics</span>
-        </a>
-
-        <a href="review-queue.html" class="nav-item" title="Review Queue">
-        <div class="nav-icon"><img src="assets/review_queue.svg" alt="Review Queue" /></div>
-        <span class="nav-label">Review Queue</span>
-      </a>
-
-        <a href="account-management.html" class="nav-item" title="Account Management">
-          <div class="nav-icon"><img src="assets/account_management.svg" alt="Account Management" /></div>
-          <span class="nav-label">Account Management</span>
-        </a>
-
-      <a href="activity-log.html" class="nav-item" title="Activity Log">
-      <div class="nav-icon"><img src="assets/activity_log.svg" alt="Activity Log" /></div>
-        <span class="nav-label">Activity Log</span>
-        </a>
-      </nav>
-    </div>
-
-    <div class="sidebar-bottom">
-      <button class="btn-collapse" onclick="toggleSidebar()" title="Collapse sidebar">
-        <img id="collapse-icon" src="assets/collapse.svg" alt="Collapse" />
-      </button>
-    </div>
-  </aside>
-
-  <div class="main">
-    <header class="topbar">
-      <button class="btn-back role-back" id="btn-back" onclick="window.location.href='service-management.html'">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-          stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="15 18 9 12 15 6" />
-        </svg>
-        Back
-      </button>
-
-      <div id="profile-placeholder"></div>
-    </header>
-
-    <div class="content page-fade" id="main-content">
-      <div class="header-group">
-        <div class="title-area">
-          <h2 id="page-title"></h2>
-          <p id="page-subtitle"></p>
+    <div class="content">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title" id="page-title">Services</h1>
+          <p class="page-subtitle" id="page-subtitle">Monitor and manage service items.</p>
         </div>
       </div>
 
-      <div class="actions-row">
-        <div class="search-input-wrapper">
-          <div class="search-icon-embed">
-            <img src="assets/search.svg" alt="Search icon" />
-          </div>
-          <input type="text" id="search-input" placeholder="Search service..." aria-label="Search city office updates" oninput="filterServices(this.value)" />
-        </div>
-
-        <button type="button" class="btn-add-service" onclick="window.location.href='add-service.html'">
-          <img src="assets/add_service.svg" alt="Plus Icon" />
+      <div class="toolbar">
+        <label class="search-box">
+          <img src="assets/search.svg" alt="" />
+          <input type="search" id="search" placeholder="Search service..." aria-label="Search services" />
+        </label>
+        <a class="btn btn-cta" id="add-service" href="add-service.html">
+          <img src="assets/add_service.svg" alt="" />
           <span>Add New Service</span>
-        </button>
+        </a>
       </div>
 
-      <div class="panel-card">
-        <div class="services-scroll">
-          <div class="services-grid page-fade" id="services-grid"></div>
-          <div class="services-grid skel-group" id="page-skel" aria-hidden="true">
-            <div class="service-card" style="pointer-events:none;background:#d9e2f1;"><span class="skel skel-title" style="width:60%;margin:0 auto;background:#c8d4e8;"></span></div>
-            <div class="service-card" style="pointer-events:none;background:#d9e2f1;"><span class="skel skel-title" style="width:45%;margin:0 auto;background:#c8d4e8;"></span></div>
-            <div class="service-card" style="pointer-events:none;background:#d9e2f1;"><span class="skel skel-title" style="width:70%;margin:0 auto;background:#c8d4e8;"></span></div>
-            <div class="service-card" style="pointer-events:none;background:#d9e2f1;"><span class="skel skel-title" style="width:55%;margin:0 auto;background:#c8d4e8;"></span></div>
-            <div class="service-card" style="pointer-events:none;background:#d9e2f1;"><span class="skel skel-title" style="width:40%;margin:0 auto;background:#c8d4e8;"></span></div>
-            <div class="service-card" style="pointer-events:none;background:#d9e2f1;"><span class="skel skel-title" style="width:65%;margin:0 auto;background:#c8d4e8;"></span></div>
-          </div>
-          <p id="loading" style="display:none; text-align: center; color:#6b7a99; font-size:1rem; font-weight:600; margin-top:40px;"></p>
-          <p id="no-results" style="display:none; text-align:center; color:#6b7a99; font-size:1rem; font-weight:600; margin-top:40px;">No services found.</p>
+      <section class="panel-card" aria-labelledby="page-title">
+        <div class="panel-scroll">
+          <div class="tile-grid" id="services" aria-busy="true"></div>
+          <p class="empty-state" id="status" hidden></p>
         </div>
-      </div>
+      </section>
     </div>
-  </div>
-
-  <script type="module">
-    import { auth, db } from './js/firebase-config.js';
-    import { collection, query, where, getDocs, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-
-    const params = new URLSearchParams(window.location.search);
-    let currentOffice = params.get('office');
-    const sameName = (a, b) =>
-      String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase();
-
-    function showOfficeTitle() {
-      const title = document.getElementById('page-title');
-      const subtitle = document.getElementById('page-subtitle');
-      if (!currentOffice) {
-        title.textContent = 'Service List';
-        subtitle.textContent = 'Monitor and manage document processes.';
-        return;
-      }
-      title.textContent = currentOffice + " Services";
-      subtitle.textContent = `Monitor and manage service items listed under ${currentOffice}.`;
-    }
-
-    // Swap the skeleton for a status message
-    function showStatus(msg) {
-      document.getElementById('page-skel').hidden = true;
-      const loadingText = document.getElementById('loading');
-      loadingText.innerText = msg;
-      loadingText.style.display = 'block';
-    }
-
-    function revealContent() {
-      document.getElementById('main-content').classList.add('is-ready');
-    }
-
-    // Office is already known from the URL: show the right title on first paint
-    showOfficeTitle();
-
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        window.location.href = 'login.html';
-        return;
-      }
-
-      try {
-        const adminDoc = await getDoc(doc(db, 'admin', user.uid));
-
-        if (!adminDoc.exists()) {
-          await signOut(auth);
-          window.location.href = 'login.html';
-          return;
-        }
-
-        const userNameEl = document.querySelector('.user-name');
-        const userRoleEl = document.querySelector('.user-role');
-        if (userNameEl) userNameEl.textContent = user.displayName || user.email;
-        if (userRoleEl) userRoleEl.textContent = 'Admin ✓';
-
-        const adminData = adminDoc.data();
-        const isSuperAdmin = adminData.role === 'super_admin' && adminData.status === 'active';
-
-        // Only the Super Admin has an office list to go back to
-        document.getElementById('btn-back').style.visibility = isSuperAdmin ? 'visible' : 'hidden';
-
-        if (!isSuperAdmin) {
-          const myOffice = (adminData.admin_office || '').trim();
-          if (!myOffice) {
-            showStatus('Your account has no office assigned yet. Please contact the Super Admin.');
-            revealContent();
-            return;
-          }
-          // Wrong or missing office in the URL: go to their own office
-          if (!sameName(currentOffice, myOffice)) {
-            window.location.replace('office-services.html?office=' + encodeURIComponent(myOffice));
-            return;
-          }
-          currentOffice = myOffice;
-        }
-
-        showOfficeTitle();
-        revealContent();
-        loadServices();
-      } catch (error) {
-        console.error('Auth check failed:', error);
-        await signOut(auth);
-        window.location.href = 'login.html';
-      }
-    });
-
-    async function loadServices() {
-      const listContainer = document.getElementById('services-grid');
-      const loadingText = document.getElementById('loading');
-
-      if (!currentOffice) {
-        showStatus('No office selected.');
-        return;
-      }
-
-      try {
-
-        const officesRef = collection(db, "offices");
-        const officeQuery = query(officesRef, where("office_name", "==", currentOffice));
-        const officeSnapshot = await getDocs(officeQuery);
-
-        if (officeSnapshot.empty) {
-          showStatus('Office not found in the database.');
-          return;
-        }
-        if (officeSnapshot.docs[0].data().isDeleted === true) {
-          showStatus('This office is in Deleted Records. A Super Admin can recover it from the Review Queue.');
-          return;
-        }
-
-        const actualOfficeId = officeSnapshot.docs[0].id;
-        window.currentOfficeId = actualOfficeId; // used by openService()
-
-        const servicesRef = collection(db, "offices", actualOfficeId, "services");
-        const querySnapshot = await getDocs(servicesRef);
-        // Services in Deleted Records are hidden; older docs without isDeleted stay visible
-        const activeDocs = querySnapshot.docs.filter(d => d.data().isDeleted !== true);
-
-        if (!activeDocs.length) {
-          showStatus('No services found for this office yet.');
-          return;
-        }
-        document.getElementById('page-skel').hidden = true;
-
-        // Build all cards first, then insert and fade them in together
-        let cardsHTML = '';
-        activeDocs.forEach((doc) => {
-          const serviceData = doc.data();
-          const serviceId = doc.id;
-
-          const safeId = serviceId.replace(/'/g, "\\'");
-          cardsHTML += `
-            <div class="service-card" onclick="openService('${safeId}')">
-              <p class="card-title">${serviceData.service_name || serviceId}</p>
-            </div>
-          `;
-        });
-
-        listContainer.innerHTML = cardsHTML;
-        requestAnimationFrame(() => listContainer.classList.add('is-ready'));
-
-      } catch (error) {
-        console.error("Error fetching services: ", error);
-        showStatus('Failed to load services. Check your permissions.');
-      }
-    }
-  </script>
-  
-  <script>
-    function filterServices(query) {
-      const q = query.trim().toLowerCase();
-      const cards = document.querySelectorAll('#services-grid .service-card');
-      let visible = 0;
-      cards.forEach(card => {
-        const name = card.querySelector('p').textContent.toLowerCase();
-        const show = name.includes(q);
-        card.style.display = show ? '' : 'none';
-        if (show) visible++;
-      });
-      document.getElementById('no-results').style.display = visible === 0 ? 'block' : 'none';
-    }
-    
-    function openService(serviceId) {
-      if (!window.currentOfficeId) {
-        console.error('Office ID not resolved yet.');
-        return;
-      }
-      window.location.href = 'edit-service.html?officeId=' + encodeURIComponent(window.currentOfficeId) + '&serviceId=' + encodeURIComponent(serviceId);
-    }
-  </script>
-
-  <script>
-    fetch('partials/profile.html')
-      .then(res => res.text())
-      .then(html => {
-        const template = document.createElement('template');
-        template.innerHTML = html;
-        const script = template.content.querySelector('script');
-        const profilePlaceholder = document.getElementById('profile-placeholder');
-        profilePlaceholder.replaceChildren(template.content);
-        if (script) {
-          const executableScript = document.createElement('script');
-          executableScript.textContent = script.textContent;
-          document.body.appendChild(executableScript);
-        }
-        if (window.currentUser) updateProfileDisplay(window.currentUser);
-      });
-</script>
-
+  </main>
 </body>
 </html>

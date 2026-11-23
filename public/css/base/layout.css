@@ -1,0 +1,167 @@
+/* App layout: sidebar on the left, scrolling main column on the right. */
+body {
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  background: var(--main-bg);
+  color: var(--text-dark);
+  overflow: hidden;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+/* Pages whose content scrolls inside a panel instead of the whole column */
+.main.main--fixed {
+  overflow: hidden;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  padding: var(--space-6) var(--space-8) var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* Fade real content in once its data is ready (skeletons stay visible meanwhile) */
+.page-fade {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.page-fade.is-ready {
+  opacity: 1;
+  transform: none;
+}
+
+/* Page title block */
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.page-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #000;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+
+.page-subtitle {
+  margin-top: var(--space-1);
+  font-size: var(--fs-md);
+  font-weight: 500;
+  color: var(--label);
+}
+
+/* Search box on the left, main action on the right */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+  flex-shrink: 0;
+}
+
+/* Gradient banner used at the top of list pages */
+.banner {
+  background: linear-gradient(135deg, var(--banner-from) 0%, var(--banner-to) 100%);
+  border-radius: var(--radius-lg);
+  padding: 28px 36px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.banner h1,
+.banner h2 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.banner p {
+  margin-top: 6px;
+  font-size: var(--fs-sm);
+  color: rgba(255, 255, 255, 0.82);
+  max-width: 520px;
+  line-height: 1.55;
+}
+
+/* Smooth page-to-page navigation; the sidebar stays put */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.22s;
+  animation-timing-function: ease;
+}
+
+@media (max-width: 768px) {
+  .content {
+    padding: var(--space-4);
+    gap: var(--space-4);
+  }
+
+  .banner {
+    padding: 22px;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+  }
+
+  .page-subtitle {
+    font-size: var(--fs-sm);
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+  }
+
+  .toolbar .btn-cta {
+    justify-content: center;
+  }
+
+  .main.main--fixed {
+    overflow-y: auto;
+  }
+
+  .banner h1,
+  .banner h2 {
+    font-size: 1.4rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-fade {
+    transition: none;
+    transform: none;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}

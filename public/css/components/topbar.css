@@ -1,0 +1,79 @@
+/* <app-topbar> — menu button (phones), optional back button, page content, profile menu. */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: 18px var(--space-8) 0;
+  flex-shrink: 0;
+  min-height: 62px;
+}
+
+.topbar-start {
+  order: -1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* The profile menu always sits at the far right, after any page content */
+.topbar-profile {
+  order: 99;
+  margin-left: auto;
+}
+
+.btn-menu {
+  display: none;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 10px;
+  background: var(--card-bg);
+  color: var(--navy);
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-back {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: none;
+  font-size: var(--fs-base);
+  font-weight: 700;
+  color: var(--navy);
+  padding: 8px 0;
+  text-decoration: none;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+}
+
+.btn-back:hover {
+  opacity: 0.6;
+}
+
+.topbar-title {
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+@media (max-width: 768px) {
+  .topbar {
+    padding: 12px var(--space-4) 0;
+    gap: var(--space-3);
+  }
+
+  .btn-menu {
+    display: inline-flex;
+  }
+
+  .topbar-title {
+    font-size: var(--fs-lg);
+  }
+
+  .topbar .user-info {
+    display: none;
+  }
+}

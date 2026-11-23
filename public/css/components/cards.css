@@ -1,0 +1,100 @@
+/* White cards and scrolling panels. */
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 24px 26px;
+  box-shadow: var(--shadow);
+}
+
+/* A card that fills the remaining height and scrolls inside (lists of offices/services) */
+.panel-card {
+  flex: 1;
+  min-height: 0;
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 32px 25px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.panel-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 20px;
+}
+
+.panel-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.panel-scroll::-webkit-scrollbar-thumb {
+  background: rgba(13, 31, 60, 0.15);
+  border-radius: 10px;
+}
+
+.panel-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(13, 31, 60, 0.3);
+}
+
+/* Big clickable tiles (one per office / service) */
+.tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 30px;
+}
+
+.tile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 150px;
+  padding: 44px 40px;
+  border: none;
+  border-radius: 14px;
+  background: #406aaf;
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: center;
+  text-decoration: none;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.tile:hover {
+  opacity: 0.88;
+  transform: translateY(-2px);
+}
+
+.tile.is-placeholder {
+  background: #d9e2f1;
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .panel-card {
+    padding: 16px;
+    overflow: visible;
+  }
+
+  .panel-scroll {
+    overflow: visible;
+    padding-right: 0;
+  }
+
+  .tile-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .tile {
+    min-height: 100px;
+    padding: 24px 20px;
+    font-size: var(--fs-base);
+  }
+}

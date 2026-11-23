@@ -1,0 +1,109 @@
+/* Buttons. One family with variants instead of a new class per page. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.18s, opacity 0.18s, border-color 0.18s;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--navy);
+  color: #fff;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--navy-hover);
+}
+
+.btn-secondary {
+  background: #fff;
+  color: #2b2828;
+  border-color: #d0d7de;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--hover-bg);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.btn-ghost {
+  background: none;
+  color: var(--navy);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--active-bg);
+}
+
+/* Big gradient call-to-action (Add Service / Add Office) */
+.btn-cta {
+  height: 52px;
+  padding: 0 24px;
+  background: linear-gradient(to right, #0a3966, #3b7bb5);
+  border: none;
+  border-radius: var(--radius);
+  color: #fff;
+  font-size: var(--fs-base);
+  font-weight: 700;
+  gap: 12px;
+  box-shadow: 0 4px 12px rgba(10, 40, 90, 0.15);
+  flex-shrink: 0;
+}
+
+.btn-cta:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.btn-cta img {
+  height: 18px;
+  width: auto;
+}
+
+/* Small square icon button (edit / delete in lists) */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  transition: background 0.18s;
+}
+
+.btn-icon:hover {
+  background: var(--hover-bg);
+}
+
+.btn-icon img {
+  width: 18px;
+  height: 18px;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: var(--fs-sm);
+}
