@@ -7,6 +7,7 @@ const accounts = require("./accounts");
 const trash = require("./trash");
 const requests = require("./requests");
 const stats = require("./stats");
+const offices = require("./offices");
 
 // action name -> who may run it + the handler (caller, data) => result
 const ACTIONS = {
@@ -23,6 +24,8 @@ const ACTIONS = {
   purgeOffice: { role: "super_admin", run: trash.purgeOffice },
 
   deleteCompletedRequest: { role: "super_admin", run: requests.deleteCompletedRequest },
+
+  renameOffice: { role: "super_admin", run: offices.renameOffice },
 
   getStats: { role: "admin", run: stats.getStats }
 };

@@ -1,7 +1,7 @@
 // Offices and other rooms (Firestore: offices/{officeId}, other_room/{roomId}).
 // Offices in Deleted Records keep their document with isDeleted: true.
 import { db } from '../core/firebase.js';
-import { collection, doc, getDoc, getDocs, onSnapshot, query, where, limit, setDoc, updateDoc, serverTimestamp } from '../core/sdk/firestore.js';
+import { collection, doc, getDoc, getDocs, onSnapshot, query, where, limit, setDoc, updateDoc, serverTimestamp, writeBatch, deleteField } from '../core/sdk/firestore.js';
 import { newNotifyId } from '../core/api.js';
 import { OFFICE_CATEGORY } from '../core/constants.js';
 
@@ -93,4 +93,30 @@ export async function createOfficeOrRoom({ name, description, floor, category, s
 
 export function updateOfficeOrRoom(collectionName, id, patch) {
   return updateDoc(doc(db, collectionName, id), patch);
+}
+
+// ---------- Map (first-floor rooms) ----------
+// map_slot = room on the floor plan; map_slot_v = numbering version (2 = current).
+export const SLOT_VERSION = 2;
+
+const slotFields = (slot) => (slot
+  ? { map_slot: slot, map_slot_v: SLOT_VERSION }
+  : { map_slot: deleteField(), map_slot_v: deleteField() });
+
+// changes: [{ collection, id, slot }] (slot null = take it off the map), saved together
+export async function saveMapSlots(changes) {
+  const batch = writeBatch(db);
+  changes.forEach(({ collection: coll, id, slot }) => batch.update(doc(db, coll, id), slotFields(slot)));
+  await batch.commit();
+}
+
+// Saves the editable details of an office/room (the name is changed through
+// api.renameOffice so admins and "Navigate to" steps follow it).
+export function saveOfficeDetails(collectionName, id, { description, floor, category, schedule }, { clearSlot = false } = {}) {
+  return updateDoc(doc(db, collectionName, id), {
+    description, floor, category, schedule,
+    open_time: deleteField(),
+    close_time: deleteField(),
+    ...(clearSlot ? slotFields(null) : {})
+  });
 }

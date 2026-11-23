@@ -40,6 +40,9 @@ export const api = {
   purgeService: (officeId, serviceId, confirmName) => call(adminApi, 'purgeService', { officeId, serviceId, confirmName }),
   purgeOffice: (officeId, confirmName) => call(adminApi, 'purgeOffice', { officeId, confirmName }),
 
+  // Offices (Super Admin): rename everywhere it is referenced
+  renameOffice: (collection, officeId, name) => call(adminApi, 'renameOffice', { collection, officeId, name }),
+
   // Review Queue history (Super Admin)
   deleteCompletedRequest: (requestId) => call(adminApi, 'deleteCompletedRequest', { requestId }),
 
