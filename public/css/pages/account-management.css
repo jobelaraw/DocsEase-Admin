@@ -1,0 +1,283 @@
+/* Account Management (account-management.html). */
+.content {
+  gap: 18px;
+}
+
+/* User / Admin switch */
+.section-switch {
+  display: inline-flex;
+  padding: 4px;
+  border-radius: 30px;
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+.section-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 26px;
+  background: transparent;
+  color: var(--navy);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.section-btn:hover {
+  background: var(--active-bg);
+}
+
+.section-btn.active {
+  background: var(--navy);
+  color: #fff;
+}
+
+.section-count {
+  min-width: 22px;
+  padding: 2px 7px;
+  border-radius: 20px;
+  background: var(--active-bg);
+  color: var(--navy);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.section-btn.active .section-count {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.acct-hint {
+  padding-bottom: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* Table */
+.acct-table-head,
+.acct-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 2.2fr) 1fr 1fr 0.9fr minmax(190px, auto);
+  align-items: center;
+  gap: 14px;
+}
+
+.acct-table-head.is-admins,
+.acct-row.is-admins {
+  grid-template-columns: minmax(200px, 2fr) 1.3fr 1fr 1fr 0.9fr minmax(190px, auto);
+}
+
+.acct-table-head {
+  padding: 12px 36px 10px;
+  border-bottom: 1px solid #eef1f6;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.acct-table-head .col-actions {
+  text-align: right;
+}
+
+.acct-row {
+  padding: 12px 8px;
+  border-bottom: 1px solid #eceff5;
+  font-size: 0.78rem;
+  color: #4a5568;
+  transition: background 0.12s ease;
+}
+
+.acct-row:hover {
+  background: #f6f9fe;
+}
+
+.acct-person {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.acct-avatar {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--active-bg);
+  color: var(--navy);
+  font-size: var(--fs-xs);
+  font-weight: 800;
+}
+
+.acct-person-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.acct-name {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--text-dark);
+}
+
+.acct-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.acct-name,
+.acct-sub,
+.acct-cell {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.status-active { background: #e3f6ea; color: #1e7b45; }
+.status-inactive { background: #fff4dc; color: #a26a00; }
+.status-deactivated { background: #fde8e8; color: #c0392b; }
+.status-pending { background: var(--active-bg); color: var(--navy-light); }
+
+.acct-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.btn-row {
+  padding: 7px 14px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  font-weight: 700;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.btn-deactivate { background: #fff0f0; color: #c0392b; }
+.btn-deactivate:hover { background: #ffdcdc; }
+.btn-reactivate { background: var(--navy); color: #fff; }
+.btn-reactivate:hover { opacity: 0.9; }
+
+.acct-note {
+  padding: 7px 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+a.acct-note {
+  color: var(--navy-light);
+}
+
+a.acct-note:hover {
+  text-decoration: underline;
+}
+
+/* Deactivate / reactivate dialog */
+.status-target {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+}
+
+.status-target .acct-name,
+.status-target .acct-sub {
+  white-space: normal;
+}
+
+.status-explain {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 16px 0 16px 18px;
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+  color: #34425c;
+}
+
+@media (max-width: 1100px) {
+  .acct-table-head {
+    display: none;
+  }
+
+  .acct-row,
+  .acct-row.is-admins {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 14px;
+    padding: 14px 8px;
+  }
+
+  .acct-person,
+  .acct-actions {
+    grid-column: 1 / -1;
+  }
+
+  .acct-actions {
+    justify-content: flex-start;
+  }
+
+  .acct-cell::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 2px;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+}
+
+@media (max-width: 768px) {
+  .section-switch {
+    width: 100%;
+  }
+
+  .section-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 10px 8px;
+    font-size: 0.78rem;
+  }
+
+  .acct-hint {
+    display: none;
+  }
+}
