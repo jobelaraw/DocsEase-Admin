@@ -9,11 +9,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="icon" type="image/png" href="assets/logo_whitebg.png" />
-  <link rel="stylesheet" href="css/toast.css" />
-  <link rel="stylesheet" href="css/auth.css" />
-  <script src="./js/toast.js"></script>
-  <link rel="stylesheet" href="css/admin_agreement.css" />
-  <script type="module" src="./js/admin-agreement.js"></script>
+  <link rel="stylesheet" href="css/base/tokens.css" />
+  <link rel="stylesheet" href="css/components/toast.css" />
+  <link rel="stylesheet" href="css/pages/login.css" />
+  <link rel="stylesheet" href="css/components/admin-agreement.css" />
+  <script src="js/shell.js"></script>
+  <script type="module" src="js/pages/login.js"></script>
   <meta name="robots" content="noindex, nofollow" />
 </head>
 
@@ -66,12 +67,12 @@
           <div class="field-group">
             <div class="field-row">
               <label class="field-label">Password</label>
-              <a href="#" class="forgot-link" onclick="goForgotPass(event)">Forgot Password</a>
+              <a href="#" class="forgot-link" data-go="forgotpass">Forgot Password</a>
             </div>
             <div class="input-wrap">
               <input type="password" id="si-password" placeholder="Enter your password"
                 autocomplete="current-password" />
-              <button type="button" class="eye-btn" onclick="toggleEye('si-password', 'eye-si')"
+              <button type="button" class="eye-btn" data-eye="si-password"
                 aria-label="Toggle password">
                 <img id="eye-si" src="assets/eyeHide.svg" alt="Show password" />
               </button>
@@ -80,11 +81,11 @@
             <div class="field-error" id="err-si-password"></div>
           </div>
 
-          <button type="button" id="sign-in-btn" class="btn-main" onclick="handleSignIn()" disabled>Sign in</button>
+          <button type="button" id="sign-in-btn" class="btn-main" data-action="sign-in" disabled>Sign in</button>
 
           <div class="or-divider">OR</div>
 
-          <button class="btn-google" onclick="handleGoogleSignIn()">
+          <button class="btn-google" type="button" data-action="google">
             <img class="g-logo" src="assets/google.png" alt="Google" />
             Continue with Google
           </button>
@@ -92,7 +93,7 @@
         </div>
 
         <p class="panel-footer">
-          Don't have an account? <a href="#" onclick="goSignup(event)">Sign up</a>
+          Don't have an account? <a href="#" data-go="signup">Sign up</a>
         </p>
 
       </div>
@@ -157,7 +158,7 @@
             <label class="field-label">PASSWORD</label>
             <div class="input-wrap" id="wrap-su-password">
               <input type="password" id="su-password" placeholder="Enter your password" />
-              <button type="button" class="eye-btn" onclick="toggleEye('su-password','eye-su')" aria-label="Toggle">
+              <button type="button" class="eye-btn" data-eye="su-password" aria-label="Toggle">
                 <img id="eye-su" src="assets/eyeHide.svg" alt="Show password" />
               </button>
               <span class="error-icon">!</span>
@@ -189,7 +190,7 @@
             <label class="field-label">Confirm Password</label>
             <div class="input-wrap" id="wrap-su-confirm">
               <input type="password" id="su-confirm" placeholder="Re-enter your password" />
-              <button type="button" class="eye-btn" onclick="toggleEye('su-confirm','eye-su2')" aria-label="Toggle">
+              <button type="button" class="eye-btn" data-eye="su-confirm" aria-label="Toggle">
                 <img id="eye-su2" src="assets/eyeHide.svg" alt="Show password" />
               </button>
               <span class="error-icon">!</span>
@@ -206,11 +207,11 @@
               <a href="#" class="agr-link" data-agr-tab="terms">Terms &amp; Conditions</a> and
               <a href="#" class="agr-link" data-agr-tab="privacy">Privacy Policy</a></span>
           </div>
-          <button type="button" id="sign-up-btn" class="btn-main" onclick="handleSignUp()" disabled>SIGN UP</button>
+          <button type="button" id="sign-up-btn" class="btn-main" data-action="sign-up" disabled>SIGN UP</button>
 
           <div class="or-divider">OR</div>
 
-          <button class="btn-google" onclick="handleGoogleSignIn()">
+          <button class="btn-google" type="button" data-action="google">
             <img class="g-logo" src="assets/google.png" alt="Google" />
             Continue with Google
           </button>
@@ -218,7 +219,7 @@
         </div>
 
         <p class="panel-footer">
-          Already have an account? <a href="#" onclick="goSignin(event)">Sign in</a>
+          Already have an account? <a href="#" data-go="signin">Sign in</a>
         </p>
 
       </div>
@@ -265,11 +266,11 @@
             <div class="field-error" id="err-recovery-email"></div>
           </div>
 
-          <button type="button" class="btn-main" onclick="handleForgotPassword()">NEXT</button>
+          <button type="button" class="btn-main" data-action="send-code">NEXT</button>
         </div>
 
         <p class="panel-footer">
-          Remember your password? <a href="#" onclick="goSignin(event)">Back to Sign in</a>
+          Remember your password? <a href="#" data-go="signin">Back to Sign in</a>
         </p>
 
       </div>
@@ -317,13 +318,13 @@
             <div class="field-error" id="err-recovery-code"></div>
           </div>
 
-          <button type="button" class="btn-main" onclick="handleVerifyCode()">Verify</button>
-          <button type="button" class="btn-resend" id="btn-resend" disabled onclick="handleResendCode()">Resend Code
+          <button type="button" class="btn-main" data-action="verify-code">Verify</button>
+          <button type="button" class="btn-resend" id="btn-resend" disabled data-action="resend-code">Resend Code
             (<span id="resend-timer">30</span>s)</button>
         </div>
 
         <p class="panel-footer">
-          Wrong email? <a href="#" onclick="goForgotPass(event)">Go back</a>
+          Wrong email? <a href="#" data-go="forgotpass">Go back</a>
         </p>
 
       </div>
@@ -365,7 +366,7 @@
             <label class="field-label">New Password</label>
             <div class="input-wrap" id="wrap-new-password">
               <input type="password" id="new-password" placeholder="Enter new password" autocomplete="new-password" />
-              <button type="button" class="eye-btn" onclick="toggleEye('new-password','eye-np')"
+              <button type="button" class="eye-btn" data-eye="new-password"
                 aria-label="Toggle password">
                 <img id="eye-np" src="assets/eyeHide.svg" alt="Show password" />
               </button>
@@ -399,7 +400,7 @@
             <div class="input-wrap" id="wrap-confirm-new-password">
               <input type="password" id="confirm-new-password" placeholder="Re-enter new password"
                 autocomplete="new-password" />
-              <button type="button" class="eye-btn" onclick="toggleEye('confirm-new-password','eye-cnp')"
+              <button type="button" class="eye-btn" data-eye="confirm-new-password"
                 aria-label="Toggle password">
                 <img id="eye-cnp" src="assets/eyeHide.svg" alt="Show password" />
               </button>
@@ -409,11 +410,11 @@
             <div class="field-error" id="err-confirm-new-password"></div>
           </div>
 
-          <button type="button" class="btn-main" onclick="handleResetPassword()">Reset Password</button>
+          <button type="button" class="btn-main" data-action="reset-password">Reset Password</button>
         </div>
 
         <p class="panel-footer">
-          Remember your password? <a href="#" onclick="goSignin(event)">Back to Sign in</a>
+          Remember your password? <a href="#" data-go="signin">Back to Sign in</a>
         </p>
 
       </div>
@@ -434,7 +435,7 @@
       GOOGLE SIGNUP — COMPLETE YOUR PROFILE
   ════════════════════════════ -->
   <div class="gsignup-modal-overlay" id="gsignup-modal">
-    <div class="gsignup-modal-box" onclick="event.stopPropagation()">
+    <div class="gsignup-modal-box">
       <div class="gsignup-modal-header">
         <h2>Complete Your Profile</h2>
       </div>
@@ -463,1205 +464,11 @@
       </div>
 
       <div class="gsignup-modal-actions">
-        <button type="button" class="btn-modal-cancel" onclick="cancelGoogleSignup()">Cancel</button>
-        <button type="button" class="btn-main" id="gs-confirm-btn" onclick="confirmGoogleSignup()">Confirm & Submit</button>
+        <button type="button" class="btn-modal-cancel" data-action="google-cancel">Cancel</button>
+        <button type="button" class="btn-main" id="gs-confirm-btn" data-action="google-confirm">Confirm & Submit</button>
       </div>
     </div>
   </div>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('accountDeleted') === 'true') {
-        if (window.showToast) {
-          window.showToast(
-            'success',
-            'Account Deleted',
-            'Your admin account has been permanently deleted.',
-            'OK',
-            () => {
-              // Clean up URL param
-              window.history.replaceState({}, document.title, window.location.pathname);
-            }
-          );
-
-          const cancelBtn = document.getElementById('toast-cancel-btn');
-          if (cancelBtn) cancelBtn.style.display = 'none';
-        }
-      }
-    });
-  </script>
-
-  <script type="module">
-    import { auth, db, googleProvider } from './js/firebase-config.js';
-    import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getDoc, collection, getDocs, addDoc, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-    import { sendRecoveryCode, sendRegistrationEmail, notifySuperAdminNewRequest } from './js/email-service.js';
-    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-functions.js";
-
-    // ---- Activity log helper ----
-    let _logActor = null;
-    async function logActivity(type, details = {}) {
-      try {
-        const user = auth.currentUser;
-        if (!user) return;
-
-        if (!_logActor || _logActor.uid !== user.uid) {
-          let name = user.displayName || user.email || 'Admin';
-          let role = 'admin';
-          try {
-            const snap = await getDoc(doc(db, 'admin', user.uid));
-            if (snap.exists()) {
-              const data = snap.data();
-              name = data.full_name || name;
-              role = data.role || 'admin';
-            }
-          } catch (err) {
-            console.error('[activity-log] could not read actor profile:', err);
-          }
-          _logActor = { uid: user.uid, name, role };
-        }
-
-        await addDoc(collection(db, 'activity_logs'), {
-          type,
-          actor_uid: _logActor.uid,
-          actor_name: details.actor_name || _logActor.name,
-          actor_role: _logActor.role,
-          office_name: details.office_name || '',
-          service_name: details.service_name || '',
-          target_name: details.target_name || '',
-          createdAt: serverTimestamp()
-        });
-      } catch (err) {
-        console.error('[activity-log] failed to log', type, err);
-      }
-    }
-
-async function populateOfficeDropdown() {
-      const select = document.getElementById('su-office');
-      const gsSelect = document.getElementById('gs-office');
-
-      try {
-        const officesSnap = await getDocs(collection(db, "offices"));
-        const optionsHtml = ['<option value="" disabled selected>Select an office</option>'];
-        officesSnap.forEach(docSnap => {
-          const data = docSnap.data();
-          if (data.isDeleted === true) return; // office is in Deleted Records
-          const value = data.office_name || docSnap.id;
-          optionsHtml.push(`<option value="${value}">${value}</option>`);
-        });
-        const html = optionsHtml.join('');
-        if (select) select.innerHTML = html;
-        if (gsSelect) gsSelect.innerHTML = html;
-      } catch (error) {
-        console.error("Failed to load offices", error);
-        const errHtml = '<option value="" disabled selected>Error loading offices</option>';
-        if (select) select.innerHTML = errHtml;
-        if (gsSelect) gsSelect.innerHTML = errHtml;
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      populateOfficeDropdown();
-    });
-
-    // Initialize Firebase Functions safely using the default app
-    const functions = getFunctions();
-
-    let recoveryCode = null;
-    let recoveryEmail = null;
-    let codeExpiry = null;
-
-    // Clear field errors
-    function clearFieldErrors() {
-      document.querySelectorAll('.input-wrap').forEach(wrap => wrap.classList.remove('has-error', 'has-success'));
-      document.querySelectorAll('.field-error').forEach(err => {
-        err.textContent = '';
-        err.style.display = 'none';
-      });
-    }
-
-    function clearFieldError(fieldId) {
-      const field = document.getElementById(fieldId);
-      const wrap = field?.closest('.input-wrap');
-      const errEl = document.getElementById('err-' + fieldId);
-      if (wrap) wrap.classList.remove('has-error');
-      if (errEl) {
-        errEl.textContent = '';
-        errEl.style.display = 'none';
-      }
-    }
-
-    // Show field error
-    function showFieldError(fieldId, message) {
-      const field = document.getElementById(fieldId);
-      if (!field) return;
-      const wrap = field.closest('.input-wrap');
-      if (wrap) {
-        wrap.classList.remove('has-success');
-        wrap.classList.add('has-error');
-      }
-
-      const errEl = document.getElementById('err-' + fieldId);
-      if (errEl) {
-        errEl.textContent = message;
-        errEl.style.display = 'block';
-      }
-    }
-
-    // Loading toast helper
-    function showLoadingToast(title, msg) {
-      showToast('info', title, msg, '');
-      const toastIcon = document.getElementById('toast-icon');
-      if (toastIcon) {
-        toastIcon.className = 'toast-icon loading';
-        toastIcon.innerHTML = '<div class="toast-loading-spinner"></div>';
-      }
-      const toastButton = document.getElementById('toast-btn');
-      if (toastButton) toastButton.disabled = true;
-    }
-
-    // Expose globally
-    window.clearFieldErrors = clearFieldErrors;
-    window.clearFieldError = clearFieldError;
-    window.showFieldError = showFieldError;
-    window.showLoadingToast = showLoadingToast;
-
-    // Login lockout (5 failed attempts = 10 minute lock)
-    const MAX_LOGIN_ATTEMPTS = 5;
-    const LOCKOUT_MS = 10 * 60 * 1000;
-    const LOCK_STORE_KEY = 'docsease_login_lockout';
-
-    function readLockStore() {
-      try { return JSON.parse(localStorage.getItem(LOCK_STORE_KEY)) || {}; } catch (_) { return {}; }
-    }
-    function writeLockStore(store) {
-      try { localStorage.setItem(LOCK_STORE_KEY, JSON.stringify(store)); } catch (_) {}
-    }
-    function lockKey(email) { return (email || '').trim().toLowerCase(); }
-
-    // Milliseconds left on the lock for this email (0 = not locked)
-    function getLockRemaining(email) {
-      const key = lockKey(email);
-      if (!key) return 0;
-      const store = readLockStore();
-      const entry = store[key];
-      if (!entry || !entry.lockedUntil) return 0;
-      const left = entry.lockedUntil - Date.now();
-      if (left <= 0) {
-        delete store[key];
-        writeLockStore(store);
-        return 0;
-      }
-      return left;
-    }
-
-    function registerFailedAttempt(email) {
-      const key = lockKey(email);
-      const store = readLockStore();
-      const entry = store[key] || { count: 0, lockedUntil: 0 };
-      entry.count += 1;
-      if (entry.count >= MAX_LOGIN_ATTEMPTS) {
-        entry.lockedUntil = Date.now() + LOCKOUT_MS;
-      }
-      store[key] = entry;
-      writeLockStore(store);
-      return { locked: entry.count >= MAX_LOGIN_ATTEMPTS, attemptsLeft: Math.max(0, MAX_LOGIN_ATTEMPTS - entry.count) };
-    }
-
-    function clearFailedAttempts(email) {
-      const key = lockKey(email);
-      const store = readLockStore();
-      if (store[key]) { delete store[key]; writeLockStore(store); }
-    }
-
-    function formatRemaining(ms) {
-      const total = Math.ceil(ms / 1000);
-      const m = Math.floor(total / 60);
-      const s = String(total % 60).padStart(2, '0');
-      return m + ':' + s;
-    }
-
-    const LOCK_MODAL_TITLE = 'Account Temporarily Locked';
-    let lockModalTimer = null;
-    let lockModalOpen = false;
-
-    function lockMessage(ms) {
-      return 'Too many failed login attempts. Please try again in ' + formatRemaining(ms) + '.';
-    }
-
-    function stopLockModalTimer() {
-      if (lockModalTimer) { clearInterval(lockModalTimer); lockModalTimer = null; }
-    }
-
-    function showLockModal(email) {
-      const left = getLockRemaining(email);
-      if (left <= 0) return;
-
-      stopLockModalTimer();
-      lockModalOpen = true;
-      showToast('error', LOCK_MODAL_TITLE, lockMessage(left), 'OK', () => {
-        lockModalOpen = false;
-        stopLockModalTimer();
-      });
-
-      lockModalTimer = setInterval(() => {
-        const msgEl = document.getElementById('toast-msg');
-        const titleEl = document.getElementById('toast-title');
-        // Stop if the modal was closed or replaced by another toast
-        if (!lockModalOpen || !msgEl || titleEl?.textContent !== LOCK_MODAL_TITLE) {
-          stopLockModalTimer();
-          return;
-        }
-        const remaining = getLockRemaining(email);
-        if (remaining <= 0) {
-          msgEl.textContent = 'Your account is now unlocked. You may sign in again.';
-          stopLockModalTimer();
-          return;
-        }
-        msgEl.textContent = lockMessage(remaining);
-      }, 1000);
-    }
-
-    // Sign In
-    window.handleSignIn = async function () {
-      clearFieldErrors();
-      const email = document.getElementById('si-email').value.trim();
-      const password = document.getElementById('si-password').value;
-      const signInButton = document.getElementById('sign-in-btn');
-
-      let hasError = false;
-      if (!email) {
-        showFieldError('si-email', 'Please fill the required field.');
-        hasError = true;
-      }
-      if (!password) {
-        showFieldError('si-password', 'Please fill the required field.');
-        hasError = true;
-      }
-      if (hasError) return;
-
-      if (getLockRemaining(email) > 0) {
-        showLockModal(email);
-        return;
-      }
-
-      showLoadingToast('Signing In...', 'Please wait while we sign you in.');
-      if (signInButton) signInButton.disabled = true;
-
-      try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-        clearFailedAttempts(email);   // correct credentials -> reset the counter
-
-        const adminSnap = await getDoc(doc(db, 'admin', user.uid));
-        if (!adminSnap.exists()) {
-          await auth.signOut();
-          document.getElementById('toast-overlay')?.classList.remove('show');
-          showFieldError('si-email', 'This account is not registered as an admin.');
-          if (signInButton) signInButton.disabled = false;
-          return;
-        }
-
-        const adminData = adminSnap.data();
-        if (adminData.status !== 'active') {
-          await auth.signOut();
-          document.getElementById('toast-overlay')?.classList.remove('show');
-          showFieldError('si-email', adminData.status === 'deactivated'
-            ? 'This account has been deactivated. Please contact the Super Admin.'
-            : 'Your account is still awaiting Super Admin approval.');
-          if (signInButton) signInButton.disabled = false;
-          return;
-        }
-
-        // Preload role for the sidebar guard
-        try { sessionStorage.setItem('docsease_role_hint', adminData.role === 'super_admin' ? 'super_admin' : 'admin'); } catch (_) {}
-        window.location.href = 'dashboard.html';
-      } catch (error) {
-        document.getElementById('toast-overlay')?.classList.remove('show');
-
-        const badCredentialCodes = [
-          'auth/invalid-credential', 'auth/wrong-password',
-          'auth/user-not-found', 'auth/invalid-login-credentials'
-        ];
-
-        if (error.code === 'auth/user-disabled') {
-          showFieldError('si-email', 'This account has been deactivated. Please contact the Super Admin.');
-          if (signInButton) signInButton.disabled = false;
-        } else if (error.code === 'auth/network-request-failed') {
-          showFieldError('si-email', 'No internet connection. Please check your network.');
-          if (signInButton) signInButton.disabled = false;
-        } else if (error.code === 'auth/too-many-requests') {
-
-          const store = readLockStore();
-          store[lockKey(email)] = { count: MAX_LOGIN_ATTEMPTS, lockedUntil: Date.now() + LOCKOUT_MS };
-          writeLockStore(store);
-          showLockModal(email);
-        } else if (badCredentialCodes.includes(error.code)) {
-          const { locked } = registerFailedAttempt(email);
-          if (locked) {
-            showLockModal(email);
-          } else {
-            showFieldError('si-email', 'Email or password is invalid.');
-            showFieldError('si-password', 'Email or password is invalid.');
-            if (signInButton) signInButton.disabled = false;
-          }
-        } else {
-          showFieldError('si-email', 'Email or password is invalid.');
-          showFieldError('si-password', 'Email or password is invalid.');
-          if (signInButton) signInButton.disabled = false;
-        }
-      }
-    };
-
-    // Sign Up
-    window.handleSignUp = async function () {
-      const name = document.getElementById('su-name').value.trim();
-      const email = document.getElementById('su-email').value.trim();
-      const password = document.getElementById('su-password').value;
-      const confirm = document.getElementById('su-confirm').value;
-      const signUpButton = document.getElementById('sign-up-btn');
-      const office = document.getElementById('su-office').value;
-
-      if (!window.AdminAgreement?.isAgreed()) {
-        await window.AdminAgreement?.open('terms');
-        return;
-      }
-
-      if (document.getElementById('wrap-su-email')?.classList.contains('has-error')) return;
-
-      let hasError = false;
-
-      if (!name) {
-        showFieldError('su-name', 'Please fill the required field.');
-        hasError = true;
-      }
-      if (!email) {
-        showFieldError('su-email', 'Please fill the required field.');
-        hasError = true;
-      }
-      if (!office) {
-      showFieldError('su-office', 'Please select an office.');
-      hasError = true;
-      }
-      if (!password) {
-        showFieldError('su-password', 'Please fill the required field.');
-        hasError = true;
-      }
-      if (!confirm) {
-        showFieldError('su-confirm', 'Please fill the required field.');
-        hasError = true;
-      }
-
-      if (hasError) return;
-
-      if (password !== confirm) {
-        showFieldError('su-confirm', 'Passwords do not match. Please try again.');
-        return;
-      }
-
-      if (password.length < 8 || !/[A-Z]/.test(password) || !/[0-9]/.test(password) || !/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-        showFieldError('su-password', 'Please meet all the password requirements.');
-        return;
-      }
-
-      showLoadingToast('Signing Up...', 'Please wait while we create your account.');
-      if (signUpButton) signUpButton.disabled = true;
-
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        await updateProfile(userCredential.user, { displayName: name });
-        await setDoc(doc(db, 'admin', userCredential.user.uid), {
-          admin_id: userCredential.user.uid,
-          full_name: name,
-          email: email,
-          admin_office: office,
-          role: 'admin',
-          status: 'pending',
-          sign_in_method: 'email',
-          accepted_terms_version: window.AdminAgreement.version,
-          accepted_terms_at: serverTimestamp(),
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
-        });
-
-        // Pending Review Queue request
-        await addDoc(collection(db, 'requests'), {
-          type: 'new_admin',
-          status: 'pending',
-          requested_by_uid: userCredential.user.uid,
-          requested_by_name: name,
-          requested_by_email: email,
-          target_admin_uid: userCredential.user.uid,
-          office_name: office,
-          createdAt: serverTimestamp()
-        });
-
-        await logActivity('admin_account_requested', { actor_name: name, office_name: office });
-        await sendRegistrationEmail(email, name, office, 'review');
-        await notifySuperAdminNewRequest(name, email, office);
-
-        await auth.signOut();
-
-        document.getElementById('toast-overlay')?.classList.remove('show');
-        showToast('success', 'Request Submitted!', 'Your admin account for ' + name + ' has been created and is now awaiting Super Admin approval. You\'ll be able to sign in once it\'s approved.', 'Back to Sign In', () => {
-          goSignin(new Event('click'));
-        });
-      } catch (error) {
-        document.getElementById('toast-overlay')?.classList.remove('show');
-        if (signUpButton) signUpButton.disabled = true;
-        if (error.code === 'auth/email-already-in-use') {
-          showFieldError('su-email', 'Email address already used.');
-        } else if (error.code === 'auth/invalid-email') {
-          showFieldError('su-email', 'Please enter a valid email address.');
-        } else if (error.code === 'auth/weak-password') {
-          showFieldError('su-password', 'Your password is too weak.');
-        } else {
-          showFieldError('su-email', 'Sign up failed. Please try again.');
-        }
-      }
-    };
-
-    // Input listeners
-    document.addEventListener('DOMContentLoaded', () => {
-      const signInButton = document.getElementById('sign-in-btn');
-      const signUpButton = document.getElementById('sign-up-btn');
-      const signInFields = ['si-email', 'si-password'];
-      const signUpFields = ['su-name', 'su-email', 'su-password', 'su-confirm'];
-
-      function updateAuthButtonState(button, fieldIds) {
-        if (!button) return;
-        const needsAgreement = button.id === 'sign-up-btn';
-        const notAgreed = needsAgreement && !window.AdminAgreement?.isAgreed();
-        button.disabled = notAgreed || fieldIds.some((id) => {
-          const field = document.getElementById(id);
-          return !field?.value.trim() || field.closest('.input-wrap')?.classList.contains('has-error');
-        });
-      }
-
-      // Re-check the Sign Up button whenever the agreement checkbox changes
-      document.addEventListener('agreement-change', () => {
-        updateAuthButtonState(signUpButton, signUpFields);
-      });
-
-      signInFields.concat(signUpFields).forEach((id) => {
-        document.getElementById(id)?.addEventListener('input', () => {
-          if (signInFields.includes(id)) {
-            signInFields.forEach(clearFieldError);
-          }
-          updateAuthButtonState(signInButton, signInFields);
-          updateAuthButtonState(signUpButton, signUpFields);
-        });
-      });
-
-      // Clear recovery errors
-      document.getElementById('recovery-email')?.addEventListener('input', () => {
-        clearFieldError('recovery-email');
-      });
-      document.getElementById('recovery-code')?.addEventListener('input', () => {
-        clearFieldError('recovery-code');
-      });
-
-      const suNameInput = document.getElementById('su-name');
-      const suEmailInput = document.getElementById('su-email');
-      const suConfirmInput = document.getElementById('su-confirm');
-
-      suNameInput?.addEventListener('input', function () {
-        const wrap = document.getElementById('wrap-su-name');
-        clearFieldError('su-name');
-        wrap?.classList.toggle('has-success', this.value.trim().length > 0);
-        updateAuthButtonState(signUpButton, signUpFields);
-      });
-
-      suEmailInput?.addEventListener('input', function () {
-        clearFieldError('su-email');
-        document.getElementById('wrap-su-email')?.classList.remove('has-success');
-        updateAuthButtonState(signUpButton, signUpFields);
-      });
-
-      suConfirmInput?.addEventListener('input', function () {
-        const wrap = document.getElementById('wrap-su-confirm');
-        const password = document.getElementById('su-password')?.value || '';
-        const value = this.value;
-        clearFieldError('su-confirm');
-
-        if (!value) {
-          wrap?.classList.remove('has-success');
-        } else if (value === password) {
-          wrap?.classList.add('has-success');
-        } else {
-          showFieldError('su-confirm', 'Passwords do not match. Please try again.');
-        }
-        updateAuthButtonState(signUpButton, signUpFields);
-      });
-
-      const suPasswordInput = document.getElementById('su-password');
-
-      if (suPasswordInput) {
-        suPasswordInput.addEventListener('input', function () {
-          const val = this.value;
-          const wrap = document.getElementById('wrap-su-password');
-          const errEl = document.getElementById('err-su-password');
-          const rulesContainer = document.getElementById('su-password-rules');
-
-          if (val.length === 0) {
-            if (rulesContainer) rulesContainer.style.display = 'none';
-            wrap.classList.remove('has-error', 'has-success');
-            if (errEl) errEl.style.display = 'none';
-            updateAuthButtonState(signUpButton, signUpFields);
-            return;
-          }
-
-          if (rulesContainer) rulesContainer.style.display = 'block';
-
-          const hasLength = val.length >= 8;
-          const hasSymbol = /[^a-zA-Z0-9\s]/.test(val);
-          const hasCapital = /[A-Z]/.test(val);
-          const hasNumber = /[0-9]/.test(val);
-
-          updateRuleState('rule-length', hasLength);
-          updateRuleState('rule-symbol', hasSymbol);
-          updateRuleState('rule-capital', hasCapital);
-          updateRuleState('rule-number', hasNumber);
-
-          const isAllValid = hasLength && hasSymbol && hasCapital && hasNumber;
-
-          if (isAllValid) {
-            wrap.classList.remove('has-error');
-            wrap.classList.add('has-success');
-            if (errEl) errEl.style.display = 'none';
-          } else {
-            wrap.classList.remove('has-success');
-          }
-
-          if (suConfirmInput?.value) {
-            suConfirmInput.dispatchEvent(new Event('input'));
-          }
-          updateAuthButtonState(signUpButton, signUpFields);
-        });
-      }
-
-      // Reset Password inputs
-      const npInput = document.getElementById('new-password');
-      const cnpInput = document.getElementById('confirm-new-password');
-
-      npInput?.addEventListener('input', function () {
-        const val = this.value;
-        const wrap = document.getElementById('wrap-new-password');
-        const errEl = document.getElementById('err-new-password');
-        const rulesContainer = document.getElementById('reset-password-rules');
-
-        if (val.length === 0) {
-          if (rulesContainer) rulesContainer.style.display = 'none';
-          wrap?.classList.remove('has-error', 'has-success');
-          if (errEl) errEl.style.display = 'none';
-          return;
-        }
-
-        if (rulesContainer) rulesContainer.style.display = 'block';
-
-        const hasLength = val.length >= 8;
-        const hasSymbol = /[^a-zA-Z0-9\s]/.test(val);
-        const hasCapital = /[A-Z]/.test(val);
-        const hasNumber = /[0-9]/.test(val);
-
-        updateRuleState('rule-reset-length', hasLength);
-        updateRuleState('rule-reset-symbol', hasSymbol);
-        updateRuleState('rule-reset-capital', hasCapital);
-        updateRuleState('rule-reset-number', hasNumber);
-
-        const isAllValid = hasLength && hasSymbol && hasCapital && hasNumber;
-
-        if (isAllValid) {
-          wrap?.classList.remove('has-error');
-          wrap?.classList.add('has-success');
-          if (errEl) errEl.style.display = 'none';
-        } else {
-          wrap?.classList.remove('has-success');
-        }
-
-        if (cnpInput?.value) {
-          cnpInput.dispatchEvent(new Event('input'));
-        }
-      });
-
-      cnpInput?.addEventListener('input', function () {
-        const wrap = document.getElementById('wrap-confirm-new-password');
-        const password = npInput?.value || '';
-        const value = this.value;
-        clearFieldError('confirm-new-password');
-
-        if (!value) {
-          wrap?.classList.remove('has-success');
-        } else if (value === password) {
-          wrap?.classList.add('has-success');
-        } else {
-          showFieldError('confirm-new-password', 'Passwords do not match. Please try again.');
-        }
-      });
-
-      updateAuthButtonState(signInButton, signInFields);
-      updateAuthButtonState(signUpButton, signUpFields);
-    });
-
-    function updateRuleState(ruleId, isValid) {
-      const el = document.getElementById(ruleId);
-      if (!el) return;
-      const icon = el.querySelector('.rule-icon');
-      if (isValid) {
-        el.classList.add('valid');
-        if (icon) icon.textContent = '✓';
-      } else {
-        el.classList.remove('valid');
-        if (icon) icon.textContent = '✕';
-      }
-    }
-
-    let pendingGoogleUser = null;
-
-    window.handleGoogleSignIn = async function () {
-      const isSignUpMode = document.getElementById('wrapper').classList.contains('signup-mode');
-
-      if (isSignUpMode && !window.AdminAgreement?.isAgreed()) {
-        const accepted = await window.AdminAgreement?.open('terms');
-        if (!accepted) return;
-      }
-
-      // Force account chooser
-      googleProvider.setCustomParameters({ prompt: 'select_account' });
-
-      let result;
-      try {
-        result = await signInWithPopup(auth, googleProvider);
-      } catch (error) {
-        // User closed the account chooser (X / exit) — cancel quietly, no error
-        if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request' || error.code === 'auth/user-cancelled') {
-          return;
-        }
-        let msg = 'Something went wrong. Please try again.';
-        if (error.code === 'auth/popup-blocked') msg = 'The sign in popup was blocked by your browser. Please allow popups and try again.';
-        else if (error.code === 'auth/user-disabled') msg = 'This account has been deactivated. Please contact the Super Admin.';
-        else if (error.code === 'auth/network-request-failed') msg = 'No internet connection. Please check your network.';
-        else if (error.code === 'auth/unauthorized-domain') msg = 'This domain is not authorized. Please contact support.';
-        else if (error.code === 'auth/account-exists-with-different-credential') msg = 'An account already exists with this email using a different provider. Please sign in with email/password first to link accounts.';
-        showToast('error', isSignUpMode ? 'Google Sign Up Failed' : 'Google Sign In Failed', msg);
-        return;
-      }
-
-      // Only show loading once an account has actually been chosen
-      showLoadingToast(isSignUpMode ? 'Signing Up...' : 'Signing In...', 'Please wait for a moment.');
-
-      try {
-        const user = result.user;
-        const email = user.email;
-
-        // Check mobile-user conflict
-        const mobileUserDoc = await getDoc(doc(db, 'users', user.uid));
-        if (mobileUserDoc.exists()) {
-          await auth.signOut();
-          document.getElementById('toast-overlay')?.classList.remove('show');
-          showToast('error', isSignUpMode ? 'Sign Up Error' : 'Sign In Error', 'This email address cannot be used.');
-          return;
-        }
-
-        // Check existing admin
-        const adminSnap = await getDoc(doc(db, 'admin', user.uid));
-
-        if (isSignUpMode) {
-          if (adminSnap.exists()) {
-            await auth.signOut();
-            document.getElementById('toast-overlay')?.classList.remove('show');
-            showToast('error', 'Already Signed In', 'This Google account is already signed in as an admin. Please continue in sign in instead.');
-            return;
-          }
-
-          // Admin doc created later, after office is confirmed
-          document.getElementById('toast-overlay')?.classList.remove('show');
-          openGoogleProfileModal(user);
-
-        } else {
-          // Sign In: require existing admin
-          if (!adminSnap.exists()) {
-            await auth.signOut();
-            document.getElementById('toast-overlay')?.classList.remove('show');
-            showToast('error', 'Account Not Found', 'Google account invalid or not used to create an account yet.');
-            return;
-          }
-
-          if (adminSnap.data().status !== 'active') {
-            await auth.signOut();
-            document.getElementById('toast-overlay')?.classList.remove('show');
-            if (adminSnap.data().status === 'deactivated') {
-              showToast('error', 'Account Deactivated', 'This account has been deactivated. Please contact the Super Admin.');
-            } else {
-              showToast('error', 'Pending Approval', 'Your account is still awaiting Super Admin approval.');
-            }
-            return;
-          }
-
-          // Update sign_in_method
-          await setDoc(doc(db, 'admin', user.uid), {
-            sign_in_method: 'google',
-            updatedAt: serverTimestamp()
-          }, { merge: true });
-
-          document.getElementById('toast-overlay')?.classList.remove('show');
-          // Preload role for the sidebar guard
-          try { sessionStorage.setItem('docsease_role_hint', adminSnap.data().role === 'super_admin' ? 'super_admin' : 'admin'); } catch (_) {}
-          window.location.href = 'dashboard.html';
-        }
-
-      } catch (error) {
-        document.getElementById('toast-overlay')?.classList.remove('show');
-        let msg = 'Something went wrong. Please try again.';
-        if (error.code === 'auth/user-disabled') msg = 'This account has been deactivated. Please contact the Super Admin.';
-        else if (error.code === 'auth/network-request-failed') msg = 'No internet connection. Please check your network.';
-        else if (error.code === 'auth/unauthorized-domain') msg = 'This domain is not authorized. Please contact support.';
-        else if (error.code === 'auth/account-exists-with-different-credential') msg = 'An account already exists with this email using a different provider. Please sign in with email/password first to link accounts.';
-        showToast('error', isSignUpMode ? 'Google Sign Up Failed' : 'Google Sign In Failed', msg);
-      }
-    };
-
-    function openGoogleProfileModal(user) {
-      pendingGoogleUser = user;
-      document.getElementById('gs-name').value = user.displayName || '';
-      document.getElementById('wrap-gs-name')?.classList.remove('has-error');
-      document.getElementById('wrap-gs-office')?.classList.remove('has-error');
-      document.getElementById('err-gs-name').textContent = '';
-      document.getElementById('err-gs-office').textContent = '';
-      document.getElementById('gs-office').value = '';
-      document.getElementById('gsignup-modal').classList.add('show');
-    }
-
-    window.cancelGoogleSignup = async function () {
-      document.getElementById('gsignup-modal').classList.remove('show');
-      // Remove orphaned Auth account
-      try {
-        if (pendingGoogleUser) {
-          const { deleteUser } = await import('https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js');
-          await deleteUser(pendingGoogleUser);
-        }
-      } catch (error) {
-        // Fallback: sign out if deletion fails
-        try { await auth.signOut(); } catch (_) {}
-        console.error('Failed to clean up cancelled Google signup:', error);
-      }
-      pendingGoogleUser = null;
-    };
-
-    window.confirmGoogleSignup = async function () {
-      if (!pendingGoogleUser) return;
-
-      const name = document.getElementById('gs-name').value.trim();
-      const office = document.getElementById('gs-office').value;
-
-      let hasError = false;
-      if (!name) {
-        document.getElementById('wrap-gs-name')?.classList.add('has-error');
-        document.getElementById('err-gs-name').textContent = 'Please enter your full name.';
-        hasError = true;
-      }
-      if (!office) {
-        document.getElementById('wrap-gs-office')?.classList.add('has-error');
-        document.getElementById('err-gs-office').textContent = 'Please select an office.';
-        hasError = true;
-      }
-      if (hasError) return;
-
-      const confirmBtn = document.getElementById('gs-confirm-btn');
-      confirmBtn.disabled = true;
-      confirmBtn.textContent = 'Submitting...';
-
-      try {
-        await updateProfile(pendingGoogleUser, { displayName: name });
-        await setDoc(doc(db, 'admin', pendingGoogleUser.uid), {
-          admin_id: pendingGoogleUser.uid,
-          full_name: name,
-          email: pendingGoogleUser.email,
-          admin_office: office,
-          role: 'admin',
-          status: 'pending',
-          sign_in_method: 'google',
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
-        });
-
-        await addDoc(collection(db, 'requests'), {
-          type: 'new_admin',
-          status: 'pending',
-          requested_by_uid: pendingGoogleUser.uid,
-          requested_by_name: name,
-          requested_by_email: pendingGoogleUser.email,
-          target_admin_uid: pendingGoogleUser.uid,
-          office_name: office,
-          createdAt: serverTimestamp()
-        });
-
-        await logActivity('admin_account_requested', { actor_name: name, office_name: office });
-        await sendRegistrationEmail(pendingGoogleUser.email, name, office, 'review');
-        await notifySuperAdminNewRequest(name, pendingGoogleUser.email, office);
-
-        document.getElementById('gsignup-modal').classList.remove('show');
-        await auth.signOut();
-        pendingGoogleUser = null;
-
-        showToast('success', 'Request Submitted!', 'Your admin account for ' + name + ' has been created and is now awaiting Super Admin approval. You\'ll be able to sign in once it\'s approved.', 'Back to Sign In', () => {
-          goSignin(new Event('click'));
-        });
-      } catch (error) {
-        console.error('Error finishing Google signup:', error);
-        document.getElementById('err-gs-office').textContent = 'Something went wrong. Please try again.';
-      } finally {
-        confirmBtn.disabled = false;
-        confirmBtn.textContent = 'Confirm & Submit';
-      }
-    };
-
-    // Forgot Password
-    window.handleForgotPassword = async function () {
-      clearFieldError('recovery-email');
-      const email = document.getElementById('recovery-email').value.trim();
-
-      if (!email) {
-        showFieldError('recovery-email', 'Please fill the required field.');
-        return;
-      }
-
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        showFieldError('recovery-email', 'Please enter a valid email address.');
-        return;
-      }
-
-      showLoadingToast('Checking Email...', 'Verifying your account.');
-
-      try {
-        const checkAdmin = httpsCallable(functions, 'isAdminEmailRegistered');
-        const result = await checkAdmin({ email });
-
-        if (!result.data || result.data.exists !== true) {
-          document.getElementById('toast-overlay')?.classList.remove('show');
-          showFieldError('recovery-email', 'Email is not registered or invalid.');
-          return;
-        }
-      } catch (error) {
-        document.getElementById('toast-overlay')?.classList.remove('show');
-        console.error('Admin email check failed:', error);
-        showFieldError('recovery-email', 'Could not verify this email. Please try again.');
-        return;
-      }
-
-      recoveryCode = Math.floor(100000 + Math.random() * 900000).toString();
-      recoveryEmail = email;
-      sessionStorage.setItem('recoveryEmail', email);
-      codeExpiry = Date.now() + 5 * 60 * 1000;
-
-      try {
-        await sendRecoveryCode(email, recoveryCode);
-        document.getElementById('recovery-code').value = '';
-
-        document.getElementById('toast-overlay')?.classList.remove('show');
-        showToast('success', 'Verification Code Sent', 'A verification code has been sent to your registered email address.', 'Continue', () => {
-          const wrapper = document.getElementById('wrapper');
-          wrapper.style.transition = 'none';
-          wrapper.className = 'wrapper recoverycode-mode';
-          setTimeout(() => { wrapper.style.transition = ''; }, 50);
-          window.startResendTimer();
-        });
-      } catch (error) {
-        document.getElementById('toast-overlay')?.classList.remove('show');
-        console.error('EmailJS error:', error);
-        showFieldError('recovery-email', 'Failed to send verification code. Please try again.');
-      }
-    };
-
-    // Verify Recovery Code
-    window.handleVerifyCode = function () {
-      clearFieldError('recovery-code');
-      const input = document.getElementById('recovery-code').value.trim();
-
-      if (!input) {
-        showFieldError('recovery-code', 'Please enter the 6-digit code.');
-        return;
-      }
-
-      if (Date.now() > codeExpiry) {
-        showFieldError('recovery-code', 'Verification code has expired. Please resend code.');
-        return;
-      }
-
-      if (input !== recoveryCode) {
-        showFieldError('recovery-code', 'The code is incorrect.');
-        return;
-      }
-
-      showToast('success', 'Verified', 'Your recovery code has been verified successfully.', 'Continue', () => {
-        const wrapper = document.getElementById('wrapper');
-        wrapper.style.transition = 'none';
-        wrapper.className = 'wrapper resetpass-mode';
-        setTimeout(() => { wrapper.style.transition = ''; }, 50);
-      });
-    };
-
-    // Resend Recovery Code
-    window.handleResendCode = async function () {
-      recoveryCode = Math.floor(100000 + Math.random() * 900000).toString();
-      codeExpiry = Date.now() + 5 * 60 * 1000;
-
-      showLoadingToast('Resending Code...', 'Sending a new verification code.');
-
-      try {
-        await sendRecoveryCode(recoveryEmail, recoveryCode);
-        document.getElementById('toast-overlay')?.classList.remove('show');
-        showToast('success', 'Code Resent', 'A new recovery code has been sent to your email address.', 'OK');
-        window.startResendTimer();
-      } catch (error) {
-        document.getElementById('toast-overlay')?.classList.remove('show');
-        console.error('EmailJS error:', error);
-        showFieldError('recovery-code', 'Failed to resend code. Please try again.');
-      }
-    };
-
-    // Reset Password
-    window.handleResetPassword = async function () {
-      clearFieldError('new-password');
-      clearFieldError('confirm-new-password');
-
-      const pw = document.getElementById('new-password').value;
-      const cpw = document.getElementById('confirm-new-password').value;
-
-      let hasError = false;
-      if (!pw) {
-        showFieldError('new-password', 'Please fill the required field.');
-        hasError = true;
-      }
-      if (!cpw) {
-        showFieldError('confirm-new-password', 'Please fill the required field.');
-        hasError = true;
-      }
-      if (hasError) return;
-
-      if (pw.length < 8 || !/[A-Z]/.test(pw) || !/[0-9]/.test(pw) || !/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pw)) {
-        showFieldError('new-password', 'Please meet all the password requirements.');
-        return;
-      }
-
-      if (pw !== cpw) {
-        showFieldError('confirm-new-password', 'Passwords do not match. Please try again.');
-        return;
-      }
-
-      const emailToReset = recoveryEmail || sessionStorage.getItem('recoveryEmail');
-      if (!emailToReset) {
-        showToast('error', 'Session Expired', 'Your session has expired. Please start the password reset process again.');
-        return;
-      }
-
-      // Confirm before saving
-      showConfirmToast({
-        type: 'info',
-        title: 'Confirm Password Change',
-        msg: 'Are you sure you want to save your new password?',
-        confirmText: 'Yes, Save',
-        cancelText: 'Cancel',
-        onConfirm: async () => {
-          showLoadingToast('Resetting Password...', 'Saving your new password.');
-
-          try {
-            const response = await fetch('https://us-central1-docsease-efacc.cloudfunctions.net/adminResetUserPassword', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ email: emailToReset, newPassword: pw })
-            });
-            const data = await response.json();
-
-            document.getElementById('toast-overlay')?.classList.remove('show');
-
-            if (data.success) {
-              showToast('success', 'Password Reset!', 'Your password has been changed successfully. Please sign in with your new password.', 'Sign In', () => {
-                goSignin(new Event('click'));
-              });
-            } else {
-              showToast('error', 'Reset Failed', 'Something went wrong while resetting your password. Please try again later.');
-            }
-          } catch (error) {
-            document.getElementById('toast-overlay')?.classList.remove('show');
-            showToast('error', 'Reset Failed', 'Unable to connect to the server. Please check your internet connection and try again.');
-          }
-        }
-      });
-    };
-  </script>
-
-  <script>
-    const wrapper = document.getElementById('wrapper');
-
-    function clearAuthFieldValues() {
-      if (window.clearFieldErrors) window.clearFieldErrors();
-      const fieldsToClear = [
-        'si-email',
-        'si-password',
-        'su-name',
-        'su-email',
-        'su-password',
-        'su-confirm',
-        'recovery-email',
-        'recovery-code',
-        'new-password',
-        'confirm-new-password'
-      ];
-
-      fieldsToClear.forEach((id) => {
-        const field = document.getElementById(id);
-        if (field) field.value = '';
-      });
-
-      document.getElementById('sign-in-btn')?.setAttribute('disabled', '');
-      document.getElementById('sign-up-btn')?.setAttribute('disabled', '');
-      window.AdminAgreement?.reset();
-
-      // Password rule indicators
-      const passwordRules = document.getElementById('su-password-rules');
-      if (passwordRules) passwordRules.style.display = 'none';
-      document.querySelectorAll('#su-password-rules .rule-item').forEach((rule) => {
-        rule.classList.remove('valid');
-        const icon = rule.querySelector('.rule-icon');
-        if (icon) icon.textContent = '✕';
-      });
-
-      const resetPasswordRules = document.getElementById('reset-password-rules');
-      if (resetPasswordRules) resetPasswordRules.style.display = 'none';
-      document.querySelectorAll('#reset-password-rules .rule-item').forEach((rule) => {
-        rule.classList.remove('valid');
-        const icon = rule.querySelector('.rule-icon');
-        if (icon) icon.textContent = '✕';
-      });
-
-      const passwordToggles = [
-        { inputId: 'si-password', iconId: 'eye-si' },
-        { inputId: 'su-password', iconId: 'eye-su' },
-        { inputId: 'su-confirm', iconId: 'eye-su2' },
-        { inputId: 'new-password', iconId: 'eye-np' },
-        { inputId: 'confirm-new-password', iconId: 'eye-cnp' }
-      ];
-
-      passwordToggles.forEach(({ inputId, iconId }) => {
-        const input = document.getElementById(inputId);
-        const icon = document.getElementById(iconId);
-        if (input && icon && input.type === 'text') {
-          input.type = 'password';
-          icon.src = 'assets/eyeHide.svg';
-          icon.alt = 'Show password';
-        }
-      });
-    }
-
-    function goSignup(e) {
-      if (e) e.preventDefault();
-      clearAuthFieldValues();
-      wrapper.className = 'wrapper signup-mode';
-    }
-
-    function goSignin(e) {
-      if (e) e.preventDefault();
-      clearAuthFieldValues();
-      wrapper.className = 'wrapper';
-    }
-
-    function goForgotPass(e) {
-      if (e) e.preventDefault();
-      clearAuthFieldValues();
-      wrapper.className = 'wrapper forgotpass-mode';
-    }
-
-    function goRecoveryCode(e) {
-      if (e) e.preventDefault();
-      wrapper.style.transition = 'none';
-      wrapper.className = 'wrapper recoverycode-mode';
-      setTimeout(() => { wrapper.style.transition = ''; }, 50);
-      startResendTimer();
-    }
-
-    function goResetPass(e) {
-      if (e) e.preventDefault();
-      wrapper.style.transition = 'none';
-      wrapper.className = 'wrapper resetpass-mode';
-      setTimeout(() => { wrapper.style.transition = ''; }, 50);
-    }
-
-    let resendInterval = null;
-    window.startResendTimer = function () {
-      const btn = document.getElementById('btn-resend');
-      let seconds = 60;
-      btn.disabled = true;
-      btn.innerHTML = 'Resend Code (<span id="resend-timer">' + seconds + '</span>s)';
-
-      if (resendInterval) clearInterval(resendInterval);
-      resendInterval = setInterval(() => {
-        seconds--;
-        const timerEl = document.getElementById('resend-timer');
-        if (timerEl) timerEl.textContent = seconds;
-        if (seconds <= 0) {
-          clearInterval(resendInterval);
-          btn.disabled = false;
-          btn.textContent = 'Resend Code';
-        }
-      }, 1000);
-    }
-
-    const words = ['Citizens.', 'Applicants.', 'Biñanenses.'];
-    let wi = 0, ci = 0, deleting = false;
-    const tw = document.getElementById('typewriter');
-
-    function type() {
-      const word = words[wi];
-      tw.textContent = deleting ? word.substring(0, ci--) : word.substring(0, ci++);
-      if (!deleting && ci > word.length) { deleting = true; setTimeout(type, 1800); return; }
-      if (deleting && ci < 0) { deleting = false; wi = (wi + 1) % words.length; }
-      setTimeout(type, deleting ? 60 : 100);
-    }
-    type();
-
-    const words2 = ['Lead', 'Drive', 'Join'];
-    let wi2 = 0, ci2 = 0, deleting2 = false;
-    const tw2 = document.getElementById('typewriter2');
-
-    function type2() {
-      const word = words2[wi2];
-      tw2.textContent = deleting2 ? word.substring(0, ci2--) : word.substring(0, ci2++);
-      if (!deleting2 && ci2 > word.length) { deleting2 = true; setTimeout(type2, 1800); return; }
-      if (deleting2 && ci2 < 0) { deleting2 = false; wi2 = (wi2 + 1) % words2.length; }
-      setTimeout(type2, deleting2 ? 60 : 100);
-    }
-    type2();
-
-    const words3 = ['Forgot', 'Recover', 'Lost'];
-    let wi3 = 0, ci3 = 0, deleting3 = false;
-    const tw3 = document.getElementById('typewriter3');
-    const tw3b = document.getElementById('typewriter3b');
-    const tw3c = document.getElementById('typewriter3c');
-
-    function type3() {
-      const word = words3[wi3];
-      const text = deleting3 ? word.substring(0, ci3--) : word.substring(0, ci3++);
-      tw3.textContent = text;
-      tw3b.textContent = text;
-      tw3c.textContent = text;
-      if (!deleting3 && ci3 > word.length) { deleting3 = true; setTimeout(type3, 1800); return; }
-      if (deleting3 && ci3 < 0) { deleting3 = false; wi3 = (wi3 + 1) % words3.length; }
-      setTimeout(type3, deleting3 ? 60 : 100);
-    }
-    type3();
-
-    function toggleEye(inputId, iconId) {
-      const input = document.getElementById(inputId);
-      const img = document.getElementById(iconId);
-      const isHidden = input.type === 'password';
-      input.type = isHidden ? 'text' : 'password';
-      img.src = isHidden ? 'assets/eyeShow.svg' : 'assets/eyeHide.svg';
-      img.alt = isHidden ? 'Hide password' : 'Show password';
-    }
-  </script>
 
 </body>
 

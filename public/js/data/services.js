@@ -2,7 +2,7 @@
 // Services in Deleted Records keep their document with isDeleted: true.
 import { db } from '../core/firebase.js';
 import { collection, doc, getDoc, getDocs, setDoc, addDoc, query, where, serverTimestamp } from '../core/sdk/firestore.js';
-import { newNotifyId } from '../core/api.js';
+import { api, newNotifyId } from '../core/api.js';
 import { liveQuery } from './live.js';
 
 export const isActive = (data) => !!data && data.isDeleted !== true;
@@ -68,4 +68,14 @@ export async function requestServiceDeletion({ session, officeId, officeName, se
     createdAt: serverTimestamp()
   });
   return 'requested';
+}
+
+// Super Admin: moves the service to Deleted Records. Normal admin: asks the Super Admin.
+// -> 'deleted' | 'requested' | 'already_requested'
+export async function deleteOrRequestDeletion({ session, officeId, officeName, serviceId, serviceName }) {
+  if (session.role === 'super_admin') {
+    await api.trashService(officeId, serviceId);
+    return 'deleted';
+  }
+  return requestServiceDeletion({ session, officeId, officeName, serviceId, serviceName });
 }

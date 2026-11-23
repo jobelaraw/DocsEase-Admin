@@ -12,14 +12,14 @@
 // Options for run():
 //   dryRun      – default false. true = report only, no writes.
 //   overwrite   – default false. true = replace services that already exist (same doc ID).
-//   notifyUsers – default false. true = send the "new service added" notification to every
-//                 user for each service, like the form does. Off by default so citizens don't
+//   notifyUsers – default false. true = the server sends the "new service added" notification
+//                 to every user for each service, like the form does. Off by default so citizens don't
 //                 get 16 notifications at once.
 
-import { auth, db } from '../js/firebase-config.js';
-import {
-  collection, getDocs, getDoc, doc, setDoc, addDoc, serverTimestamp, query, where, writeBatch
-} from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js';
+import { auth, db } from '../js/core/firebase.js';
+import { collection, getDocs, getDoc, doc, setDoc, serverTimestamp, query, where } from '../js/core/sdk/firestore.js';
+import { newNotifyId } from '../js/core/api.js';
+import { logActivity } from '../js/core/activity-log.js';
 import { OFFICE_NAME, COMMON, SERVICES, serviceIdFor } from './treasurer2_services.data.js';
 
 export function preview() {
@@ -34,56 +34,6 @@ export function preview() {
     };
   }));
   return SERVICES;
-}
-
-// --- activity log (same logic as the Add Service page) ---
-let _actor = null;
-async function logServiceAdded(serviceName) {
-  try {
-    const user = auth.currentUser;
-    if (!_actor) {
-      let name = user.displayName || user.email || 'Admin';
-      let role = 'admin';
-      const snap = await getDoc(doc(db, 'admin', user.uid));
-      if (snap.exists()) {
-        name = snap.data().full_name || name;
-        role = snap.data().role || 'admin';
-      }
-      _actor = { uid: user.uid, name, role };
-    }
-    const sa = await getDoc(doc(db, 'app_settings', 'super_admin'));
-    const recipients = sa.exists() ? (sa.data().uids || []) : [];
-    if (!recipients.length) return;
-
-    const batch = writeBatch(db);
-    recipients.forEach(uid => batch.set(doc(collection(db, 'admin', uid, 'activity_logs')), {
-      type: 'service_added',
-      actor_uid: _actor.uid,
-      actor_name: _actor.name,
-      actor_role: _actor.role,
-      office_name: OFFICE_NAME,
-      service_name: serviceName,
-      target_name: '',
-      target_uid: '',
-      createdAt: serverTimestamp()
-    }));
-    await batch.commit();
-  } catch (err) {
-    console.warn('[seed] activity log failed for', serviceName, err);
-  }
-}
-
-async function notifyAllUsers(serviceName, serviceId) {
-  const usersSnap = await getDocs(collection(db, 'users'));
-  await Promise.all(usersSnap.docs.map(u =>
-    addDoc(collection(db, 'users', u.id, 'notifications'), {
-      title: 'Hi Citizen! A new service added.',
-      body: `${serviceName} has been added to the ${OFFICE_NAME}.`,
-      service_id: serviceId,
-      is_read: false,
-      timestamp: serverTimestamp()
-    })
-  ));
 }
 
 export async function run({ dryRun = false, overwrite = false, notifyUsers = false } = {}) {
@@ -124,10 +74,11 @@ export async function run({ dryRun = false, overwrite = false, notifyUsers = fal
         ...COMMON,
         tabs: svc.tabs,
         created_at: serverTimestamp(),
-        updated_at: serverTimestamp()
+        updated_at: serverTimestamp(),
+        // A notify_id makes the server send the "new service" notification to citizens
+        ...(notifyUsers ? { notify_id: newNotifyId() } : {})
       });
-      if (notifyUsers) await notifyAllUsers(svc.service_name, serviceId);
-      await logServiceAdded(svc.service_name);
+      logActivity('service_added', { office_name: OFFICE_NAME, service_name: svc.service_name });
       results.push({ service: svc.service_name, status: exists ? 'overwritten' : 'added', id: serviceId });
     } catch (err) {
       console.error('[seed] failed:', svc.service_name, err);

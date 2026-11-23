@@ -12,9 +12,9 @@
 // Each updated service is logged as "service_updated" in the Activity Log.
 // No citizen notifications are sent.
 
-import { auth, db } from '../js/firebase-config.js';
-import { collection, getDocs, getDoc, doc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js';
-import { logActivity } from '../js/activity-log.js';
+import { auth, db } from '../js/core/firebase.js';
+import { collection, getDocs, getDoc, doc, updateDoc, serverTimestamp } from '../js/core/sdk/firestore.js';
+import { logActivity } from '../js/core/activity-log.js';
 import { planFill } from './fill_service_details.core.js';
 
 async function buildPlan() {

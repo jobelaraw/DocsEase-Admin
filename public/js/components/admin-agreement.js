@@ -1,5 +1,3 @@
-// functions/admin-agreement.js
-//
 // Terms & Conditions / Privacy Policy agreement for the web admin sign-up.
 // Same flow as the mobile app:
 //   - Tapping the checkbox (when unchecked) opens the modal.
@@ -9,8 +7,8 @@
 //   - Unchecking never opens the modal.
 //   - The blue links open the modal on that tab.
 //
-// Exposes window.AdminAgreement = { version, isAgreed(), open(tab), reset() }
-// and fires a document-level "agreement-change" event whenever the state changes.
+// export AdminAgreement = { version, isAgreed(), open(tab), reset() }; a document-level
+// "agreement-change" event fires whenever the state changes.
 
 import { ADMIN_LEGAL as L } from './admin-legal-content.js';
 
@@ -176,7 +174,7 @@ if (document.readyState === 'loading') {
   init();
 }
 
-window.AdminAgreement = {
+export const AdminAgreement = {
   version: L.version,
   isAgreed: () => agreed,
   open,

@@ -5,7 +5,6 @@
 // request to the Super Admin.
 import { startPage } from '../core/page.js';
 import { html, render, $ } from '../core/dom.js';
-import { api } from '../core/api.js';
 import { logActivity } from '../core/activity-log.js';
 import { notifySuperAdminDeleteRequest } from '../core/email.js';
 import { TRASH_RETENTION_DAYS } from '../core/constants.js';
@@ -15,7 +14,7 @@ import { startOfficePicker, officeNamed, whenOfficesLoaded } from '../components
 import { createServiceEditor, normalizeTabs, cleanTabs, emptyTab } from '../components/service-editor.js';
 import { guardUnsavedChanges } from '../components/leave-guard.js';
 import { getOffice } from '../data/offices.js';
-import { getService, saveService, serviceIdFor, requestServiceDeletion } from '../data/services.js';
+import { getService, saveService, serviceIdFor, deleteOrRequestDeletion } from '../data/services.js';
 
 const params = new URLSearchParams(location.search);
 const serviceId = params.get('serviceId');
@@ -252,15 +251,14 @@ async function main() {
 
     toast.loading(isSuper ? 'Deleting Service' : 'Sending Request', 'Please wait while this is being processed.');
     try {
-      if (isSuper) {
-        await api.trashService(officeId, serviceId);
+      const result = await deleteOrRequestDeletion({ session, officeId, officeName: office.name, serviceId, serviceName: name });
+      if (result === 'deleted') {
         logActivity('service_deleted', details);
         guard.release();
         await toast.success('Moved to Deleted Records', `The service was moved to Deleted Records. You can recover it from the Review Queue within ${TRASH_RETENTION_DAYS} days.`);
         location.href = officePage();
         return;
       }
-      const result = await requestServiceDeletion({ session, officeId, officeName: office.name, serviceId, serviceName: name });
       if (result === 'already_requested') {
         toast.info('Already Requested', 'You already sent a deletion request for this service. It is waiting for the Super Admin.', { button: 'OK' });
         return;

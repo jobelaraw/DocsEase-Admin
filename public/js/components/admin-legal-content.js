@@ -1,4 +1,4 @@
-// functions/admin-legal-content.js
+// js/components/admin-legal-content.js
 //
 // DRAFT TEXT for the GaBayan WEB ADMIN (administrators), separate from the
 // citizen app text. Have your legal counsel / privacy contact review it

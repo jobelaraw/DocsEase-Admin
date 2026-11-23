@@ -6,17 +6,12 @@
       padding: 0;
     }
 
+    /* Login page (login.html). Shared colors come from css/base/tokens.css. */
     :root {
-      --navy: #0f2d5e;
-      --navy-btn: #0f2d5e;
-      --navy-hover: #1a4080;
+      --navy-btn: var(--navy);
       --blue-text1: #4BB8FA;
       --blue-text2: #2F2FE4;
-      --panel-bg: #e8eef8;
-      --input-bg: #ffffff;
       --label: #3a3a3a;
-      --placeholder: #9aa3b2;
-      --link: #2a7de1;
     }
 
     html,

@@ -13,10 +13,11 @@
 //        await cleanup.run();       // backup download, then delete
 //   3. Reload the page to see the result.
 
-import { auth, db } from '../js/firebase-config.js';
-import { collection, getDocs, getDoc, doc, query, where } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js';
-import { deleteOrRequestServiceDeletion } from '../js/service-delete.js';
-import { logActivity } from '../js/activity-log.js';
+import { auth, db } from '../js/core/firebase.js';
+import { collection, getDocs, getDoc, doc, query, where } from '../js/core/sdk/firestore.js';
+import { requireAdmin } from '../js/core/session.js';
+import { deleteOrRequestDeletion } from '../js/data/services.js';
+import { logActivity } from '../js/core/activity-log.js';
 
 const OFFICE_NAME = 'Office of the City Treasurer 1';
 
@@ -90,7 +91,7 @@ export async function run() {
   for (const d of remove) {
     const serviceName = d.data().service_name || '';
     try {
-      const { mode } = await deleteOrRequestServiceDeletion({ officeId, officeName: OFFICE_NAME, serviceId: d.id, serviceName });
+      const mode = await deleteOrRequestDeletion({ session: await requireAdmin(), officeId, officeName: OFFICE_NAME, serviceId: d.id, serviceName });
       if (mode === 'deleted') await logActivity('service_deleted', { office_name: OFFICE_NAME, service_name: serviceName });
       if (mode === 'requested') await logActivity('service_delete_requested', { office_name: OFFICE_NAME, service_name: serviceName });
       results.push({ service: serviceName, id: d.id, result: mode });
