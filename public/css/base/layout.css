@@ -80,7 +80,9 @@ body {
 .banner {
   background: linear-gradient(135deg, var(--banner-from) 0%, var(--banner-to) 100%);
   border-radius: var(--radius-lg);
-  padding: 28px 36px;
+  box-shadow: 0 6px 20px rgba(10, 40, 90, 0.15);
+  flex-shrink: 0;
+  padding: 32px 40px;
   color: #fff;
   display: flex;
   align-items: center;
@@ -91,14 +93,14 @@ body {
 
 .banner h1,
 .banner h2 {
-  font-size: 1.8rem;
+  font-size: 2.2rem;
   font-weight: 800;
   letter-spacing: -0.02em;
-  line-height: 1.15;
+  line-height: 1.1;
 }
 
 .banner p {
-  margin-top: 6px;
+  margin-top: 8px;
   font-size: var(--fs-sm);
   color: rgba(255, 255, 255, 0.82);
   max-width: 520px;

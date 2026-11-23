@@ -10,10 +10,17 @@
 .field > label,
 .field-label {
   font-size: var(--fs-xs);
-  font-weight: 700;
-  color: #555;
+  font-weight: 600;
+  color: var(--text-dark);
   text-transform: uppercase;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
+}
+
+.label-hint {
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text-muted);
 }
 
 .input,
@@ -31,8 +38,54 @@
 }
 
 .textarea {
-  min-height: 90px;
+  min-height: 80px;
   resize: vertical;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: #9ba6b9;
+}
+
+.select {
+  cursor: pointer;
+}
+
+/* Placeholder option selected -> grey text */
+.select:has(option[value=""]:checked) {
+  color: #9ba6b9;
+}
+
+.select option {
+  color: var(--text-dark);
+}
+
+/* White card grouping related fields, with a navy bar before the title */
+.form-section {
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: var(--space-6);
+  margin-bottom: var(--space-4);
+  box-shadow: var(--shadow);
+}
+
+.form-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: var(--space-4);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--navy);
+}
+
+.form-section-title::before {
+  content: '';
+  display: block;
+  width: 3px;
+  height: 18px;
+  background: var(--navy);
+  border-radius: 4px;
 }
 
 .input:focus,
@@ -50,7 +103,11 @@
 .field-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
+  gap: var(--space-4);
+}
+
+.field-row > .field {
+  min-width: 0;
 }
 
 .field-error {

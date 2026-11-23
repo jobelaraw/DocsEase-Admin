@@ -1,7 +1,9 @@
 // Offices and other rooms (Firestore: offices/{officeId}, other_room/{roomId}).
 // Offices in Deleted Records keep their document with isDeleted: true.
 import { db } from '../core/firebase.js';
-import { collection, doc, getDoc, getDocs, onSnapshot, query, where, limit } from '../core/sdk/firestore.js';
+import { collection, doc, getDoc, getDocs, onSnapshot, query, where, limit, setDoc, updateDoc, serverTimestamp } from '../core/sdk/firestore.js';
+import { newNotifyId } from '../core/api.js';
+import { OFFICE_CATEGORY } from '../core/constants.js';
 
 export const isActive = (data) => !!data && data.isDeleted !== true;
 const byName = (a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
@@ -54,3 +56,41 @@ export function watchRooms(callback, onError) {
 
 // Office document ID from its name (same scheme the panel has always used).
 export const officeIdFromName = (name) => String(name).trim().toUpperCase().replace(/\s+/g, '-');
+
+// Finds an office or room with the same ID or name (deleted offices included,
+// because a new office with the same ID would overwrite the one in Deleted Records).
+export async function findDuplicate(name, { ignore = null } = {}) {
+  const id = officeIdFromName(name);
+  const [offices, rooms] = await Promise.all([
+    getDocs(collection(db, 'offices')).catch(() => ({ docs: [] })),
+    getDocs(collection(db, 'other_room')).catch(() => ({ docs: [] }))
+  ]);
+  const wanted = String(name).trim().toLowerCase();
+  const match = [...offices.docs, ...rooms.docs].find((d) => {
+    if (ignore && d.id === ignore) return false;
+    const data = d.data() || {};
+    return (!ignore && d.id === id) || String(data.office_name || data.room_name || d.id).trim().toLowerCase() === wanted;
+  });
+  return match ? { id: match.id, deleted: (match.data() || {}).isDeleted === true } : null;
+}
+
+// Adds an office (category regular_service -> offices) or another room (-> other_room).
+// New offices carry a notify_id so the server tells citizens about them.
+export async function createOfficeOrRoom({ name, description, floor, category, schedule }) {
+  const isOffice = category === OFFICE_CATEGORY;
+  const id = officeIdFromName(name);
+  await setDoc(doc(db, isOffice ? 'offices' : 'other_room', id), {
+    [isOffice ? 'office_name' : 'room_name']: name,
+    description,
+    floor,
+    category,
+    schedule,
+    created_at: serverTimestamp(),
+    ...(isOffice ? { notify_id: newNotifyId() } : {})
+  });
+  return { id, isOffice };
+}
+
+export function updateOfficeOrRoom(collectionName, id, patch) {
+  return updateDoc(doc(db, collectionName, id), patch);
+}
