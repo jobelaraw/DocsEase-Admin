@@ -73,7 +73,7 @@
                 autocomplete="current-password" />
               <button type="button" class="eye-btn" onclick="toggleEye('si-password', 'eye-si')"
                 aria-label="Toggle password">
-                <img id="eye-si" src="../assets/eyeHide.png" alt="Show password" />
+                <img id="eye-si" src="../assets/eyeHide.svg" alt="Show password" />
               </button>
               <span class="error-icon">!</span>
             </div>
@@ -158,7 +158,7 @@
             <div class="input-wrap" id="wrap-su-password">
               <input type="password" id="su-password" placeholder="Enter your password" />
               <button type="button" class="eye-btn" onclick="toggleEye('su-password','eye-su')" aria-label="Toggle">
-                <img id="eye-su" src="../assets/eyeHide.png" alt="Show password" />
+                <img id="eye-su" src="../assets/eyeHide.svg" alt="Show password" />
               </button>
               <span class="error-icon">!</span>
               <span class="success-icon">✓</span>
@@ -190,7 +190,7 @@
             <div class="input-wrap" id="wrap-su-confirm">
               <input type="password" id="su-confirm" placeholder="Re-enter your password" />
               <button type="button" class="eye-btn" onclick="toggleEye('su-confirm','eye-su2')" aria-label="Toggle">
-                <img id="eye-su2" src="../assets/eyeHide.png" alt="Show password" />
+                <img id="eye-su2" src="../assets/eyeHide.svg" alt="Show password" />
               </button>
               <span class="error-icon">!</span>
               <span class="success-icon">✓</span>
@@ -367,7 +367,7 @@
               <input type="password" id="new-password" placeholder="Enter new password" autocomplete="new-password" />
               <button type="button" class="eye-btn" onclick="toggleEye('new-password','eye-np')"
                 aria-label="Toggle password">
-                <img id="eye-np" src="../assets/eyeHide.png" alt="Show password" />
+                <img id="eye-np" src="../assets/eyeHide.svg" alt="Show password" />
               </button>
               <span class="error-icon">!</span>
               <span class="success-icon">✓</span>
@@ -401,7 +401,7 @@
                 autocomplete="new-password" />
               <button type="button" class="eye-btn" onclick="toggleEye('confirm-new-password','eye-cnp')"
                 aria-label="Toggle password">
-                <img id="eye-cnp" src="../assets/eyeHide.png" alt="Show password" />
+                <img id="eye-cnp" src="../assets/eyeHide.svg" alt="Show password" />
               </button>
               <span class="error-icon">!</span>
               <span class="success-icon">✓</span>
@@ -1127,13 +1127,31 @@ async function populateOfficeDropdown() {
         if (!accepted) return;
       }
 
+      // Force account chooser
+      googleProvider.setCustomParameters({ prompt: 'select_account' });
+
+      let result;
+      try {
+        result = await signInWithPopup(auth, googleProvider);
+      } catch (error) {
+        // User closed the account chooser (X / exit) — cancel quietly, no error
+        if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request' || error.code === 'auth/user-cancelled') {
+          return;
+        }
+        let msg = 'Something went wrong. Please try again.';
+        if (error.code === 'auth/popup-blocked') msg = 'The sign in popup was blocked by your browser. Please allow popups and try again.';
+        else if (error.code === 'auth/user-disabled') msg = 'This account has been deactivated. Please contact the Super Admin.';
+        else if (error.code === 'auth/network-request-failed') msg = 'No internet connection. Please check your network.';
+        else if (error.code === 'auth/unauthorized-domain') msg = 'This domain is not authorized. Please contact support.';
+        else if (error.code === 'auth/account-exists-with-different-credential') msg = 'An account already exists with this email using a different provider. Please sign in with email/password first to link accounts.';
+        showToast('error', isSignUpMode ? 'Google Sign Up Failed' : 'Google Sign In Failed', msg);
+        return;
+      }
+
+      // Only show loading once an account has actually been chosen
       showLoadingToast(isSignUpMode ? 'Signing Up...' : 'Signing In...', 'Please wait for a moment.');
 
       try {
-        // Force account chooser
-        googleProvider.setCustomParameters({ prompt: 'select_account' });
-
-        const result = await signInWithPopup(auth, googleProvider);
         const user = result.user;
         const email = user.email;
 
@@ -1196,8 +1214,7 @@ async function populateOfficeDropdown() {
       } catch (error) {
         document.getElementById('toast-overlay')?.classList.remove('show');
         let msg = 'Something went wrong. Please try again.';
-        if (error.code === 'auth/popup-closed-by-user') msg = 'Sign in was cancelled. Please try again.';
-        else if (error.code === 'auth/user-disabled') msg = 'This account has been deactivated. Please contact the Super Admin.';
+        if (error.code === 'auth/user-disabled') msg = 'This account has been deactivated. Please contact the Super Admin.';
         else if (error.code === 'auth/network-request-failed') msg = 'No internet connection. Please check your network.';
         else if (error.code === 'auth/unauthorized-domain') msg = 'This domain is not authorized. Please contact support.';
         else if (error.code === 'auth/account-exists-with-different-credential') msg = 'An account already exists with this email using a different provider. Please sign in with email/password first to link accounts.';
@@ -1533,7 +1550,7 @@ async function populateOfficeDropdown() {
         const icon = document.getElementById(iconId);
         if (input && icon && input.type === 'text') {
           input.type = 'password';
-          icon.src = '../assets/eyeHide.png';
+          icon.src = '../assets/eyeHide.svg';
           icon.alt = 'Show password';
         }
       });
@@ -1641,7 +1658,7 @@ async function populateOfficeDropdown() {
       const img = document.getElementById(iconId);
       const isHidden = input.type === 'password';
       input.type = isHidden ? 'text' : 'password';
-      img.src = isHidden ? '../assets/eyeShow.png' : '../assets/eyeHide.png';
+      img.src = isHidden ? '../assets/eyeShow.svg' : '../assets/eyeHide.svg';
       img.alt = isHidden ? 'Hide password' : 'Show password';
     }
   </script>
