@@ -1,94 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GaBayan – Admin Dashboard</title>
+  <title>GaBayan – Dashboard</title>
+  <link rel="icon" type="image/png" href="assets/logo_whitebg.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="icon" type="image/png" href="assets/logo_whitebg.png" />
-  <link rel="stylesheet" href="css/dashboard.css" />
-  <link rel="stylesheet" href="css/sidebar.css" />
-  <link rel="stylesheet" href="css/profile.css" />
-  <link rel="stylesheet" href="css/toast.css" />
-  <link rel="stylesheet" href="css/add_office_modal.css" />
-  <link rel="stylesheet" href="css/page_transition.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.js"
-    integrity="sha384-tgbB5AKnszdcfwcZtTfuhR3Ko1XZdlDfsLtkxiiAZiVkkXCkFmp+FQFh+V/UTo54"
-    crossorigin="anonymous"></script>
-  <script src="./js/toast.js"></script>
-  <script type="module" src="./js/role-guard.js"></script>
-  <script src="./js/sidebar.js"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+  <link rel="stylesheet" href="css/app.css" />
+  <link rel="stylesheet" href="css/pages/dashboard.css" />
+  <script src="js/shell.js"></script>
+  <script type="module" src="js/pages/dashboard.js"></script>
 </head>
-
 <body>
+  <app-sidebar active="dashboard"></app-sidebar>
 
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-icon">
-        <img src="assets/logo.png" alt="GaBayan Logo" />
-      </div>
-      <div class="logo-text">
-        <img src="assets/docsease_text.png" alt="GaBayan" class="brand-img" />
-      </div>
-    </div>
+  <main class="main">
+    <app-topbar></app-topbar>
 
-    <div class="sidebar-nav-container">
-      <nav class="sidebar-nav">
-        <a href="dashboard.html" class="nav-item active" title="Dashboard">
-          <div class="nav-icon"><img src="assets/dashboard.svg" alt="Dashboard" /></div>
-          <span class="nav-label">Dashboard</span>
-          <!-- <div class="nav-icon"><img src="assets/dashboard.svg" alt="Dashboard" />
-          <span class="nav-label">Dashboard</span></div> -->
-        </a>
-        <a href="service-management.html" class="nav-item" title="Service Management">
-          <div class="nav-icon"><img src="assets/service_mngment.svg" alt="Service Management" /></div>
-          <span class="nav-label">Service Management</span>
-        </a>
-
-        <a href="map-management.html" class="nav-item" title="Map Management">
-          <div class="nav-icon"><img src="assets/map_mngment.svg" alt="Map Management" /></div>
-          <span class="nav-label">Map Management</span>
-        </a>
-
-        <a href="analytics.html" class="nav-item" title="Analytics">
-          <div class="nav-icon"><img src="assets/analytics.svg" alt="Analytics" /></div>
-          <span class="nav-label">Analytics</span>
-        </a>
-
-        <a href="review-queue.html" class="nav-item" title="Review Queue">
-          <div class="nav-icon"><img src="assets/review_queue.svg" alt="Review Queue" /></div>
-          <span class="nav-label">Review Queue</span>
-        </a>
-
-        <a href="account-management.html" class="nav-item" title="Account Management">
-          <div class="nav-icon"><img src="assets/account_management.svg" alt="Account Management" /></div>
-          <span class="nav-label">Account Management</span>
-        </a>
-
-      <a href="activity-log.html" class="nav-item" title="Activity Log">
-      <div class="nav-icon"><img src="assets/activity_log.svg" alt="Activity Log" /></div>
-        <span class="nav-label">Activity Log</span>
-        </a>
-      </nav>
-    </div>
-
-    <div class="sidebar-bottom">
-      <button class="btn-collapse" onclick="toggleSidebar()" title="Collapse sidebar">
-        <img id="collapse-icon" src="assets/collapse.svg" alt="Collapse" />
-      </button>
-    </div>
-  </aside>
-
-  <div class="main">
-    <header class="topbar">
-      <div id="profile-placeholder"></div>
-    </header>
-
-    <div class="content page-fade" id="main-content">
-      <div class="welcome-banner">
+    <div class="content">
+      <header class="banner">
         <div>
           <h1>Welcome Back, Admin!</h1>
           <p>Manage your municipal transactions, documents, and civic duties all in one secure place</p>
@@ -97,593 +29,55 @@
           <div class="date" id="banner-date"></div>
           <div class="time" id="banner-time"></div>
         </div>
-      </div>
+      </header>
 
-      <div>
-        <!-- Label set once role is known -->
-        <button type="button" id="btn-add-service" class="btn-add-service" style="display:none;" onclick="window.location.href='add-service.html'">
-          <img src="assets/add_service.svg" alt="Plus Icon" />
-          <span>Add New Service</span>
-        </button>
-        <button type="button" id="btn-add-office" class="btn-add-service" style="display:none;" onclick="openAddOffice()">
-          <img src="assets/add_service.svg" alt="Plus Icon" />
-          <span>Add New Office</span>
-        </button>
-      </div>
+      <div class="dashboard-actions" id="actions"></div>
 
       <div class="stats-row">
         <div class="stat-card">
           <div class="stat-header">
-            <div class="stat-icon"><img src="assets/map_mngment.svg" alt="Total Services" /></div>
+            <div class="stat-icon"><img src="assets/map_mngment.svg" alt="" /></div>
             <div class="stat-label">Total Offices</div>
           </div>
-          <div class="stat-value" id="total-offices-count"><span class="skel skel-inline" style="width:72px;height:34px;" aria-hidden="true"></span></div>
+          <div class="stat-value" id="stat-offices"><span class="skel skel-inline" style="width:72px;height:34px" aria-hidden="true"></span></div>
         </div>
-
         <div class="stat-card">
           <div class="stat-header">
-            <div class="stat-icon"><img src="assets/total_completed.svg" alt="Total Users" /></div>
+            <div class="stat-icon"><img src="assets/total_completed.svg" alt="" /></div>
             <div class="stat-label">Total Services</div>
           </div>
-          <div class="stat-value" id="total-services-count"><span class="skel skel-inline" style="width:72px;height:34px;" aria-hidden="true"></span></div>
+          <div class="stat-value" id="stat-services"><span class="skel skel-inline" style="width:72px;height:34px" aria-hidden="true"></span></div>
         </div>
-
         <div class="stat-card">
           <div class="stat-header">
-            <div class="stat-icon"><img src="assets/total_users.svg" alt="Active Users" /></div>
+            <div class="stat-icon"><img src="assets/total_users.svg" alt="" /></div>
             <div class="stat-label">Total Users</div>
           </div>
-          <div class="stat-value" id="total-users-count"><span class="skel skel-inline" style="width:72px;height:34px;" aria-hidden="true"></span></div>
+          <div class="stat-value" id="stat-users"><span class="skel skel-inline" style="width:72px;height:34px" aria-hidden="true"></span></div>
         </div>
       </div>
 
-      <div class="bottom-row">
-        <!-- Most Used Services -->
-        <div class="card">
+      <div class="card-grid">
+        <section class="card">
           <div class="card-header">
-            <div class="card-title">Most Used Services</div>
+            <h2 class="card-title">Most Used Services</h2>
             <a href="analytics.html" class="card-link">View Analytics →</a>
           </div>
-          <div class="service-rank-list" id="mostUsedServicesList" aria-busy="true">
-            <div class="service-rank-item"><span class="skel skel-circle" style="width:26px;height:26px;"></span><div class="rank-bar-wrap skel-stack" style="gap:8px;"><span class="skel skel-text" style="width:55%;"></span><span class="skel" style="height:7px;"></span></div><span class="skel skel-text" style="width:32px;"></span></div>
-            <div class="service-rank-item"><span class="skel skel-circle" style="width:26px;height:26px;"></span><div class="rank-bar-wrap skel-stack" style="gap:8px;"><span class="skel skel-text" style="width:70%;"></span><span class="skel" style="height:7px;"></span></div><span class="skel skel-text" style="width:32px;"></span></div>
-            <div class="service-rank-item"><span class="skel skel-circle" style="width:26px;height:26px;"></span><div class="rank-bar-wrap skel-stack" style="gap:8px;"><span class="skel skel-text" style="width:45%;"></span><span class="skel" style="height:7px;"></span></div><span class="skel skel-text" style="width:32px;"></span></div>
-            <div class="service-rank-item"><span class="skel skel-circle" style="width:26px;height:26px;"></span><div class="rank-bar-wrap skel-stack" style="gap:8px;"><span class="skel skel-text" style="width:60%;"></span><span class="skel" style="height:7px;"></span></div><span class="skel skel-text" style="width:32px;"></span></div>
-            <div class="service-rank-item"><span class="skel skel-circle" style="width:26px;height:26px;"></span><div class="rank-bar-wrap skel-stack" style="gap:8px;"><span class="skel skel-text" style="width:40%;"></span><span class="skel" style="height:7px;"></span></div><span class="skel skel-text" style="width:32px;"></span></div>
-          </div>
-        </div>
+          <div class="rank-list" id="most-used" aria-busy="true"></div>
+        </section>
 
-        <!-- Completion Trend -->
-        <div class="card">
+        <section class="card">
           <div class="card-header">
-            <div class="card-title">Completion Trend</div>
+            <h2 class="card-title">Completion Trend</h2>
             <a href="analytics.html" class="card-link">View Analytics →</a>
           </div>
           <div class="chart-wrap">
-            <canvas id="completionTrendChart"></canvas>
+            <canvas id="trend-chart" aria-label="Completed and in-progress services per month"></canvas>
             <span class="skel skel-fill" id="trend-skel" aria-hidden="true"></span>
           </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- Add New Office modal -->
-  <div class="ao-overlay" id="add-office-overlay" aria-hidden="true">
-    <div class="ao-modal" role="dialog" aria-modal="true" aria-labelledby="ao-title">
-      <div class="ao-header">
-        <h2 class="ao-title" id="ao-title">Add New Office</h2>
-        <button type="button" class="ao-close" aria-label="Close" onclick="closeAddOffice()">&times;</button>
-      </div>
-    <div class="ao-body">
-      <div class="ao-section">
-        <div class="ao-section-title">Office Information</div>
-        <div class="ao-field">
-          <label class="ao-label" for="ao-office-name">Office Name</label>
-          <input type="text" id="ao-office-name" class="ao-input" placeholder="Enter office name..." maxlength="100" autocomplete="off" />
-        </div>
-
-        <div class="ao-field">
-          <label class="ao-label" for="ao-description">DESCRIPTION</label>
-          <textarea id="ao-description" class="ao-input" rows="3" maxlength="500" placeholder="What does this office do?"></textarea>
-        </div>
-
-        <div class="ao-row">
-          <div>
-            <label class="ao-label" for="ao-floor">FLOOR</label>
-            <select id="ao-floor" class="ao-input"></select>
-          </div>
-          <div>
-            <label class="ao-label" for="ao-category">CATEGORY / TYPE</label>
-            <select id="ao-category" class="ao-input"></select>
-          </div>
-        </div>
-      </div>
-
-      <div class="ao-section">
-        <div class="ao-section-title">Office Schedule</div>
-        <div class="ao-row">
-          <div>
-            <label class="ao-label" for="ao-day-from">DAY FROM</label>
-            <select id="ao-day-from" class="ao-input"></select>
-          </div>
-          <div>
-            <label class="ao-label" for="ao-day-to">DAY TO <span class="ao-hint">(optional)</span></label>
-            <select id="ao-day-to" class="ao-input"></select>
-          </div>
-        </div>
-
-        <div class="ao-row">
-          <div>
-            <label class="ao-label" for="ao-open-time">OPENING TIME</label>
-            <input type="time" id="ao-open-time" class="ao-input" />
-          </div>
-          <div>
-            <label class="ao-label" for="ao-close-time">CLOSING TIME</label>
-            <input type="time" id="ao-close-time" class="ao-input" />
-          </div>
-        </div>
-      </div>
-
-      <div class="ao-error" id="ao-error"></div>
-    </div>
-      <div class="ao-actions">
-        <button type="button" class="ao-btn ao-btn-cancel" onclick="closeAddOffice()">Cancel</button>
-        <button type="button" class="ao-btn ao-btn-add" id="ao-submit" onclick="submitAddOffice()">Add new office</button>
+        </section>
       </div>
     </div>
-  </div>
-
-  <script type="module">
-    import { auth, db } from './js/firebase-config.js';
-    import { collection, collectionGroup, getDocs, doc, getDoc, setDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-    // ---- Activity log helper ----
-    let _logActor = null;
-    async function logActivity(type, details = {}) {
-      try {
-        const user = auth.currentUser;
-        if (!user) return;
-
-        if (!_logActor || _logActor.uid !== user.uid) {
-          let name = user.displayName || user.email || 'Admin';
-          let role = 'admin';
-          try {
-            const snap = await getDoc(doc(db, 'admin', user.uid));
-            if (snap.exists()) {
-              const data = snap.data();
-              name = data.full_name || name;
-              role = data.role || 'admin';
-            }
-          } catch (err) {
-            console.error('[activity-log] could not read actor profile:', err);
-          }
-          _logActor = { uid: user.uid, name, role };
-        }
-
-        await addDoc(collection(db, 'activity_logs'), {
-          type,
-          actor_uid: _logActor.uid,
-          actor_name: details.actor_name || _logActor.name,
-          actor_role: _logActor.role,
-          office_name: details.office_name || '',
-          service_name: details.service_name || '',
-          target_name: details.target_name || '',
-          createdAt: serverTimestamp()
-        });
-      } catch (err) {
-        console.error('[activity-log] failed to log', type, err);
-      }
-    }
-    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        window.location.href = 'login.html';
-        return;
-      }
-
-      try {
-        // Verify admin record
-        const adminDoc = await getDoc(doc(db, 'admin', user.uid));
-
-        if (!adminDoc.exists()) {
-          // Not a registered admin
-          await signOut(auth);
-          window.location.href = 'login.html';
-          return;
-        }
-
-        // Admin verified
-        const userNameEl = document.querySelector('.user-name');
-        const userRoleEl = document.querySelector('.user-role');
-        if (userNameEl) userNameEl.textContent = user.displayName || user.email;
-        if (userRoleEl) userRoleEl.textContent = 'Admin ✓';
-
-        // Set label by role
-        const adminData = adminDoc.data();
-        const isSuperAdmin = adminData.role === 'super_admin' && adminData.status === 'active';
-        document.getElementById(isSuperAdmin ? 'btn-add-office' : 'btn-add-service').style.display = '';
-        document.getElementById('main-content').classList.add('is-ready');
-
-      } catch (error) {
-        console.error("Auth check failed:", error);
-        await signOut(auth);
-        window.location.href = 'login.html';
-      }
-    });
-
-    function toDate(ts) {
-      if (!ts) return null;
-      return typeof ts.toDate === 'function' ? ts.toDate() : new Date(ts);
-    }
-
-    function escapeHtml(str) {
-      const div = document.createElement('div');
-      div.textContent = str == null ? '' : String(str);
-      return div.innerHTML;
-    }
-
-    function renderRankList(containerId, items, maxCount) {
-      const container = document.getElementById(containerId);
-      container.removeAttribute('aria-busy');
-      if (!items.length) {
-        container.innerHTML = '<div style="font-size:0.83rem;color:#6b7a99;">No data yet.</div>';
-        return;
-      }
-      container.innerHTML = items.map((item, i) => `
-        <div class="service-rank-item">
-          <div class="rank-num">${i + 1}</div>
-          <div class="rank-bar-wrap">
-            <div class="rank-service-name">${escapeHtml(item.name)}</div>
-            <div class="rank-bar-bg">
-              <div class="rank-bar-fill" style="width:${maxCount ? Math.max(4, (item.count / maxCount) * 100) : 0}%"></div>
-            </div>
-          </div>
-          <div class="rank-count">${item.count.toLocaleString()}</div>
-        </div>
-      `).join('');
-    }
-
-    // Add New Office
-    const AO_FLOORS = [['first_floor', 'First Floor'], ['second_floor', 'Second Floor'], ['third_floor', 'Third Floor']];
-    const AO_CATEGORIES = [['regular_service', 'Regular Service'], ['emergency_services', 'Emergency Services'], ['building_access', 'Building Access'], ['facilities_and_amenities', 'Facilities and Amenities'], ['comfort_rooms', 'Comfort Rooms'], ['suites_and_hubs', 'Suites and Hubs']];
-
-    const aoOverlay = document.getElementById('add-office-overlay');
-    const aoInput = document.getElementById('ao-office-name');
-    const aoDesc = document.getElementById('ao-description');
-    const aoFloor = document.getElementById('ao-floor');
-    const aoCategory = document.getElementById('ao-category');
-    const aoError = document.getElementById('ao-error');
-    const aoSubmit = document.getElementById('ao-submit');
-    const aoOpen = document.getElementById('ao-open-time');
-    const aoClose = document.getElementById('ao-close-time');
-    const aoDayFrom = document.getElementById('ao-day-from');
-    const aoDayTo = document.getElementById('ao-day-to');
-    const aoFields = [aoInput, aoDesc, aoFloor, aoCategory, aoDayFrom, aoDayTo, aoOpen, aoClose];
-    aoFields.forEach(f => f.addEventListener('input', () => showAoError('')));
-
-    function fillAoSelect(select, placeholder, options) {
-      select.innerHTML = `<option value="" disabled selected>${placeholder}</option>` +
-        options.map(([value, label]) => `<option value="${value}">${label}</option>`).join('');
-    }
-    fillAoSelect(aoFloor, 'Select floor', AO_FLOORS);
-    fillAoSelect(aoCategory, 'Select category', AO_CATEGORIES);
-
-    const SCHED_DAYS = [['Mon', 'Monday'], ['Tue', 'Tuesday'], ['Wed', 'Wednesday'], ['Thu', 'Thursday'], ['Fri', 'Friday'], ['Sat', 'Saturday'], ['Sun', 'Sunday']];
-    const schedFmtTime = (hhmm) => {
-      const [h, m] = hhmm.split(':').map(Number);
-      const ap = h >= 12 ? 'PM' : 'AM';
-      const h12 = h % 12 === 0 ? 12 : h % 12;
-      return m ? `${h12}:${String(m).padStart(2, '0')}${ap}` : `${h12}${ap}`;
-    };
-    const schedTo24 = (h, m, ap) => {
-      let hh = Number(h) % 12;
-      if (/pm/i.test(ap)) hh += 12;
-      return `${String(hh).padStart(2, '0')}:${String(m || '00').padStart(2, '0')}`;
-    };
-    const buildSchedule = (dayFrom, dayTo, openTime, closeTime) =>
-      `${dayTo && dayTo !== dayFrom ? `${dayFrom}-${dayTo}` : dayFrom}, ${schedFmtTime(openTime)}-${schedFmtTime(closeTime)}`;
-    const parseSchedule = (s) => {
-      const m = String(s || '').match(/^\s*([A-Za-z]{3})(?:\s*-\s*([A-Za-z]{3}))?\s*,?\s*(\d{1,2})(?::(\d{2}))?\s*(AM|PM)\s*-\s*(\d{1,2})(?::(\d{2}))?\s*(AM|PM)\s*$/i);
-      if (!m) return null;
-      const cap = (d) => d ? d.charAt(0).toUpperCase() + d.slice(1).toLowerCase() : '';
-      return { dayFrom: cap(m[1]), dayTo: cap(m[2]), open: schedTo24(m[3], m[4], m[5]), close: schedTo24(m[6], m[7], m[8]) };
-    };
-    const schedDayOptions = (placeholder, toSelect) =>
-      `<option value=""${toSelect ? '' : ' disabled'} selected>${placeholder}</option>` +
-      SCHED_DAYS.map(([v, l]) => `<option value="${v}">${l}</option>`).join('');
-    aoDayFrom.innerHTML = schedDayOptions('Select day', false);
-    aoDayTo.innerHTML = schedDayOptions('Same day', true);
-
-    function showAoError(message, field) {
-      aoError.textContent = message;
-      aoFields.forEach(f => f.classList.remove('error'));
-      if (message && field) field.classList.add('error');
-    }
-
-    window.openAddOffice = function() {
-      aoInput.value = '';
-      aoDesc.value = '';
-      aoFloor.selectedIndex = 0;
-      aoCategory.selectedIndex = 0;
-      aoDayFrom.selectedIndex = 0;
-      aoDayTo.selectedIndex = 0;
-      aoOpen.value = '';
-      aoClose.value = '';
-      showAoError('');
-      aoOverlay.classList.add('show');
-      aoOverlay.setAttribute('aria-hidden', 'false');
-      setTimeout(() => aoInput.focus(), 0);
-    };
-
-    window.closeAddOffice = function() {
-      aoOverlay.classList.remove('show');
-      aoOverlay.setAttribute('aria-hidden', 'true');
-    };
-
-    window.submitAddOffice = async function() {
-      const officeName = aoInput.value.replace(/\s+/g, ' ').trim();
-      const description = aoDesc.value.trim();
-      const floor = aoFloor.value;
-      const category = aoCategory.value;
-      const dayFrom = aoDayFrom.value;
-      const dayTo = aoDayTo.value;
-      const openTime = aoOpen.value;
-      const closeTime = aoClose.value;
-
-      if (!officeName) { showAoError('Please enter an office name.', aoInput); return; }
-      if (officeName.includes('/')) { showAoError('Office name cannot contain "/".', aoInput); return; }
-      if (!description) { showAoError('Please enter a description.', aoDesc); return; }
-      if (!floor) { showAoError('Please select a floor.', aoFloor); return; }
-      if (!category) { showAoError('Please select a category.', aoCategory); return; }
-      if (!dayFrom) { showAoError('Please select a day.', aoDayFrom); return; }
-      if (!openTime) { showAoError('Please enter an opening time.', aoOpen); return; }
-      if (!closeTime) { showAoError('Please enter a closing time.', aoClose); return; }
-      if (openTime === closeTime) { showAoError('Opening and closing time cannot be the same.', aoClose); return; }
-      showAoError('');
-
-      const isOffice = category === 'regular_service';
-      const targetCollection = isOffice ? 'offices' : 'other_room';
-      const nameField = isOffice ? 'office_name' : 'room_name';
-
-      aoSubmit.disabled = true;
-      aoSubmit.textContent = 'Adding...';
-      let step = 'starting';
-
-      try {
-        const officeId = officeName.toUpperCase().replace(/\s+/g, '-');
-
-        step = 'checking for duplicates';
-        const readDocs = async (name) => {
-          try { return (await getDocs(collection(db, name))).docs; }
-          catch (err) { console.warn(`[add-office] could not read "${name}":`, err); return []; }
-        };
-        const [officeDocs, roomDocs] = await Promise.all([readDocs('offices'), readDocs('other_room')]);
-        const duplicate = [...officeDocs, ...roomDocs].find(d => {
-          const data = d.data();
-          return d.id === officeId ||
-            String(data.office_name || data.room_name || d.id).trim().toLowerCase() === officeName.toLowerCase();
-        });
-        if (duplicate) {
-          // A deleted office keeps its document, so a new one with the same ID would overwrite it
-          showAoError(duplicate.data().isDeleted === true
-            ? 'An office with this name is in Deleted Records. Recover it from the Review Queue, or delete it permanently first.'
-            : 'An office or room with this name already exists.', aoInput);
-          return;
-        }
-
-        step = `saving to "${targetCollection}"`;
-        await setDoc(doc(db, targetCollection, officeId), {
-          [nameField]: officeName,
-          description,
-          floor,
-          category,
-          schedule: buildSchedule(dayFrom, dayTo, openTime, closeTime),
-          created_at: serverTimestamp()
-        });
-
-        if (isOffice) {
-          try {
-            await addDoc(collection(db, 'notifications'), {
-              title: 'Hi Citizen! A new office added',
-              body: `A new office, ${officeName}, is now available on GaBayan.`,
-              service_id: '',
-              timestamp: serverTimestamp()
-            });
-          } catch (notifError) {
-            console.error('Office notification failed:', notifError);
-          }
-        }
-
-        await logActivity('office_added', { office_name: officeName });
-
-        window.closeAddOffice();
-        window.showToast('success', isOffice ? 'Office Added' : 'Room Added', `"${officeName}" has been added.`, 'OK');
-        await loadDashboardCounts();
-      } catch (error) {
-        console.error(`[add-office] failed while ${step}:`, error);
-        const denied = error && error.code === 'permission-denied';
-        window.showToast('error', 'Add Failed',
-          denied
-            ? `Firestore rules blocked this while ${step}. Allow super admins to write to this collection.`
-            : `The office could not be added (${step}). ${error && error.code ? error.code : 'Please try again.'}`,
-          'OK');
-      } finally {
-        aoSubmit.disabled = false;
-        aoSubmit.textContent = 'Add new office';
-      }
-    };
-
-    aoInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') window.submitAddOffice(); });
-    aoFields.forEach(f => f.addEventListener('input', () => showAoError('')));
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && aoOverlay.classList.contains('show')) window.closeAddOffice(); });
-
-    async function loadDashboardCounts() {
-      try {
-        const officesSnap = await getDocs(collection(db, "offices"));
-        // Offices in Deleted Records (and their services) are not counted
-        const activeOffices = officesSnap.docs.filter(d => d.data().isDeleted !== true);
-        document.getElementById('total-offices-count').innerText = activeOffices.length;
-
-        let totalServices = 0;
-        for (const officeDoc of activeOffices) {
-          const servicesSnap = await getDocs(collection(db, 'offices', officeDoc.id, 'services'));
-          totalServices += servicesSnap.docs.filter(s => s.data().isDeleted !== true).length;
-        }
-        document.getElementById('total-services-count').innerText = totalServices;
-
-        const usersSnap = await getDocs(collection(db, "users"));
-        document.getElementById('total-users-count').innerText = usersSnap.size;
-
-      } catch (error) {
-        console.error("Error fetching counts: ", error);
-        // Replace any skeleton still showing
-        ['total-offices-count', 'total-services-count', 'total-users-count'].forEach(id => {
-          const el = document.getElementById(id);
-          if (el.querySelector('.skel')) el.textContent = '-';
-        });
-      }
-    }
-
-    let completionChart = null;
-
-    async function loadMostUsedAndCompletionTrend() {
-      try {
-        const historySnap = await getDocs(collectionGroup(db, 'service_history'));
-
-        const countByService = new Map();
-        const completionDates = [];
-        const inProgressDates = [];
-
-        historySnap.forEach(d => {
-          const data = d.data() || {};
-          const step = data.completed_steps || {};
-          const status = String(data.status || step.status || data.progress_status || '').trim();
-          const name = String(data.service_name || step.service_name || data.serviceName || 'Unknown Service').trim() || 'Unknown Service';
-          const historyDate = toDate(data.last_updated || step.last_updated || data.updatedAt || data.createdAt);
-
-          countByService.set(name, (countByService.get(name) || 0) + 1);
-
-          if (status.toLowerCase() === 'completed' || status.toLowerCase() === 'done') {
-            if (historyDate) completionDates.push(historyDate);
-          }
-
-          if (
-            status.toLowerCase().includes('in progress') ||
-            status.toLowerCase().includes('in_progress') ||
-            status.toLowerCase() === 'pending' ||
-            status.toLowerCase() === 'processing'
-          ) {
-            if (historyDate) inProgressDates.push(historyDate);
-          }
-        });
-
-        const mostUsed = Array.from(countByService.entries())
-          .map(([name, count]) => ({ name, count }))
-          .sort((a, b) => b.count - a.count)
-          .slice(0, 5);
-        const maxUsedCount = mostUsed.length ? mostUsed[0].count : 0;
-        renderRankList('mostUsedServicesList', mostUsed, maxUsedCount);
-
-        // Completion trend, last 12 months
-        const now = new Date();
-        const labels = [];
-        const completedData = [];
-        const inProgressData = [];
-
-        for (let i = 11; i >= 0; i--) {
-          const m = new Date(now.getFullYear(), now.getMonth() - i, 1);
-          const mEnd = new Date(m.getFullYear(), m.getMonth() + 1, 1);
-          labels.push(m.toLocaleDateString('en-US', { month: 'short' }));
-          completedData.push(completionDates.filter(d => d >= m && d < mEnd).length);
-          inProgressData.push(inProgressDates.filter(d => d >= m && d < mEnd).length);
-        }
-
-        const ctx = document.getElementById('completionTrendChart').getContext('2d');
-        completionChart = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels,
-            datasets: [
-              {
-                label: 'Completed',
-                data: completedData,
-                borderColor: '#002D62',
-                backgroundColor: 'rgba(0,45,98,0.12)',
-                borderWidth: 2.5,
-                pointBackgroundColor: '#002D62',
-                pointRadius: 4,
-                tension: 0.35,
-                fill: false
-              },
-              {
-                label: 'In Progress',
-                data: inProgressData,
-                borderColor: '#2f7cf6',
-                backgroundColor: 'rgba(47,124,246,0.10)',
-                borderWidth: 2.5,
-                pointBackgroundColor: '#2f7cf6',
-                pointRadius: 4,
-                tension: 0.35,
-                fill: false
-              }
-            ]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: true, position: 'top' } },
-            scales: {
-              y: { grid: { color: '#f0f4fb' }, ticks: { font: { size: 11 }, precision: 0 } },
-              x: { grid: { display: false }, ticks: { font: { size: 11 } } }
-            }
-          }
-        });
-        document.getElementById('trend-skel')?.remove();
-
-      } catch (error) {
-        console.error('Failed to load most-used services / completion trend:', error);
-        document.getElementById('trend-skel')?.remove();
-        const list = document.getElementById('mostUsedServicesList');
-        if (list.getAttribute('aria-busy')) {
-          list.removeAttribute('aria-busy');
-          list.innerHTML = '<div style="font-size:0.83rem;color:#6b7a99;">Couldn\'t load data.</div>';
-        }
-      }
-    }
-
-    loadDashboardCounts();
-    loadMostUsedAndCompletionTrend();
-  </script>
-
-  <script>
-    function updateClock() {
-      const now = new Date();
-      document.getElementById('banner-date').textContent = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-      document.getElementById('banner-time').textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    }
-    updateClock();
-    setInterval(updateClock, 1000);
-  </script>
-
-  <script>
-    fetch('partials/profile.html')
-      .then(res => res.text())
-      .then(html => {
-        const template = document.createElement('template');
-        template.innerHTML = html;
-        const script = template.content.querySelector('script');
-        const profilePlaceholder = document.getElementById('profile-placeholder');
-        profilePlaceholder.replaceChildren(template.content);
-        if (script) {
-          const executableScript = document.createElement('script');
-          executableScript.textContent = script.textContent;
-          document.body.appendChild(executableScript);
-        }
-        if (window.currentUser) updateProfileDisplay(window.currentUser);
-      });
-  </script>
+  </main>
 </body>
-
 </html>

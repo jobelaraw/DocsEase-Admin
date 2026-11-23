@@ -1,7 +1,8 @@
 /* White cards and scrolling panels. */
 .card {
+  min-width: 0;
   background: var(--card-bg);
-  border-radius: var(--radius-lg);
+  border-radius: 18px;
   padding: 24px 26px;
   box-shadow: var(--shadow);
 }
