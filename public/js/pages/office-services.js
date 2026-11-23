@@ -50,12 +50,12 @@ function showServices(officeId, services) {
   status.hidden = true;
   render(grid, html`${services.map((s) => html`
     <a class="tile" data-name="${s.name.toLowerCase()}"
-       href="edit-service.html?officeId=${encodeURIComponent(officeId)}&serviceId=${encodeURIComponent(s.id)}">${s.name}</a>`)}`);
+       href="service-form.html?officeId=${encodeURIComponent(officeId)}&serviceId=${encodeURIComponent(s.id)}">${s.name}</a>`)}`);
   applySearch();
 }
 
 function openOffice(officeId) {
-  addLink.href = `add-service.html?officeId=${encodeURIComponent(officeId)}`;
+  addLink.href = `service-form.html?officeId=${encodeURIComponent(officeId)}`;
   let stopServices = null;
   watchOffice(officeId, (office) => {
     if (!office) {

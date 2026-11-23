@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GaBayan – Service</title>
+  <link rel="icon" type="image/png" href="assets/logo_whitebg.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+  <link rel="stylesheet" href="css/app.css" />
+  <link rel="stylesheet" href="css/pages/service-form.css" />
+  <script src="js/shell.js"></script>
+  <script type="module" src="js/pages/service-form.js"></script>
+</head>
+<body>
+  <app-sidebar active="services"></app-sidebar>
+
+  <main class="main main--fixed">
+    <app-topbar back="service-management.html">
+      <h1 class="topbar-title" id="form-title">Service</h1>
+    </app-topbar>
+
+    <div class="form-wrapper">
+      <div id="form-skeleton" aria-hidden="true">
+        <div class="tab-bar"><span class="skel" style="width:140px;height:44px"></span><span class="skel" style="width:120px;height:44px"></span></div>
+        <div class="form-section skel-stack">
+          <span class="skel skel-title" style="width:180px"></span>
+          <span class="skel" style="height:44px"></span>
+          <span class="skel" style="height:44px"></span>
+          <span class="skel" style="height:80px"></span>
+        </div>
+        <div class="form-section skel-stack">
+          <span class="skel skel-title" style="width:180px"></span>
+          <span class="skel" style="height:44px"></span>
+          <span class="skel" style="height:44px"></span>
+        </div>
+      </div>
+
+      <p class="empty-state" id="status" hidden></p>
+
+      <div id="form-body" class="page-fade" hidden>
+        <div class="tab-bar" id="tab-bar" role="tablist" aria-label="Transaction channels"></div>
+
+        <section class="form-section">
+          <h3 class="form-section-title">General Details</h3>
+          <div class="field-row">
+            <div class="field" id="name-field"><label for="service-name">Service Name</label></div>
+            <div class="field" id="office-field"><label for="office">Office</label></div>
+          </div>
+          <div class="field">
+            <label for="description">Service Description</label>
+            <textarea class="textarea" id="description" placeholder="Provide a general description of this service..."></textarea>
+          </div>
+        </section>
+
+        <div id="tab-content"></div>
+
+        <section class="form-section">
+          <h3 class="form-section-title">Location and Contact</h3>
+          <div class="field" id="location-field"><label for="location">Location</label></div>
+          <div class="field-row">
+            <div class="field" id="phone-field"><label for="contact-phone">Contact Number</label></div>
+            <div class="field" id="email-field"><label for="contact-email">Email <span class="label-hint">(optional)</span></label></div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="actions-bar">
+      <button type="button" class="btn btn-delete-service" id="delete" hidden>
+        <img src="assets/delete.svg" alt="" /> Delete Service
+      </button>
+      <button type="button" class="btn btn-secondary" id="discard">Cancel</button>
+      <button type="button" class="btn btn-primary" id="save" disabled>Save</button>
+    </div>
+  </main>
+</body>
+</html>
