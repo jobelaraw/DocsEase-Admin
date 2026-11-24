@@ -160,6 +160,40 @@
   text-align: right;
 }
 
+/* Show all / Show less under a shortened rank list */
+.card-toggle {
+  display: block;
+  margin: 20px auto 0;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: var(--navy-light);
+  cursor: pointer;
+}
+
+.card-toggle:hover {
+  background: var(--active-bg);
+}
+
+.card-toggle::after {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-left: 8px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform 0.15s;
+}
+
+.card-toggle[aria-expanded="true"]::after {
+  transform: translateY(1px) rotate(-135deg);
+}
+
 .rank-empty {
   padding: 12px 0;
   font-size: 0.83rem;

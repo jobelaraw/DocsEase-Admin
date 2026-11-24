@@ -16,6 +16,26 @@ render($('#most-used'), rankListSkeleton());
 let stats = null;
 let period = 'weekly';
 
+// Services per Office: the top offices only, until the card is expanded.
+const PER_OFFICE_TOP = 5;
+const perOffice = $('#per-office');
+const perOfficeToggle = $('#per-office-toggle');
+let perOfficeExpanded = false;
+
+function drawPerOffice() {
+  const offices = stats.servicesPerOffice;
+  renderRankList(perOffice, offices);
+  $$('.rank-item', perOffice).forEach((row, i) => { row.hidden = !perOfficeExpanded && i >= PER_OFFICE_TOP; });
+  perOfficeToggle.hidden = offices.length <= PER_OFFICE_TOP;
+  perOfficeToggle.setAttribute('aria-expanded', String(perOfficeExpanded));
+  perOfficeToggle.textContent = perOfficeExpanded ? 'Show less' : `Show all ${offices.length} offices`;
+}
+
+perOfficeToggle.addEventListener('click', () => {
+  perOfficeExpanded = !perOfficeExpanded;
+  drawPerOffice();
+});
+
 function setStat(id, value) {
   render($(id), value == null ? '–' : Number(value).toLocaleString());
 }
@@ -53,7 +73,7 @@ function drawStats(data) {
   setStat('#stat-services', stats.services);
   setStat('#stat-untranslated', stats.untranslatedServices);
   setStat('#stat-history', stats.history.total);
-  renderRankList($('#per-office'), stats.servicesPerOffice);
+  drawPerOffice();
   renderRankList($('#most-used'), stats.history.mostUsed);
   $$('[data-chart-skel]').forEach((el) => el.remove());
   return Promise.all([
