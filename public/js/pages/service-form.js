@@ -40,7 +40,8 @@ const SUGGEST = {
   email: ['bplo@binan.gov.ph']
 };
 
-els.title.textContent = editing ? 'Edit Service' : 'Add Service';
+// Editing keeps the title skeleton until the service's name has loaded.
+if (!editing) els.title.textContent = 'Add Service';
 els.save.textContent = editing ? 'Save Changes' : 'Add Service';
 els.discard.textContent = editing ? 'Discard Changes' : 'Cancel';
 document.title = `GaBayan – ${editing ? 'Edit' : 'Add'} Service`;
@@ -48,6 +49,7 @@ document.title = `GaBayan – ${editing ? 'Edit' : 'Add'} Service`;
 startOfficePicker();
 
 function fail(message) {
+  if (els.title.querySelector('.skel')) els.title.textContent = editing ? 'Edit Service' : 'Add Service';
   els.skeleton.hidden = true;
   els.body.hidden = true;
   els.status.textContent = message;

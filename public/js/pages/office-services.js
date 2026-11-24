@@ -16,6 +16,11 @@ const addLink = $('#add-service');
 render(grid, skeleton.tiles(6));
 
 function showStatus(message) {
+  // The office name never arrived: replace the title skeleton with a generic heading.
+  if (title.querySelector('.skel')) {
+    title.textContent = 'Office Services';
+    subtitle.textContent = 'Monitor and manage service items.';
+  }
   grid.hidden = true;
   grid.removeAttribute('aria-busy');
   status.textContent = message;
@@ -83,7 +88,10 @@ const params = new URLSearchParams(location.search);
 let officeId = params.get('officeId');
 
 // Super Admins can start loading straight from the URL while the session is checked.
-const cachedRole = window.GaBayan.readSession()?.role;
+const cached = window.GaBayan.readSession();
+const cachedRole = cached?.role;
+// Normal admins always see their own office, so its name can go up before the session is confirmed.
+if (cached && cachedRole !== 'super_admin' && cached.office) setOfficeName(cached.office);
 if (officeId && cachedRole === 'super_admin') openOffice(officeId);
 const startedEarly = !!(officeId && cachedRole === 'super_admin');
 
