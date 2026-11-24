@@ -2,6 +2,7 @@
 import { startPage } from '../core/page.js';
 import { html, render, $, $$, on, debounce } from '../core/dom.js';
 import { api } from '../core/api.js';
+import { cached, writeCache, forgetCache, markStatsStale } from '../core/cache.js';
 import { logActivity } from '../core/activity-log.js';
 import { toDate, timeAgo, formatDate, periodStart, daysUntil } from '../core/dates.js';
 import { TRASH_RETENTION_DAYS } from '../core/constants.js';
@@ -161,22 +162,36 @@ const KINDS = {
 };
 const countLabel = (n) => (n === 1 ? '1 service' : `${n || 0} services`);
 
-async function loadDeleted() {
-  state.deletedState = 'loading';
-  if (state.tab === 'deleted') draw();
-  try {
-    const data = await api.listDeleted();
-    state.deleted = [
+// Deleted Records: cached for this browser tab, refreshed after 30 seconds and after any action.
+const DELETED_CACHE = { maxAgeMs: 30000, personal: true };
+
+function useDeleted(data) {
+  state.deleted = [
       ...(data.offices || []).map((o) => ({ ...o, kind: 'office', key: `office:${o.officeId}`, name: o.officeName })),
       ...(data.services || []).map((s) => ({ ...s, kind: 'service', key: `service:${s.officeId}/${s.serviceId}`, name: s.serviceName }))
     ].sort((a, b) => (b.deletedAt || 0) - (a.deletedAt || 0));
-    state.retentionDays = data.retentionDays || TRASH_RETENTION_DAYS;
-    state.deletedState = 'ready';
+  state.retentionDays = data.retentionDays || TRASH_RETENTION_DAYS;
+  state.deletedState = 'ready';
+  if (state.tab === 'deleted') draw();
+}
+
+async function loadDeleted({ force = false } = {}) {
+  if (state.deletedState !== 'ready') state.deletedState = 'loading';
+  if (state.tab === 'deleted') draw();
+  try {
+    await cached('deleted', () => api.listDeleted(), useDeleted, { ...DELETED_CACHE, force });
   } catch (error) {
     console.error('[review-queue] could not load deleted records:', error);
     state.deletedState = 'error';
+    if (state.tab === 'deleted') draw();
   }
-  if (state.tab === 'deleted') draw();
+}
+
+// After recover / purge: the list on screen is already right, so save it as the cached copy.
+function saveDeleted() {
+  const offices = state.deleted.filter((r) => r.kind === 'office');
+  const services = state.deleted.filter((r) => r.kind === 'service');
+  writeCache('deleted', { offices, services, retentionDays: state.retentionDays }, DELETED_CACHE);
 }
 
 function deletedCard(r) {
@@ -334,6 +349,8 @@ async function accept(req) {
       } else if (req.type === 'delete_service') {
         await api.trashService(req.office_id, req.service_id, req.id);
         state.deletedState = 'idle'; // Deleted Records reloads next time it opens
+        forgetCache('deleted', DELETED_CACHE);
+        markStatsStale();
         sendRequestCompleted(req.requested_by_email, req.requested_by_name, 'service deletion', true,
           [['Service', req.service_name], ['Office', req.office_name]]);
         message = `The service was moved to Deleted Records. It can be recovered within ${state.retentionDays || TRASH_RETENTION_DAYS} days.`;
@@ -354,6 +371,7 @@ async function accept(req) {
           recipient_uid: req.requested_by_uid || req.target_admin_uid || ''
         });
       }
+      forgetCache('accounts:admins', { personal: true });
       toast.success('Request Accepted', message, { button: 'OK' });
     } catch (error) {
       console.error('[review-queue] accept failed:', error);
@@ -383,6 +401,7 @@ async function decline(req) {
       if (req.type === 'new_admin') sendRegistrationEmail(email, req.requested_by_name, req.office_name, 'rejected');
       else if (req.type === 'delete_service') sendRequestCompleted(email, req.requested_by_name, 'service deletion', false, [['Service', req.service_name], ['Office', req.office_name]]);
       else if (req.type === 'delete_admin') sendRequestCompleted(email, req.requested_by_name, 'account deletion', false, [['Email', email]]);
+      forgetCache('accounts:admins', { personal: true });
       toast.success('Request Declined', loginRemoved
         ? 'The request has been removed.'
         : 'The request was removed, but the login account could not be removed automatically.', { button: 'OK' });
@@ -414,11 +433,13 @@ async function recover(r) {
       state.deleted = state.deleted.filter((x) => x !== r);
       // Services inside a recovered office can be recovered again
       if (r.kind === 'office') state.deleted.forEach((x) => { if (x.kind === 'service' && x.officeId === r.officeId) x.officeDeleted = false; });
+      saveDeleted();
+      markStatsStale();
       logActivity(kind.restoredLog, kind.logDetails(r));
       toast.success(`${kind.label} Recovered`, kind.recoveredMsg(r, data), { button: 'OK' });
     } catch (error) {
       toast.error('Recover Failed', error.message, { button: 'OK' });
-      loadDeleted();
+      loadDeleted({ force: true });
     }
   });
 }
@@ -436,11 +457,13 @@ async function purge(r) {
       await kind.purge(r, name);
       // Deleting an office also removed its deleted services
       state.deleted = state.deleted.filter((x) => x !== r && !(r.kind === 'office' && x.kind === 'service' && x.officeId === r.officeId));
+      saveDeleted();
+      markStatsStale();
       logActivity(kind.purgedLog, kind.logDetails(r));
       toast.success('Permanently Deleted', `"${r.name}" has been permanently deleted.`, { button: 'OK' });
     } catch (error) {
       toast.error('Delete Failed', error.message, { button: 'OK' });
-      loadDeleted();
+      loadDeleted({ force: true });
     }
   });
 }
@@ -452,7 +475,7 @@ on(grid, 'click', '[data-action]', (e, btn) => {
   if (action === 'delete-record') deleteRecord(id);
   if (action === 'recover' && findDeleted(key)) recover(findDeleted(key));
   if (action === 'purge' && findDeleted(key)) purge(findDeleted(key));
-  if (action === 'retry') loadDeleted();
+  if (action === 'retry') loadDeleted({ force: true });
 });
 
 // ---------- start ----------

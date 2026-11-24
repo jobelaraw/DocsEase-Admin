@@ -4,6 +4,7 @@
 import { startPage } from '../core/page.js';
 import { html, render, $ } from '../core/dom.js';
 import { api } from '../core/api.js';
+import { cached, takeStatsStale } from '../core/cache.js';
 import { openOfficeForm } from '../components/office-form-modal.js';
 import { rankListSkeleton, renderRankList } from '../components/rank-list.js';
 import { lineChart, monthLabel } from '../components/chart.js';
@@ -23,20 +24,25 @@ function setStat(id, value) {
   render($(id), value == null ? '–' : Number(value).toLocaleString());
 }
 
+function drawStats(stats) {
+  setStat('#stat-offices', stats.offices);
+  setStat('#stat-services', stats.services);
+  setStat('#stat-users', stats.users);
+  renderRankList(mostUsed, stats.history.mostUsed);
+  $('#trend-skel')?.remove();
+  return lineChart($('#trend-chart'), {
+    labels: stats.history.trend.map((m) => monthLabel(m.start)),
+    series: [
+      { label: 'Completed', data: stats.history.trend.map((m) => m.completed), style: 'navy' },
+      { label: 'In Progress', data: stats.history.trend.map((m) => m.inProgress), style: 'blue' }
+    ]
+  });
+}
+
+// Last numbers show at once (shared with Analytics); refreshed when older than a minute.
 async function loadStats({ refresh = false } = {}) {
   try {
-    const stats = await api.getStats({ refresh });
-    setStat('#stat-offices', stats.offices);
-    setStat('#stat-services', stats.services);
-    setStat('#stat-users', stats.users);
-    renderRankList(mostUsed, stats.history.mostUsed);
-    await lineChart($('#trend-chart'), {
-      labels: stats.history.trend.map((m) => monthLabel(m.start)),
-      series: [
-        { label: 'Completed', data: stats.history.trend.map((m) => m.completed), style: 'navy' },
-        { label: 'In Progress', data: stats.history.trend.map((m) => m.inProgress), style: 'blue' }
-      ]
-    });
+    await cached('stats', () => api.getStats({ refresh }), drawStats, { maxAgeMs: 60000, force: refresh });
   } catch (error) {
     console.error('[dashboard] could not load stats:', error);
     ['#stat-offices', '#stat-services', '#stat-users'].forEach((id) => {
@@ -49,13 +55,13 @@ async function loadStats({ refresh = false } = {}) {
 }
 
 const session = await startPage();
-loadStats();
+loadStats({ refresh: takeStatsStale() });
 
 // Super Admins add offices here; normal admins add services to their office.
 const actions = $('#actions');
 if (session.role === 'super_admin') {
   render(actions, html`<button type="button" class="btn btn-cta" data-add-office><img src="assets/add_service.svg" alt="" /><span>Add New Office</span></button>`);
-  actions.querySelector('[data-add-office]').addEventListener('click', () => openOfficeForm({ onSaved: () => loadStats({ refresh: true }) }));
+  actions.querySelector('[data-add-office]').addEventListener('click', () => openOfficeForm({ onSaved: () => { takeStatsStale(); loadStats({ refresh: true }); } }));
 } else if (session.officeId) {
   render(actions, html`<a class="btn btn-cta" href="service-form.html?officeId=${encodeURIComponent(session.officeId)}"><img src="assets/add_service.svg" alt="" /><span>Add New Service</span></a>`);
 }

@@ -3,6 +3,7 @@
 import { startPage } from '../core/page.js';
 import { render, $, $$, on } from '../core/dom.js';
 import { api } from '../core/api.js';
+import { cached, takeStatsStale } from '../core/cache.js';
 import { skeleton } from '../components/skeleton.js';
 import { toast } from '../components/toast.js';
 import { rankListSkeleton, renderRankList } from '../components/rank-list.js';
@@ -42,8 +43,8 @@ on(document, 'click', '[data-period]', (e, chip) => {
 
 await startPage();
 
-try {
-  stats = await api.getStats();
+function drawStats(data) {
+  stats = data;
   setStat('#stat-users', stats.users);
   setStat('#stat-today', stats.newUsers.today);
   setStat('#stat-week', stats.newUsers.week);
@@ -54,7 +55,8 @@ try {
   setStat('#stat-history', stats.history.total);
   renderRankList($('#per-office'), stats.servicesPerOffice);
   renderRankList($('#most-used'), stats.history.mostUsed);
-  await Promise.all([
+  $$('[data-chart-skel]').forEach((el) => el.remove());
+  return Promise.all([
     drawSignups(),
     lineChart($('#trend-chart'), {
       labels: stats.history.trend.map((m) => monthLabel(m.start)),
@@ -64,6 +66,12 @@ try {
       ]
     })
   ]);
+}
+
+// Last numbers show at once (shared with the Dashboard); refreshed when older than a minute.
+try {
+  const refresh = takeStatsStale();
+  await cached('stats', () => api.getStats({ refresh }), drawStats, { maxAgeMs: 60000, force: refresh });
 } catch (error) {
   console.error('[analytics] could not load stats:', error);
   $$('[data-skel]').forEach((el) => { if (el.querySelector('.skel')) setStat(`#${el.id}`, null); });

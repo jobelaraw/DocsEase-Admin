@@ -8,6 +8,7 @@
 import { auth, db, clearLocalData } from './firebase.js';
 import { onAuthStateChanged, signOut as firebaseSignOut } from './sdk/auth.js';
 import { doc, getDoc, collection, query, where, limit, getDocs } from './sdk/firestore.js';
+import { clearCache } from './cache.js';
 
 const shell = window.GaBayan;
 const FRESH_MS = 10 * 60 * 1000; // a cached session this recent is used while it is re-checked
@@ -129,6 +130,7 @@ export async function requireAdmin({ superAdminOnly = false } = {}) {
 // Signs out, forgets everything cached on this computer, then goes to the login page.
 export async function signOut({ redirect = true } = {}) {
   shell.saveSession(null);
+  clearCache();
   try {
     ['docsEase_avatar', 'docsEase_name', 'docsEase_role'].forEach((k) => localStorage.removeItem(k));
     sessionStorage.removeItem('docsease_role_hint');

@@ -4,6 +4,7 @@
 import { startPage } from '../core/page.js';
 import { html, render, $, $$, on, debounce } from '../core/dom.js';
 import { api } from '../core/api.js';
+import { cached, writeCache } from '../core/cache.js';
 import { logActivity } from '../core/activity-log.js';
 import { formatDate } from '../core/dates.js';
 import { toast } from '../components/toast.js';
@@ -132,17 +133,27 @@ function draw() {
   render(list, html`${rows.map(row)}`);
 }
 
+// Lists hold names and emails: cached for this browser tab only, refreshed after 2 minutes.
+const CACHE = { maxAgeMs: 120000, personal: true };
+
 async function load(section) {
   state.failed[section] = null;
   try {
-    const result = await api.listAccounts(section);
-    state.data[section] = result.accounts.map(withStatus);
-    state.selfUid = result.selfUid;
+    await cached(`accounts:${section}`, () => api.listAccounts(section), (result) => {
+      state.data[section] = result.accounts.map(withStatus);
+      state.selfUid = result.selfUid;
+      draw();
+    }, CACHE);
   } catch (error) {
     console.error('[accounts] could not load:', error);
     state.failed[section] = error.message;
+    draw();
   }
-  draw();
+}
+
+// Keeps the saved copy in step with changes made on this page
+function saveSection(section) {
+  writeCache(`accounts:${section}`, { accounts: state.data[section], selfUid: state.selfUid }, CACHE);
 }
 
 // ---------- deactivate / reactivate ----------
@@ -196,6 +207,7 @@ function openStatusDialog(acct, action) {
         ? { status: 'deactivated', disabled: true, deactivatedAt: Date.now(), deactivationReason: reason.trim(), deactivatedBy: 'You' }
         : { status: result.status || 'active', disabled: false, deactivatedAt: null, deactivationReason: '', deactivatedBy: '' });
       Object.assign(acct, withStatus(acct));
+      saveSection(section);
       await dialog.close('force');
       draw();
       toast.success(deactivate ? 'Account Deactivated' : 'Account Reactivated', `${acct.name || acct.email} has been ${deactivate ? 'deactivated' : 'reactivated'}.`, { button: 'OK' });
