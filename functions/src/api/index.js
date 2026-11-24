@@ -2,6 +2,8 @@
 // One function means one warm instance serves all actions (fewer cold starts),
 // and the callable protocol verifies the caller's ID token and handles CORS.
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { ALLOWED_ORIGINS } = require("../lib/cors");
+const { withSecurityHeaders } = require("../lib/security-headers");
 const { requireRole } = require("../lib/auth");
 const accounts = require("./accounts");
 const trash = require("./trash");
@@ -30,7 +32,8 @@ const ACTIONS = {
   getStats: { role: "admin", run: stats.getStats }
 };
 
-exports.adminApi = onCall({
+exports.adminApi = withSecurityHeaders(onCall({
+  cors: ALLOWED_ORIGINS,
   timeoutSeconds: 540 // permanent deletes of large offices can take a while
   // minInstances: 1, // keeps one instance warm: no cold starts, roughly US$3-8/month
 }, async (request) => {
@@ -46,4 +49,4 @@ exports.adminApi = onCall({
     console.error(`adminApi.${action} failed:`, error);
     throw new HttpsError("internal", "Something went wrong. Please try again.");
   }
-});
+}));
