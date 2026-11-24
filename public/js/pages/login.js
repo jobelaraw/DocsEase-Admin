@@ -367,7 +367,10 @@ async function handleSignUp() {
   toast.loading('Signing Up...', 'Please wait while we create your account.');
   try {
     const { user } = await createUserWithEmailAndPassword(auth, email, password);
-    await updateProfile(user, { displayName: name });
+    // Start email accounts on one of the built-in avatars (saved the same way the profile menu saves a pick).
+    const avatar = shell.AVATARS[Math.floor(Math.random() * shell.AVATARS.length)];
+    const photoURL = new URL(`assets/${avatar}`, location.href).href;
+    await updateProfile(user, { displayName: name, photoURL });
     await submitRequest({ user, name, email, office, method: 'email' });
     toast.close();
     requestSubmitted(name);
