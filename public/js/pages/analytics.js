@@ -1,9 +1,12 @@
 // Analytics: sign-ups, offices/services and service history — all from one server
 // summary (adminApi.getStats) instead of downloading users, conversations and history.
+// Super Admins see every office (scope "all"); normal admins get only their own
+// office's numbers from the server (scope "office") and the page hides the rest
+// (data-scope in analytics.html).
 import { startPage } from '../core/page.js';
 import { render, $, $$, on } from '../core/dom.js';
 import { api } from '../core/api.js';
-import { cached, takeStatsStale } from '../core/cache.js';
+import { cached, takeStatsStale, STATS_KEY } from '../core/cache.js';
 import { skeleton } from '../components/skeleton.js';
 import { toast } from '../components/toast.js';
 import { rankListSkeleton, renderRankList } from '../components/rank-list.js';
@@ -58,26 +61,36 @@ on(document, 'click', '[data-period]', (e, chip) => {
     c.classList.toggle('active', c === chip);
     c.setAttribute('aria-pressed', String(c === chip));
   });
-  if (stats) drawSignups();
+  if (stats && stats.scope !== 'office') drawSignups();
 });
 
 await startPage();
 
 function drawStats(data) {
   stats = data;
-  setStat('#stat-users', stats.users);
-  setStat('#stat-today', stats.newUsers.today);
-  setStat('#stat-week', stats.newUsers.week);
-  setStat('#stat-month', stats.newUsers.month);
-  setStat('#stat-offices', stats.offices);
+  const allOffices = stats.scope !== 'office';
+  if (allOffices) {
+    setStat('#stat-users', stats.users);
+    setStat('#stat-today', stats.newUsers.today);
+    setStat('#stat-week', stats.newUsers.week);
+    setStat('#stat-month', stats.newUsers.month);
+    setStat('#stat-offices', stats.offices);
+    drawPerOffice();
+  } else {
+    const name = stats.office ? stats.office.name : 'Your Office';
+    $('#office-heading').textContent = name;
+    $('#office-sub').textContent = stats.office
+      ? `${name}: its services and how citizens are using them.`
+      : 'Your office was not found. Please contact the Super Admin.';
+  }
+  setStat('#stat-applicants', stats.history.applicants);
   setStat('#stat-services', stats.services);
   setStat('#stat-untranslated', stats.untranslatedServices);
   setStat('#stat-history', stats.history.total);
-  drawPerOffice();
   renderRankList($('#most-used'), stats.history.mostUsed);
   $$('[data-chart-skel]').forEach((el) => el.remove());
   return Promise.all([
-    drawSignups(),
+    allOffices ? drawSignups() : null,
     lineChart($('#trend-chart'), {
       labels: stats.history.trend.map((m) => monthLabel(m.start)),
       series: [
@@ -91,7 +104,7 @@ function drawStats(data) {
 // Last numbers show at once (shared with the Dashboard); refreshed when older than a minute.
 try {
   const refresh = takeStatsStale();
-  await cached('stats', () => api.getStats({ refresh }), drawStats, { maxAgeMs: 60000, force: refresh });
+  await cached(STATS_KEY, () => api.getStats({ refresh }), drawStats, { maxAgeMs: 60000, force: refresh });
 } catch (error) {
   console.error('[analytics] could not load stats:', error);
   $$('[data-skel]').forEach((el) => { if (el.querySelector('.skel')) setStat(`#${el.id}`, null); });

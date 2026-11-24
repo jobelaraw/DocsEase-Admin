@@ -4,7 +4,7 @@
 import { startPage } from '../core/page.js';
 import { html, render, $ } from '../core/dom.js';
 import { api } from '../core/api.js';
-import { cached, takeStatsStale } from '../core/cache.js';
+import { cached, takeStatsStale, STATS_KEY } from '../core/cache.js';
 import { openOfficeForm } from '../components/office-form-modal.js';
 import { rankListSkeleton, renderRankList } from '../components/rank-list.js';
 import { lineChart, monthLabel } from '../components/chart.js';
@@ -24,10 +24,15 @@ function setStat(id, value) {
   render($(id), value == null ? '–' : Number(value).toLocaleString());
 }
 
+// Normal admins get only their own office's numbers (scope "office"): no office or user totals.
 function drawStats(stats) {
-  setStat('#stat-offices', stats.offices);
+  if (stats.scope !== 'office') {
+    setStat('#stat-offices', stats.offices);
+    setStat('#stat-users', stats.users);
+  }
   setStat('#stat-services', stats.services);
-  setStat('#stat-users', stats.users);
+  setStat('#stat-applicants', stats.history.applicants);
+  setStat('#stat-history', stats.history.total);
   renderRankList(mostUsed, stats.history.mostUsed);
   $('#trend-skel')?.remove();
   return lineChart($('#trend-chart'), {
@@ -42,10 +47,10 @@ function drawStats(stats) {
 // Last numbers show at once (shared with Analytics); refreshed when older than a minute.
 async function loadStats({ refresh = false } = {}) {
   try {
-    await cached('stats', () => api.getStats({ refresh }), drawStats, { maxAgeMs: 60000, force: refresh });
+    await cached(STATS_KEY, () => api.getStats({ refresh }), drawStats, { maxAgeMs: 60000, force: refresh });
   } catch (error) {
     console.error('[dashboard] could not load stats:', error);
-    ['#stat-offices', '#stat-services', '#stat-users'].forEach((id) => {
+    ['#stat-offices', '#stat-services', '#stat-users', '#stat-applicants', '#stat-history'].forEach((id) => {
       if ($(id).querySelector('.skel')) setStat(id, null);
     });
     if (mostUsed.getAttribute('aria-busy')) renderRankList(mostUsed, [], { empty: "Couldn't load data." });

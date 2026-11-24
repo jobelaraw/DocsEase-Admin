@@ -167,3 +167,10 @@ body {
     animation: none;
   }
 }
+
+/* Parts of a page for one kind of admin only (the class is set by js/shell.js before
+   first paint). data-scope="all": Super Admin only; data-scope="office": normal admins. */
+html:not(.is-super-admin) [data-scope="all"],
+html.is-super-admin [data-scope="office"] {
+  display: none !important;
+}

@@ -2,7 +2,7 @@
 // (dashboard stats, account lists, Deleted Records). "Show the last copy now,
 // refresh in the background":
 //
-//   cached('stats', () => api.getStats(), (data, { fresh }) => draw(data), { maxAgeMs: 60000 });
+//   cached(STATS_KEY, () => api.getStats(), (data, { fresh }) => draw(data), { maxAgeMs: 60000 });
 //
 // - The saved copy is drawn immediately (no skeleton on revisits).
 // - If it is older than maxAgeMs (or missing), the server is asked and the
@@ -72,12 +72,15 @@ export async function cached(key, fetcher, onData, { maxAgeMs = 60000, personal 
 }
 
 // ---------- dashboard / analytics numbers ----------
+// v2: the server answer depends on the admin's office (scope "all" / "office");
+// copies saved under the old key are never shown.
+export const STATS_KEY = 'stats-v2';
 const STATS_STALE = 'gabayan_stats_stale';
 
 // Call after adding/removing offices or services: the next Dashboard/Analytics
 // visit fetches fresh numbers (skipping both this cache and the server's).
 export function markStatsStale() {
-  forgetCache('stats');
+  forgetCache(STATS_KEY);
   try { localStorage.setItem(STATS_STALE, '1'); } catch { /* ignore */ }
 }
 

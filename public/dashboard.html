@@ -34,7 +34,7 @@
       <div class="dashboard-actions" id="actions"></div>
 
       <div class="stats-row">
-        <div class="stat-card">
+        <div class="stat-card" data-scope="all">
           <div class="stat-header">
             <div class="stat-icon"><img src="assets/map_mngment.svg" alt="" /></div>
             <div class="stat-label">Total Offices</div>
@@ -44,16 +44,31 @@
         <div class="stat-card">
           <div class="stat-header">
             <div class="stat-icon"><img src="assets/total_completed.svg" alt="" /></div>
-            <div class="stat-label">Total Services</div>
+            <div class="stat-label" data-scope="all">Total Services</div>
+            <div class="stat-label" data-scope="office">Office Services</div>
           </div>
           <div class="stat-value" id="stat-services"><span class="skel skel-inline" style="width:72px;height:34px" aria-hidden="true"></span></div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" data-scope="all">
           <div class="stat-header">
             <div class="stat-icon"><img src="assets/total_users.svg" alt="" /></div>
             <div class="stat-label">Total Users</div>
           </div>
           <div class="stat-value" id="stat-users"><span class="skel skel-inline" style="width:72px;height:34px" aria-hidden="true"></span></div>
+        </div>
+        <div class="stat-card" data-scope="office">
+          <div class="stat-header">
+            <div class="stat-icon"><img src="assets/total_users.svg" alt="" /></div>
+            <div class="stat-label">Applicants</div>
+          </div>
+          <div class="stat-value" id="stat-applicants"><span class="skel skel-inline" style="width:72px;height:34px" aria-hidden="true"></span></div>
+        </div>
+        <div class="stat-card" data-scope="office">
+          <div class="stat-header">
+            <div class="stat-icon"><img src="assets/total_completed.svg" alt="" /></div>
+            <div class="stat-label">Service Records</div>
+          </div>
+          <div class="stat-value" id="stat-history"><span class="skel skel-inline" style="width:72px;height:34px" aria-hidden="true"></span></div>
         </div>
       </div>
 

@@ -1,5 +1,8 @@
 // Dashboard + Analytics numbers, computed next to the database and cached briefly,
 // so browsers no longer download every office, service, citizen and history record.
+//
+// Super Admins get every number. Normal admins only get their own office's slice
+// (its services and the citizens who used them): see officeView().
 const { db, Timestamp } = require("../lib/refs");
 const { DAY_MS, toMillis, manilaParts, manilaMidnight } = require("../lib/time");
 
@@ -59,7 +62,7 @@ async function computeStats() {
     db().collectionGroup("services").select("isDeleted", "_translated").get(),
     db().collection("users").select("createdAt").get(),
     db().collectionGroup("service_history").select(
-      "status", "progress_status", "service_name", "serviceName", "last_updated", "updatedAt", "createdAt",
+      "service_id", "status", "progress_status", "service_name", "serviceName", "last_updated", "updatedAt", "createdAt",
       "completed_steps.status", "completed_steps.service_name", "completed_steps.last_updated"
     ).get()
   ]);
@@ -72,15 +75,23 @@ async function computeStats() {
   });
   let untranslatedServices = 0;
   let activeServices = 0;
+  const officeOfService = new Map(); // serviceId -> officeId (history records only store the service id)
+  const perOffice = new Map(); // officeId -> { services, untranslated }
+  activeOffices.forEach((_, id) => perOffice.set(id, { services: 0, untranslated: 0 }));
   services.docs.forEach((s) => {
     const officeDoc = s.ref.parent.parent;
     if (!officeDoc || s.ref.parent.parent.parent.id !== "offices") return;
+    officeOfService.set(s.id, officeDoc.id);
     const office = activeOffices.get(officeDoc.id);
     const d = s.data() || {};
     if (!office || d.isDeleted === true) return;
     office.count++;
     activeServices++;
-    if (d._translated !== true) untranslatedServices++;
+    perOffice.get(officeDoc.id).services++;
+    if (d._translated !== true) {
+      untranslatedServices++;
+      perOffice.get(officeDoc.id).untranslated++;
+    }
   });
   const servicesPerOffice = [...activeOffices.values()].sort((a, b) => b.count - a.count);
 
@@ -97,22 +108,51 @@ async function computeStats() {
   const monthlyCounts = countInWindows(months, signupTimes);
   const yearlyCounts = countInWindows(years, signupTimes);
 
-  // Service history: most used + completion trend (last 12 months)
-  const countByService = new Map();
-  const completedTimes = [];
-  const inProgressTimes = [];
+  // Service history: most used + completion trend (last 12 months), for all
+  // offices together and for each office on its own.
+  const newHistoryTally = () => ({ total: 0, citizens: new Set(), byService: new Map(), completed: [], inProgress: [] });
+  const all = newHistoryTally();
+  const historyByOffice = new Map();
   history.docs.forEach((h) => {
-    const f = historyFacts(h.data() || {});
-    countByService.set(f.name, (countByService.get(f.name) || 0) + 1);
-    if (f.at && f.completed) completedTimes.push(f.at);
-    if (f.at && f.inProgress) inProgressTimes.push(f.at);
+    const d = h.data() || {};
+    const f = historyFacts(d);
+    const citizen = h.ref.parent.parent ? h.ref.parent.parent.id : null;
+    const officeId = officeOfService.get(String(d.service_id || h.id));
+    if (officeId && !historyByOffice.has(officeId)) historyByOffice.set(officeId, newHistoryTally());
+    [all, officeId ? historyByOffice.get(officeId) : null].forEach((t) => {
+      if (!t) return;
+      t.total++;
+      if (citizen) t.citizens.add(citizen);
+      t.byService.set(f.name, (t.byService.get(f.name) || 0) + 1);
+      if (f.at && f.completed) t.completed.push(f.at);
+      if (f.at && f.inProgress) t.inProgress.push(f.at);
+    });
   });
-  const mostUsed = [...countByService.entries()]
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 5);
-  const completedCounts = countInWindows(months, completedTimes);
-  const inProgressCounts = countInWindows(months, inProgressTimes);
+  const historySummary = (t) => {
+    const completedCounts = countInWindows(months, t.completed);
+    const inProgressCounts = countInWindows(months, t.inProgress);
+    return {
+      total: t.total,
+      applicants: t.citizens.size,
+      mostUsed: [...t.byService.entries()]
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5),
+      trend: months.map((w, i) => ({ start: w.start, completed: completedCounts[i], inProgress: inProgressCounts[i] }))
+    };
+  };
+
+  // Each active office's own numbers (normal admins only ever receive their office's entry)
+  const byOffice = {};
+  activeOffices.forEach((office, id) => {
+    const counts = perOffice.get(id);
+    byOffice[id] = {
+      name: office.name,
+      services: counts.services,
+      untranslatedServices: counts.untranslated,
+      history: historySummary(historyByOffice.get(id) || newHistoryTally())
+    };
+  });
 
   return {
     computedAt: now,
@@ -131,25 +171,50 @@ async function computeStats() {
       yearly: years.map((w, i) => ({ year: w.year, count: yearlyCounts[i] }))
     },
     servicesPerOffice,
-    history: {
-      total: history.size,
-      mostUsed,
-      trend: months.map((w, i) => ({ start: w.start, completed: completedCounts[i], inProgress: inProgressCounts[i] }))
+    history: historySummary(all),
+    byOffice
+  };
+}
+
+const normalize = (name) => String(name || "").trim().toLowerCase();
+
+// What a caller may see: everything for a Super Admin; for a normal admin only
+// their own office (matched by the office name on their admin record).
+function viewFor(caller, full) {
+  const { byOffice, ...everything } = full;
+  if (caller.role === "super_admin") return { scope: "all", ...everything };
+
+  const entry = Object.entries(byOffice || {}).find(([, o]) => normalize(o.name) === normalize(caller.office));
+  const [officeId, office] = entry || [null, null];
+  return {
+    scope: "office",
+    computedAt: full.computedAt,
+    office: office ? { id: officeId, name: office.name } : null,
+    services: office ? office.services : 0,
+    untranslatedServices: office ? office.untranslatedServices : 0,
+    history: office ? office.history : {
+      total: 0,
+      applicants: 0,
+      mostUsed: [],
+      trend: full.history.trend.map((m) => ({ start: m.start, completed: 0, inProgress: 0 }))
     }
   };
 }
 
 // Any active admin (the dashboard is shown to every admin). { refresh: true } skips the cache.
+// The cache holds every office's numbers; each caller only receives what viewFor() allows.
 async function getStats(caller, { refresh } = {}) {
   const ref = db().doc(CACHE_DOC);
   if (!refresh) {
     const cached = await ref.get();
     const computedAt = cached.exists ? toMillis(cached.get("computedAt")) : null;
-    if (computedAt && Date.now() - computedAt < CACHE_MS) return cached.get("data");
+    const data = cached.exists ? cached.get("data") : null;
+    // Copies saved before the per-office breakdown existed are recomputed.
+    if (computedAt && Date.now() - computedAt < CACHE_MS && data && data.byOffice) return viewFor(caller, data);
   }
   const data = await computeStats();
   await ref.set({ computedAt: Timestamp.fromMillis(data.computedAt), data });
-  return data;
+  return viewFor(caller, data);
 }
 
-module.exports = { getStats, computeStats };
+module.exports = { getStats, computeStats, viewFor };
