@@ -1,0 +1,1943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GaBayan Admin Panel — System Documentation</title>
+<meta name="author" content="GaBayan Team">
+<meta name="description" content="Complete documentation of the GaBayan web admin panel: user guide, architecture, data model, security and maintenance.">
+<link rel="stylesheet" href="documentation.css">
+<script src="numbering.js" defer></script>
+</head>
+<body>
+
+<!-- Arrowheads shared by every diagram -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2057CE"/></marker>
+    <marker id="ah-m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#8a9bb8"/></marker>
+    <marker id="ah-r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#dc2626"/></marker>
+    <marker id="ah-g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#16a34a"/></marker>
+  </defs>
+</svg>
+
+<!-- ============================================================ COVER -->
+<div class="cover">
+  <div class="cover-top">
+    <div class="cover-brand">
+      <img class="logo" src="../../public/assets/logo.png" alt="">
+      <img class="word" src="../../public/assets/docsease_text.png" alt="GaBayan">
+    </div>
+    <div class="edition">Version 1.0 · November 2026</div>
+  </div>
+  <div class="cover-title">
+    <div class="cover-kicker">System Documentation</div>
+    <div class="title">GaBayan Admin Panel</div>
+    <div class="subtitle">The web administration portal of GaBayan, the citizen guide app of the City Government of Biñan, Laguna. This document covers its features, architecture, data, security and upkeep.</div>
+  </div>
+  <div class="cover-hero"><img src="images/dashboard-super.jpg" alt=""></div>
+  <div class="cover-meta">
+    <div><b>Repository</b>DocsEase-Admin</div>
+    <div><b>Branch</b>Enguerra · <span data-commit>commit</span></div>
+    <div><b>Firebase project</b>docsease-efacc</div>
+    <div><b>Prepared</b>November 25, 2026</div>
+  </div>
+</div>
+
+<!-- ============================================================ ABOUT -->
+<section class="front" id="about">
+  <h1 class="front-title">About this document</h1>
+  <p class="lead">This document explains the GaBayan admin panel from every angle: what it is for, how each screen is used, how it is built, where its data lives, how it is secured and how to keep it running.</p>
+
+  <h3>Who should read which part</h3>
+  <table class="plain">
+    <thead><tr><th style="width:34%">If you are…</th><th>Start with</th></tr></thead>
+    <tbody>
+      <tr><td>An <strong>office admin</strong> or the <strong>Super Admin</strong> using the panel</td><td><a class="xref" href="#ch-intro"></a> (Introduction), <a class="xref" href="#ch-guide"></a> (Using the Admin Panel) and <a class="xref" href="#ch-roles"></a> (Roles and Permissions)</td></tr>
+      <tr><td>A <strong>developer</strong> joining the project</td><td><a class="xref" href="#ch-start"></a> (Getting Started), then <a class="xref" href="#ch-frontend"></a> to <a class="xref" href="#ch-workflows"></a> (frontend, Cloud Functions, data model, workflows)</td></tr>
+      <tr><td>Reviewing <strong>security</strong> or preparing a deployment</td><td><a class="xref" href="#ch-security"></a> (Security) and <a class="xref" href="#sec-deploy"></a> (Deploying)</td></tr>
+      <tr><td>Fixing a <strong>problem</strong> or making a change</td><td><a class="xref" href="#ch-maintenance"></a> (Maintenance and Troubleshooting) and the appendices</td></tr>
+    </tbody>
+  </table>
+
+  <h3>How to find your way around</h3>
+  <ul>
+    <li><strong>Contents.</strong> Every entry in the Contents, List of Figures and List of Tables is a link. Click it to jump to that page.</li>
+    <li><strong>Bookmarks.</strong> Open your PDF viewer's bookmarks (outline) panel to browse chapters and sections at any time.</li>
+    <li><strong>Numbering.</strong> Sections, figures and tables are numbered by chapter: <em>Figure 3.4</em> is the fourth figure of Chapter 3, and <em>Section 6.2</em> is the second section of Chapter 6. Numbers in the text, such as <a class="xref" href="#fig-architecture"></a>, are links too.</li>
+    <li><strong>Who can do it.</strong> Labels show which role a feature is for: <span class="badge super">Super Admin</span> <span class="badge admin">Office Admin</span> <span class="badge both">All admins</span>. Server-side parts are marked <span class="badge server">Server</span> and parts owned by the mobile app <span class="badge mobile">Mobile app</span>.</li>
+  </ul>
+
+  <h3>Conventions</h3>
+  <ul>
+    <li>Words on the screen, such as buttons, tabs and menu items, are written in <span class="ui">bold blue</span>.</li>
+    <li>File names, Firestore fields and commands are written in <code>monospace</code>, for example <code>public/js/shell.js</code> or <code>admin/{uid}.status</code>. In paths, <code>{uid}</code> stands for a real ID.</li>
+  </ul>
+  <div class="callout-row">
+    <div class="note"><span class="label">Note</span><p>Background that helps you understand.</p></div>
+    <div class="tip"><span class="label">Tip</span><p>A quicker or safer way to do something.</p></div>
+    <div class="warn"><span class="label">Important</span><p>Affects real users or cannot be undone.</p></div>
+  </div>
+
+  <h3>About the screenshots</h3>
+  <p>The screenshots come from the panel running against the <strong>local Firebase emulators</strong>, filled with sample data by <code>docs/source/tools/seed-emulator.cjs</code>. All names, e-mail addresses and numbers in them are made up, so real lists and counts will differ. <a class="xref" href="#sec-regenerate"></a> explains how to retake them and rebuild this PDF.</p>
+</section>
+
+<!-- ============================================================ CONTENTS -->
+<section class="front" id="contents">
+  <h1 class="front-title">Contents</h1>
+  <nav id="toc-list" aria-label="Contents"></nav>
+</section>
+
+<section class="front" id="lists">
+  <h1 class="front-title">List of Figures</h1>
+  <nav id="lof-list" aria-label="List of figures"></nav>
+  <h1 class="front-title next">List of Tables</h1>
+  <nav id="lot-list" aria-label="List of tables"></nav>
+</section>
+
+<!-- ============================================================ CHAPTER 1 -->
+<section class="chapter">
+  <h1 id="ch-intro">Introduction</h1>
+  <p class="chapter-intro">GaBayan helps the citizens of Biñan get government documents and services right the first time. This chapter explains what the system is, who uses it, what the admin panel is for and how its parts fit together.</p>
+
+  <h2 id="sec-what">What GaBayan is</h2>
+  <p>GaBayan is a citizen guide system for the City Government of Biñan, Laguna. Citizens use the <strong>GaBayan mobile app</strong> to look up the city's services. For each one it shows what to bring, which steps to follow, how much it costs, how long it takes and where to go inside City Hall. City staff keep that information correct and up to date in the <strong>GaBayan admin panel</strong>, the web application this document describes.</p>
+  <p>Both applications use the same Firebase project, <code>docsease-efacc</code>. A service saved in the admin panel reaches the mobile app right away, and what citizens do in the app (signing up, tracking a service) appears in the panel's dashboards.</p>
+  <div class="facts three">
+    <div class="fact"><b>For citizens</b><span>GaBayan mobile app (Flutter): service guides, progress tracking, notifications, an assistant chatbot, text-to-speech, Filipino translations and indoor navigation on the first floor of City Hall.</span></div>
+    <div class="fact"><b>For city staff</b><span>GaBayan admin panel (web): offices and services, the first-floor map, account approvals, deleted records, user accounts, analytics and an activity log.</span></div>
+    <div class="fact"><b>Shared backend</b><span>Firebase Authentication, Cloud Firestore and Cloud Functions in project <code>docsease-efacc</code>, region <code>asia-southeast1</code> (Singapore).</span></div>
+  </div>
+  <div class="note"><span class="label">Note</span><p>The repositories still use the project's first name, <em>DocsEase</em>: <code>DocsEase-Admin</code> holds this panel and <code>DocsEase-MobileApplication</code> holds the app. Users only ever see the name <strong>GaBayan</strong>. The service information comes from the <em>2026 Citizen's Charter (1st Edition)</em> of the City Government of Biñan. A copy is kept in <code>docs/</code>.</p></div>
+
+  <h2 id="sec-users">Who uses it</h2>
+  <table id="tbl-roles">
+    <caption>The three kinds of users</caption>
+    <thead><tr><th style="width:18%">User</th><th style="width:16%">Uses</th><th>What they do</th></tr></thead>
+    <tbody>
+      <tr><td>Citizen</td><td>Mobile app</td><td>Signs up in the app, browses offices and services, ticks off requirements and steps (service history), receives notifications, asks the chatbot and follows in-building navigation.</td></tr>
+      <tr><td>Office Admin</td><td>Admin panel<br><span class="small">role <code>admin</code></span></td><td>Staff of one office. Adds and edits the services of <em>their own office</em>, sees that office's numbers and asks the Super Admin to delete a service. Their office is set when they sign up.</td></tr>
+      <tr><td>Super Admin</td><td>Admin panel<br><span class="small">role <code>super_admin</code></span></td><td>Runs the whole system: offices and rooms, the first-floor map, every service, account approvals, deletion requests, Deleted Records, citizen and admin accounts, and analytics for all offices.</td></tr>
+    </tbody>
+  </table>
+  <p>Admins are linked to their office <strong>by name</strong>: the office written on the admin's record (<code>admin_office</code>) must match the office's name (<code>office_name</code>). <a class="xref" href="#sec-rename"></a> explains how renaming an office keeps the two in step.</p>
+
+  <h2 id="sec-features">What the admin panel does</h2>
+  <table id="tbl-pages">
+    <caption>Pages of the admin panel</caption>
+    <thead><tr><th style="width:24%">Page</th><th>What you do there</th><th style="width:19%">Who</th></tr></thead>
+    <tbody>
+      <tr><td>Sign In / Sign Up</td><td>Sign in with e-mail or Google, request a new admin account, reset a forgotten password.</td><td><span class="badge both">Everyone</span></td></tr>
+      <tr><td>Dashboard</td><td>Key numbers, most-used services and the completion trend. Shortcut to add an office or a service.</td><td><span class="badge both">All admins</span></td></tr>
+      <tr><td>Service Management</td><td>Super Admin: every office as a tile; add or delete offices. Office admin: goes straight to their office.</td><td><span class="badge both">All admins</span></td></tr>
+      <tr><td>Office Services, Add / Edit Service</td><td>The services of one office, and the editor for a service's channels, requirements and steps.</td><td><span class="badge both">All admins</span></td></tr>
+      <tr><td>Map Management</td><td>Place offices and rooms on the first-floor plan; edit their details and names.</td><td><span class="badge super">Super Admin</span></td></tr>
+      <tr><td>Analytics</td><td>Citizen sign-ups, services per office, most-used services and completion trends.</td><td><span class="badge both">All admins</span><br><span class="small">office admins: own office</span></td></tr>
+      <tr><td>Review Queue</td><td>Approve or decline requests, see completed requests, recover or permanently delete Deleted Records.</td><td><span class="badge super">Super Admin</span></td></tr>
+      <tr><td>Account Management</td><td>Citizen and admin accounts with their status; deactivate and reactivate them.</td><td><span class="badge super">Super Admin</span></td></tr>
+      <tr><td>Activity Log</td><td>A personal, live list of what happened (services added, requests answered, accounts changed).</td><td><span class="badge both">All admins</span></td></tr>
+      <tr><td>Profile menu</td><td>Change your name and avatar, delete your own account, sign out.</td><td><span class="badge both">All admins</span></td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="sec-glance">System at a glance</h2>
+  <p><a class="xref" href="#fig-architecture"></a> shows the moving parts. Both apps talk to Firebase directly for sign-in and most data. Anything that needs special rights or heavy reading goes through Cloud Functions, for example changing another person's account, permanent deletes or counting statistics.</p>
+  <figure class="diagram" id="fig-architecture">
+    <svg class="dg" viewBox="0 0 720 384" role="img" aria-label="System architecture">
+      <!-- apps -->
+      <rect class="box-navy" x="8" y="62" width="176" height="96" rx="12"/>
+      <text class="t-w t-b" x="22" y="88" style="font-size:12px">GaBayan Admin Panel</text>
+      <text class="t-wm" x="22" y="106">Web app · plain HTML, CSS, JS</text>
+      <text class="t-wm" x="22" y="121">Hosted on Vercel</text>
+      <text class="t-wm" x="22" y="136">Used by city staff</text>
+      <rect class="box-blue" x="8" y="232" width="176" height="96" rx="12"/>
+      <text class="t-w t-b" x="22" y="258" style="font-size:12px">GaBayan Mobile App</text>
+      <text class="t-wm" x="22" y="276">Flutter · Android and iOS</text>
+      <text class="t-wm" x="22" y="291">Separate repository</text>
+      <text class="t-wm" x="22" y="306">Used by citizens</text>
+      <!-- firebase project -->
+      <rect class="group" x="216" y="34" width="292" height="314" rx="14"/>
+      <text class="t-lbl" x="232" y="54">FIREBASE PROJECT · docsease-efacc · asia-southeast1</text>
+      <rect class="box" x="232" y="64" width="260" height="42" rx="9"/>
+      <text class="t-title" x="246" y="82">Firebase Authentication</text>
+      <text class="t-s" x="246" y="97">E-mail/password and Google sign-in</text>
+      <rect class="box" x="232" y="116" width="260" height="56" rx="9"/>
+      <text class="t-title" x="246" y="134">Cloud Firestore</text>
+      <text class="t-s" x="246" y="149">offices · services · other_room · admin · users</text>
+      <text class="t-s" x="246" y="162">requests · completed_requests · stats · meta</text>
+      <rect class="box-sky" x="232" y="182" width="260" height="70" rx="9"/>
+      <text class="t-title" x="246" y="200">Cloud Functions · codebase "admin"</text>
+      <text class="t-s" x="246" y="215">adminApi · adminAuth (this repository)</text>
+      <text class="t-s" x="246" y="228">Firestore triggers · nightly trash purge</text>
+      <text class="t-s" x="246" y="241">functions/ folder</text>
+      <rect class="box-green" x="232" y="262" width="260" height="50" rx="9"/>
+      <text class="t-title" x="246" y="280">Cloud Functions · codebase "default"</text>
+      <text class="t-s" x="246" y="296">Mobile repository: password reset, translation, push</text>
+      <rect class="box-soft" x="232" y="320" width="260" height="20" rx="6"/>
+      <text class="t-s" x="246" y="334">Secret Manager · EmailJS private key</text>
+      <!-- external -->
+      <rect class="box" x="548" y="70" width="164" height="50" rx="9"/>
+      <text class="t-title" x="560" y="90">EmailJS</text>
+      <text class="t-s" x="560" y="106">Notification and code e-mails</text>
+      <rect class="box" x="548" y="172" width="164" height="50" rx="9"/>
+      <text class="t-title" x="560" y="192">Cloud Translation</text>
+      <text class="t-s" x="560" y="208">Filipino versions of services</text>
+      <rect class="box" x="548" y="256" width="164" height="50" rx="9"/>
+      <text class="t-title" x="560" y="276">Cloud Messaging (FCM)</text>
+      <text class="t-s" x="560" y="292">Push notifications to phones</text>
+      <!-- arrows -->
+      <path class="ar" d="M184 110 H214"/>
+      <text class="t-lbl" x="190" y="102" style="font-size:7.5px">calls</text>
+      <path class="ar" d="M184 280 H214"/>
+      <text class="t-lbl" x="190" y="272" style="font-size:7.5px">calls</text>
+      <path class="ar" d="M492 205 H520 V95 H546"/>
+      <text class="t-lbl" x="498" y="150" style="font-size:7.5px">codes</text>
+      <path class="ar" d="M492 280 H520 V197 H546"/>
+      <text class="t-lbl" x="523" y="240" style="font-size:7.5px">translate</text>
+      <path class="ar" d="M492 296 H546"/>
+      <text class="t-lbl" x="512" y="290" style="font-size:7.5px">push</text>
+      <path class="ar-d" d="M96 62 V18 H630 V68"/>
+      <text class="t-s" x="250" y="13">notification e-mails are sent from the browser through EmailJS</text>
+      <path class="ar-d" d="M630 306 V368 H96 V330"/>
+      <text class="t-s" x="262" y="380">push notifications reach citizens' phones</text>
+    </svg>
+    <figcaption>System architecture: two apps, one Firebase project, and the outside services they use</figcaption>
+  </figure>
+  <ul>
+    <li><strong>Browser → Firebase.</strong> The panel signs in with Firebase Authentication and reads and writes Firestore directly: offices, services, requests and the activity log. Lists on screen update live.</li>
+    <li><strong>Browser → Cloud Functions.</strong> Actions that need server rights go through one callable function, <code>adminApi</code>: account status, logins, the trash, renames and statistics. <code>adminAuth</code> handles the forgot-password codes.</li>
+    <li><strong>Triggers.</strong> Firestore triggers react to writes. They give new admins their claim, notify citizens about new or changed services and offices, and bump the version numbers used for caching.</li>
+    <li><strong>Mobile app.</strong> The app has its own Cloud Functions (codebase <code>default</code>). They translate services to Filipino and send push notifications for the notifications the admin triggers create.</li>
+  </ul>
+
+  <h2 id="sec-stack">Technology stack</h2>
+  <table id="tbl-stack">
+    <caption>Technologies used by the admin panel</caption>
+    <thead><tr><th style="width:21%">Area</th><th style="width:36%">Technology</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>User interface</td><td>HTML, CSS and JavaScript ES modules; no framework, no build step</td><td>The browser loads <code>public/</code> as-is. Sidebar and top bar are custom elements.</td></tr>
+      <tr><td>Typeface</td><td>Inter (self-hosted <code>woff2</code>)</td><td>Served from <code>public/assets/fonts</code>; no Google Fonts request.</td></tr>
+      <tr><td>Firebase web SDK</td><td>10.8.1, loaded from <code>www.gstatic.com</code></td><td>Version pinned in <code>public/js/core/sdk/*.js</code>.</td></tr>
+      <tr><td>Charts</td><td>Chart.js 4.4.3 from jsDelivr</td><td>Loaded only when a chart is drawn, checked with Subresource Integrity.</td></tr>
+      <tr><td>Server</td><td>Cloud Functions v2 · firebase-functions 5 · firebase-admin 12 · Node.js 22</td><td>Codebase <code>admin</code>, region <code>asia-southeast1</code>.</td></tr>
+      <tr><td>Database</td><td>Cloud Firestore</td><td>Offline cache in the browser (IndexedDB, shared between tabs).</td></tr>
+      <tr><td>Sign-in</td><td>Firebase Authentication</td><td>E-mail/password and Google.</td></tr>
+      <tr><td>E-mail</td><td>EmailJS</td><td>Status e-mails from the browser; recovery codes from the server.</td></tr>
+      <tr><td>Hosting</td><td>Vercel (production)</td><td><code>firebase.json</code> also has a Firebase Hosting setup with the same headers.</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="sec-repos">Repositories, branches and environments</h2>
+  <table id="tbl-env">
+    <caption>Where things live</caption>
+    <thead><tr><th style="width:27%">Item</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td>Admin repository</td><td><code>DocsEase-Admin</code> on GitHub (<code>jobelaraw/DocsEase-Admin</code>). Working branch <code>Enguerra</code>; production branch <code>main</code>, updated through pull requests.</td></tr>
+      <tr><td>Mobile repository</td><td><code>DocsEase-MobileApplication</code>. Working branch <code>enguerra</code> (lower-case e).</td></tr>
+      <tr><td>Firebase project</td><td><code>docsease-efacc</code>: Authentication, Firestore, Cloud Functions, Storage.</td></tr>
+      <tr><td>Functions region</td><td><code>asia-southeast1</code>, the same region as Firestore.</td></tr>
+      <tr><td>Admin panel (production)</td><td><code>https://gabayan-admin-portal-m4q9.vercel.app</code>. Vercel deploys it from <code>main</code>.</td></tr>
+      <tr><td>Local test project</td><td><code>demo-gabayan</code>: Firebase emulators only, never real data (<a class="xref" href="#sec-emulators"></a>).</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============================================================ CHAPTER 2 -->
+<section class="chapter">
+  <h1 id="ch-start">Getting Started</h1>
+  <p class="chapter-intro">For developers: what to install, how the repository is organised, how to run the panel against the real project or against safe sample data, and how to deploy.</p>
+
+  <h2 id="sec-prereq">Prerequisites</h2>
+  <ul>
+    <li><strong>Git</strong> and <strong>Node.js 22</strong> with npm. The functions run on the Node.js 22 runtime.</li>
+    <li><strong>Firebase CLI</strong>: <code>npm install -g firebase-tools</code>, then <code>firebase login</code> with an account that can access <code>docsease-efacc</code>.</li>
+    <li><strong>Java 21 or newer</strong> for the Firebase emulators (Firebase CLI 14 and later). With Java 17, run the emulators with <code>npx firebase-tools@13</code>.</li>
+    <li>A <strong>static web server</strong>: VS Code Live Server, or Python's <code>http.server</code>.</li>
+    <li><strong>Google Chrome</strong>, which is also needed to rebuild this document.</li>
+  </ul>
+
+  <h2 id="sec-structure">Project structure</h2>
+  <pre class="tree"><code><b>DocsEase-Admin/</b>
+├── <b>public/</b>                 the website, served as-is (no build step)
+│   ├── *.html              one page each: login, dashboard, analytics, review-queue, …
+│   ├── css/app.css         shared styles → base/ (tokens, reset, layout, fonts) + components/
+│   ├── css/pages/          styles used by one page only
+│   ├── js/shell.js         sidebar + top bar (custom elements) and the menu (NAV)
+│   ├── js/core/            Firebase setup, session and access rules, API client, cache, helpers
+│   ├── js/data/            every Firestore query, one file per collection
+│   ├── js/components/      dialogs, toasts, office form, service editor, floor plan, charts…
+│   ├── js/pages/           one module per page
+│   ├── assets/             icons, avatars, floor plan image, fonts
+│   ├── tools/              one-off maintenance scripts run from the console (not deployed)
+│   └── vercel.json         security headers when Vercel serves public/
+├── <b>functions/</b>              Cloud Functions, codebase "admin" (asia-southeast1)
+│   ├── index.js            exports only
+│   └── src/                api/ · auth-recovery.js · lib/ · triggers/ · scheduled/
+├── <b>docs/</b>                   Citizen's Charter PDF, consultation notes, this documentation
+│   └── source/             how this PDF is built (HTML, screenshots, scripts)
+├── firebase.json           hosting headers, functions codebase, emulator ports
+├── firestore.indexes.json  index settings for the services collection group
+└── vercel.json             security headers (Vercel, repository-root copy)</code></pre>
+  <p><a class="xref" href="#app-files"></a> describes every file in one line.</p>
+
+  <h2 id="sec-run-real">Running the panel locally</h2>
+  <p>The panel is static files, so any web server works:</p>
+  <pre><code>cd public
+python3 -m http.server 5510</code></pre>
+  <p>Open <code>http://localhost:5510/login.html</code>. This uses the <strong>real</strong> Firebase project.</p>
+  <div class="warn"><span class="label">Important</span><p>Anything done this way affects real people. Saving a service notifies every citizen, accepting a request sends e-mails, and deleting is real. For experiments, use the emulators in the next section.</p></div>
+
+  <h2 id="sec-emulators">Running with the emulators and sample data</h2>
+  <p>The Firebase emulators run Authentication, Firestore and the admin functions on your computer under the demo project <code>demo-gabayan</code>, so nothing touches production.</p>
+  <ol class="steps">
+    <li>Install the function dependencies once: <code>cd functions &amp;&amp; npm ci</code></li>
+    <li>Start the emulators from the repository root:<br><code>firebase emulators:start --only auth,firestore,functions --project demo-gabayan</code></li>
+    <li>Optional, load the sample data used for the screenshots: <code>node docs/source/tools/seed-emulator.cjs</code></li>
+    <li>Serve <code>public/</code> (previous section) and open <code>http://localhost:5510/login.html?emulators</code></li>
+  </ol>
+  <table id="tbl-sample-accounts" class="plain">
+    <caption>Sample accounts created by the seed script</caption>
+    <thead><tr><th>Account</th><th>E-mail</th><th>Password</th></tr></thead>
+    <tbody>
+      <tr><td>Super Admin</td><td><code>superadmin@gabayan.test</code></td><td><code>GaBayan#2026</code></td></tr>
+      <tr><td>Office Admin (Business Permits and Licensing Office)</td><td><code>maria.santos@gabayan.test</code></td><td><code>GaBayan#2026</code></td></tr>
+    </tbody>
+  </table>
+  <ul>
+    <li>The <code>?emulators</code> flag is remembered for the browser tab (<code>sessionStorage</code>) and only works on <code>localhost</code> or <code>127.0.0.1</code>. A new tab needs the flag again.</li>
+    <li>Recovery codes are printed in the emulator log instead of being e-mailed. Notification e-mails are skipped and logged in the browser console.</li>
+    <li>The nightly trash purge does not run in the emulators because there is no Pub/Sub emulator.</li>
+  </ul>
+
+  <h2 id="sec-deploy">Deploying</h2>
+  <h3>Website (Vercel)</h3>
+  <p>Production is served by Vercel from the <code>main</code> branch. Work is done on <code>Enguerra</code> and reaches production through a pull request from <code>Enguerra</code> to <code>main</code>. When it is merged, Vercel builds and publishes <code>public/</code>. The security headers are in <code>vercel.json</code>. The repository root and <code>public/</code> each hold an identical copy, so the headers apply whichever folder Vercel treats as the project root.</p>
+  <h3>Cloud Functions</h3>
+  <pre><code>cd functions
+npm install                         <span class="c"># first time on a computer, or after package.json changes</span>
+firebase deploy --only functions:admin</code></pre>
+  <div class="warn"><span class="label">Important</span><p>Both repositories deploy functions to the same project, in separate <em>codebases</em>: <code>admin</code> from this repository and <code>default</code> from the mobile repository. Always deploy with <code>--only functions:admin</code> from here. A deploy of one codebase never removes the other's functions.</p></div>
+  <h3>Indexes, rules and other hosting</h3>
+  <ul>
+    <li>Firestore index settings: <code>firebase deploy --only firestore:indexes</code></li>
+    <li>Firestore security rules are managed in the Firebase console, not in this repository.</li>
+    <li>If the site is ever served by Firebase Hosting instead, use <code>firebase deploy --only hosting</code>. The same security headers are set in <code>firebase.json</code>.</li>
+  </ul>
+  <div class="tip"><span class="label">Tip</span><p>After deploying functions, a quick check that CORS is locked down: a request that pretends to come from another website must <em>not</em> get an <code>access-control-allow-origin</code> header back.<br><code>curl -s -D - -o /dev/null -X OPTIONS https://asia-southeast1-docsease-efacc.cloudfunctions.net/adminAuth -H "Origin: https://example.com" -H "Access-Control-Request-Method: POST"</code></p></div>
+
+  <h2 id="sec-conventions">Working conventions</h2>
+  <ul>
+    <li><strong>Branches.</strong> Admin work goes to <code>Enguerra</code> (capital E) and mobile work to <code>enguerra</code>. Never commit straight to <code>main</code>, <code>araw</code> or <code>resma</code>.</li>
+    <li><strong>Commit messages</strong> start with a type: <code>feat:</code>, <code>fix:</code>, <code>refactor:</code>, <code>docs:</code>.</li>
+    <li><strong>Shared data.</strong> When you change a collection, field, status value, security rule or Cloud Function, check the other app and update it too. Make matching commits in both repositories and mention the related change in each message.</li>
+    <li><strong>Frontend rules.</strong> Build markup with <code>html`…`</code> from <code>js/core/dom.js</code>, which escapes every value. Use <code>data-action</code> attributes with <code>on()</code> instead of inline <code>onclick</code>, which the Content Security Policy blocks. Call server actions through <code>api.*</code>. When a new outside script or service is added, add its origin to the Content Security Policy (<a class="xref" href="#sec-headers"></a>).</li>
+  </ul>
+</section>
+
+<!-- ============================================================ CHAPTER 3 -->
+<section class="chapter">
+  <h1 id="ch-guide">Using the Admin Panel</h1>
+  <p class="chapter-intro">A screen-by-screen guide for office admins and the Super Admin. The label next to each heading shows who can use the feature. The screenshots use sample data.</p>
+
+  <!-- ------------------------------------------------ sign in -->
+  <h2 id="sec-signin">Signing in <span class="badge both">Everyone</span></h2>
+  <p>Opening the admin panel's address shows the <span class="ui">Sign In</span> screen (<a class="xref" href="#fig-signin"></a>). If you are already signed in as an active admin, the panel goes straight to the Dashboard.</p>
+  <figure id="fig-signin">
+    <img src="images/login-signin.jpg" alt="">
+    <figcaption>The Sign In screen</figcaption>
+  </figure>
+  <ol class="steps">
+    <li>Type your <span class="ui">Email</span> and <span class="ui">Password</span>. The <span class="ui">Sign In</span> button turns on once both are filled.</li>
+    <li>Or choose <span class="ui">Continue with Google</span> and pick the Google account you signed up with.</li>
+    <li>The panel checks your admin record. Only <strong>active</strong> admins get in.</li>
+  </ol>
+  <table id="tbl-signin-messages">
+    <caption>Messages you may see when signing in</caption>
+    <thead><tr><th style="width:42%">Message</th><th>Meaning and what to do</th></tr></thead>
+    <tbody>
+      <tr><td>This account is not registered as an admin.</td><td>The login exists, but there is no admin record (for example, a citizen account). Sign up for an admin account first.</td></tr>
+      <tr><td>Your account is still awaiting Super Admin approval.</td><td>Your sign-up is in the Review Queue. Wait for the approval e-mail.</td></tr>
+      <tr><td>This account has been deactivated. Please contact the Super Admin.</td><td>The Super Admin deactivated the account (<a class="xref" href="#sec-accounts"></a>).</td></tr>
+      <tr><td>Email or password is invalid.</td><td>Wrong e-mail or password. After <strong>5</strong> wrong passwords for the same e-mail, this browser locks sign-in for that e-mail for <strong>10 minutes</strong> (<em>Account Temporarily Locked</em>).</td></tr>
+      <tr><td>This email address cannot be used.</td><td>The Google account belongs to a citizen of the mobile app. Use a different Google account.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ------------------------------------------------ sign up -->
+  <h2 id="sec-signup">Requesting an admin account <span class="badge both">Everyone</span></h2>
+  <p>New staff request an account with <span class="ui">Sign up</span> on the Sign In screen (<a class="xref" href="#fig-signup"></a>). Fill in your full name, e-mail and office, and a password that meets every rule in the checklist: at least 8 characters, a symbol, a capital letter and a number.</p>
+  <figure id="fig-signup">
+    <img src="images/login-signup.jpg" alt="">
+    <figcaption>Create Account screen with the live password checklist</figcaption>
+  </figure>
+  <p>Before signing up you must accept the <strong>Terms &amp; Conditions</strong> and <strong>Privacy Policy</strong>. Ticking the box opens them (<a class="xref" href="#fig-terms"></a>). <span class="ui">I Agree</span> ticks the box and <span class="ui">Not now</span> leaves it empty. The accepted version (currently 1.0) and the time are saved with the account.</p>
+  <figure id="fig-terms">
+    <img src="images/login-terms.jpg" alt="">
+    <figcaption>Terms &amp; Conditions and Privacy Policy, shown before an admin account is created</figcaption>
+  </figure>
+  <h3>What happens after Sign Up</h3>
+  <ol class="steps">
+    <li>A Firebase login is created and given one of the built-in avatars at random.</li>
+    <li>An admin record is saved with status <strong>Pending</strong>, and a <em>Pending Admin Account</em> request appears in the Super Admin's Review Queue. The Super Admins' Activity Log gets a <em>New admin request</em> entry.</li>
+    <li>Two e-mails go out: <em>Under Review</em> to the new admin, and <em>New Admin Account Request</em> to the Super Admin's address.</li>
+    <li>You are signed out. You can sign in once the Super Admin approves, and you will get an <em>Approved</em> e-mail.</li>
+  </ol>
+  <p><strong>With Google:</strong> on the Sign Up screen choose <span class="ui">Continue with Google</span>. A <span class="ui">Complete Your Profile</span> dialog asks for your full name and office, and <span class="ui">Confirm &amp; Submit</span> sends the same request. <span class="ui">Cancel</span> removes the unfinished Google login.</p>
+
+  <!-- ------------------------------------------------ forgot -->
+  <h2 id="sec-forgot">Resetting a forgotten password <span class="badge both">All admins</span></h2>
+  <p><span class="ui">Forgot Password</span> on the Sign In screen opens a three-step reset (<a class="xref" href="#fig-forgot"></a>). The server creates and checks the code, so the browser never sees it.</p>
+  <figure class="trio" id="fig-forgot">
+    <div class="imgs">
+      <img src="images/login-forgot.jpg" alt="">
+      <img src="images/login-recovery-code.jpg" alt="">
+      <img src="images/login-reset.jpg" alt="">
+    </div>
+    <figcaption>Password reset: (1) enter your e-mail, (2) type the 6-digit code from the e-mail, (3) choose a new password</figcaption>
+  </figure>
+  <table id="tbl-recovery-rules">
+    <caption>Password-reset rules (enforced by the server)</caption>
+    <thead><tr><th style="width:30%">Rule</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td>Who can use it</td><td>Only e-mails of <strong>active</strong> admin accounts. Others get <em>Email is not registered or invalid.</em></td></tr>
+      <tr><td>Code</td><td>6 digits, sent by e-mail, valid for <strong>5 minutes</strong>.</td></tr>
+      <tr><td>Wrong codes</td><td>After <strong>5</strong> wrong tries the code is cancelled; request a new one.</td></tr>
+      <tr><td>Resend</td><td>At most once every <strong>60 seconds</strong> (<span class="ui">Resend Code</span> counts down).</td></tr>
+      <tr><td>New password</td><td>Same rules as sign-up. After the reset, every other signed-in session of that account is signed out.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ------------------------------------------------ layout -->
+  <h2 id="sec-layout">Finding your way around <span class="badge both">All admins</span></h2>
+  <p>Every page after sign-in shares the same frame (<a class="xref" href="#fig-layout"></a>): a sidebar menu on the left, a top bar with page tools and your profile, and the page itself.</p>
+  <figure class="annotated" id="fig-layout">
+    <div class="shot">
+      <img src="images/dashboard-super.jpg" alt="">
+      <span class="pin" style="left:18.5%;top:27%">1</span>
+      <span class="pin" style="left:23.5%;top:37%">2</span>
+      <span class="pin" style="left:5.5%;top:89%">3</span>
+      <span class="pin" style="left:84%;top:4.6%">4</span>
+      <span class="pin" style="left:57%;top:12.5%">5</span>
+      <span class="pin" style="left:81%;top:32%">6</span>
+      <span class="pin" style="left:72.5%;top:38%">7</span>
+      <span class="pin" style="left:40%;top:56.5%">8</span>
+    </div>
+    <figcaption>The workspace (Dashboard of a Super Admin)</figcaption>
+  </figure>
+  <ol class="legend">
+    <li><strong>Sidebar menu</strong>: the pages you may open. Super Admin pages are never shown to office admins.</li>
+    <li><strong>Review Queue badge</strong>: the number of pending requests, kept up to date live.</li>
+    <li><strong>Collapse sidebar</strong>: shrinks the menu to icons. The choice is remembered.</li>
+    <li><strong>Profile button</strong>: your name and role. Opens <span class="ui">Edit Profile</span> and <span class="ui">Sign Out</span>.</li>
+    <li><strong>Page banner</strong>: the page title, with the date and time on the Dashboard.</li>
+    <li><strong>Main action</strong> of the page, for example <span class="ui">Add New Office</span> or <span class="ui">Add New Service</span>.</li>
+    <li><strong>Summary cards</strong> with the key numbers.</li>
+    <li><strong>Detail cards</strong>, such as rankings and charts. Many link to the full page.</li>
+  </ol>
+  <table id="tbl-menu">
+    <caption>Sidebar menu</caption>
+    <thead><tr><th style="width:26%">Menu item</th><th>Opens</th><th style="width:20%">Shown to</th></tr></thead>
+    <tbody>
+      <tr><td>Dashboard</td><td>Summary of the system, or of your office</td><td><span class="badge both">All admins</span></td></tr>
+      <tr><td>Service Management</td><td>Super Admin: all offices. Office admin: your office's services.</td><td><span class="badge both">All admins</span></td></tr>
+      <tr><td>Map Management</td><td>First-floor plan</td><td><span class="badge super">Super Admin</span></td></tr>
+      <tr><td>Analytics</td><td>Charts and rankings (office admins: own office)</td><td><span class="badge both">All admins</span></td></tr>
+      <tr><td>Review Queue</td><td>Requests, history, Deleted Records</td><td><span class="badge super">Super Admin</span></td></tr>
+      <tr><td>Account Management</td><td>Citizen and admin accounts</td><td><span class="badge super">Super Admin</span></td></tr>
+      <tr><td>Activity Log</td><td>Your activity entries</td><td><span class="badge both">All admins</span></td></tr>
+    </tbody>
+  </table>
+  <p>On phones and small tablets the sidebar becomes a drawer, opened with the menu button at the top left (<a class="xref" href="#fig-phone"></a>). If an office admin opens a Super Admin page directly, for example from a bookmark, the panel sends them to their own office page or the Dashboard.</p>
+  <figure class="pair" id="fig-phone">
+    <div class="imgs">
+      <img src="images/phone-dashboard.jpg" alt="">
+      <img src="images/phone-menu.jpg" alt="">
+    </div>
+    <figcaption>On a phone: the Dashboard of an office admin (left) and the menu drawer (right)</figcaption>
+  </figure>
+
+  <!-- ------------------------------------------------ dashboard -->
+  <h2 id="sec-dashboard">Dashboard <span class="badge both">All admins</span></h2>
+  <p>The Dashboard is the first page after sign-in. Its content depends on your role.</p>
+  <ul>
+    <li><strong>Super Admin</strong> (<a class="xref" href="#fig-layout"></a>): <span class="ui">Total Offices</span>, <span class="ui">Total Services</span>, <span class="ui">Total Users</span> (citizen accounts), the five <span class="ui">Most Used Services</span> and the <span class="ui">Completion Trend</span> for the last 12 months. The <span class="ui">Add New Office</span> button opens the office form (<a class="xref" href="#sec-offices"></a>).</li>
+    <li><strong>Office admin</strong> (<a class="xref" href="#fig-dashboard-office"></a>): <span class="ui">Office Services</span>, <span class="ui">Applicants</span> (citizens who track one of the office's services) and <span class="ui">Service Records</span>. The rankings and trend cover <em>only their office</em>. <span class="ui">Add New Service</span> opens the service editor.</li>
+  </ul>
+  <figure id="fig-dashboard-office">
+    <img src="images/dashboard-office.jpg" alt="">
+    <figcaption>Dashboard of an office admin: the numbers of one office only</figcaption>
+  </figure>
+  <div class="note"><span class="label">Note</span><p>The numbers are counted on the server, not in the browser. The page shows the last copy at once, then asks the server whether anything changed and redraws only if it did. Switching back to the tab checks again. <a class="xref" href="#sec-stats"></a> explains how this works.</p></div>
+
+  <!-- ------------------------------------------------ offices -->
+  <h2 id="sec-offices">Managing offices <span class="badge super">Super Admin</span></h2>
+  <p><span class="ui">Service Management</span> lists every office as a tile (<a class="xref" href="#fig-offices"></a>). Type in <span class="ui">Search office…</span> to filter, and click a tile to open that office's services. Offices in Deleted Records are not shown.</p>
+  <figure id="fig-offices">
+    <img src="images/service-management.jpg" alt="">
+    <figcaption>Service Management: every office as a tile, with the delete button shown on hover</figcaption>
+  </figure>
+  <h3>Adding an office or room</h3>
+  <p><span class="ui">Add New Office</span>, on this page or on the Dashboard, opens the form in <a class="xref" href="#fig-office-form"></a>.</p>
+  <figure class="medium" id="fig-office-form">
+    <img src="images/office-form.jpg" alt="" style="width:92mm">
+    <figcaption>The Add New Office form</figcaption>
+  </figure>
+  <ul>
+    <li><strong>Office Name</strong> (up to 100 characters) must not be used by any other office or room, including those in Deleted Records.</li>
+    <li><strong>Category / Type</strong> decides what is created. <em>Regular Service</em> makes an <strong>office</strong>, which has services and appears in Service Management. <em>Emergency Services</em>, <em>Building Access</em>, <em>Facilities and Amenities</em>, <em>Comfort Rooms</em> and <em>Suites and Hubs</em> make a <strong>room</strong>, a place citizens can be guided to that has no services.</li>
+    <li><strong>Floor</strong>: First, Second or Third. Only first-floor places can be put on the map and used as navigation destinations.</li>
+    <li><strong>Schedule</strong>: Day From, an optional Day To, and opening and closing times, saved as one text such as <code>Mon-Fri, 8AM-5PM</code>.</li>
+  </ul>
+  <p>A new <em>office</em> is announced to every citizen in the app (<em>“A new office added”</em>) and recorded in the Activity Log.</p>
+  <h3>Deleting an office</h3>
+  <p>Hover over a tile and click the trash icon. After you confirm (<a class="xref" href="#fig-confirms"></a>, left), the office and all of its services move to <strong>Deleted Records</strong>. You can recover them within 30 days (<a class="xref" href="#sec-review"></a>). Its map room is freed in the meantime.</p>
+  <figure class="pair" id="fig-confirms">
+    <div class="imgs">
+      <img src="images/confirm-delete-office.jpg" alt="" style="width:62mm">
+      <img src="images/confirm-request-deletion.jpg" alt="" style="width:62mm">
+    </div>
+    <figcaption>Confirmation dialogs: a Super Admin deleting an office (left) and an office admin requesting a service deletion (right)</figcaption>
+  </figure>
+  <div class="note"><span class="label">Note</span><p>Office details, such as the name, description, floor, category and schedule, are edited in <strong>Map Management</strong> by clicking the office (<a class="xref" href="#sec-map"></a>). Renaming there also updates the admins linked to the office and every service step that guides citizens to it.</p></div>
+
+  <!-- ------------------------------------------------ services -->
+  <h2 id="sec-services">Managing services <span class="badge both">All admins</span></h2>
+  <p>The <strong>Office Services</strong> page lists the services of one office (<a class="xref" href="#fig-office-services"></a>). A Super Admin reaches it from an office tile. For an office admin, <span class="ui">Service Management</span> always opens their own office, and other offices cannot be opened. Click a tile to edit a service, or <span class="ui">Add New Service</span> to create one.</p>
+  <figure id="fig-office-services">
+    <img src="images/office-services-admin.jpg" alt="">
+    <figcaption>Office Services as seen by an office admin: only the services of their office</figcaption>
+  </figure>
+  <h3>The service editor</h3>
+  <p>One page is used both for adding and for editing (<a class="xref" href="#fig-service-form"></a>). A service has general details and one or more <strong>channels</strong>, shown as tabs, for example <em>Walk-In</em> and <em>Online</em>. Each channel has its own transaction details, requirements and steps.</p>
+  <figure id="fig-service-form">
+    <img src="images/service-form.jpg" alt="">
+    <figcaption>Edit Service: channel tabs, general details and the transaction details of the Walk-In channel</figcaption>
+  </figure>
+  <table id="tbl-service-sections">
+    <caption>Parts of a service</caption>
+    <thead><tr><th style="width:26%">Part</th><th>Fields</th></tr></thead>
+    <tbody>
+      <tr><td>Channel tabs</td><td><span class="ui">+</span> adds a channel. Click a tab's name to rename it and the trash icon to remove it; a service keeps at least one channel.</td></tr>
+      <tr><td>General Details</td><td><strong>Service Name</strong>, <strong>Office</strong> (fixed, except when a Super Admin adds a service without choosing an office first) and <strong>Service Description</strong>. All are required.</td></tr>
+      <tr><td>Transaction Details</td><td>Type of Transaction (G2C, G2B, G2G), Who May Avail, Total Fees, Total Processing Time. All optional, per channel.</td></tr>
+      <tr><td>Requirements Checklist</td><td>A list of <strong>Requirement Name</strong> + <strong>Secure at</strong> (where to get it), both required for each row. Citizens tick these off in the app.</td></tr>
+      <tr><td>Step-by-Step Guide</td><td>The steps citizens follow, described in <a class="xref" href="#tbl-step-fields"></a>. Drag a step by the dotted handle at the left of its header to reorder; click the header to open or close it.</td></tr>
+      <tr><td>Location and contact</td><td><strong>Location</strong> and <strong>Contact Number</strong> (required), <strong>Email</strong> (optional).</td></tr>
+    </tbody>
+  </table>
+  <figure id="fig-service-steps">
+    <img src="images/service-form-steps.jpg" alt="">
+    <figcaption>A step of the Step-by-Step Guide, opened for editing</figcaption>
+  </figure>
+  <table id="tbl-step-fields">
+    <caption>Fields of a step</caption>
+    <thead><tr><th style="width:27%">Field</th><th style="width:13%">Required</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Step Title</td><td class="c"><span class="yes">Yes</span></td><td>Suggestions such as <em>Application and Assessment</em>, <em>Payment</em>, <em>Claiming of Permit</em>.</td></tr>
+      <tr><td>Fee</td><td class="c"><span class="yes">Yes</span></td><td>For example <em>None</em> or an amount.</td></tr>
+      <tr><td>Processing Time</td><td class="c"><span class="yes">Yes</span></td><td>For example <em>15 Minutes</em>, <em>1 Day</em>.</td></tr>
+      <tr><td>Description</td><td class="c"><span class="yes">Yes</span></td><td>What the citizen does in this step.</td></tr>
+      <tr><td>People In-Charge / Office</td><td class="c"><span class="yes">Yes</span></td><td>Personnel or window responsible.</td></tr>
+      <tr><td>Agency Actions</td><td class="c"><span class="no">No</span></td><td>What the office does, one per line.</td></tr>
+      <tr><td>Notes / Footnote</td><td class="c"><span class="no">No</span></td><td>Extra remarks, for example how long a payment takes to be credited.</td></tr>
+      <tr><td>Online Link</td><td class="c"><span class="no">No</span></td><td>A web address for online steps.</td></tr>
+      <tr><td>Navigate to</td><td class="c"><span class="no">No</span></td><td>Must be picked from the list of <strong>first-floor</strong> offices and rooms. The app then shows a <em>Start Navigation</em> button for the step.</td></tr>
+    </tbody>
+  </table>
+  <h3>Saving</h3>
+  <ul>
+    <li>Missing fields are highlighted. The editor opens the right channel and step and explains what is missing.</li>
+    <li><strong>Adding</strong>: the service's ID is made from the office and the service name, so a name already used in that office is refused, including a service in Deleted Records.</li>
+    <li><strong>Editing</strong>: <span class="ui">Save Changes</span> asks for confirmation. If the service or its office was deleted in the meantime, the save is stopped.</li>
+    <li><strong>Every save notifies citizens.</strong> A new service sends <em>“A new service added”</em> and a change sends <em>“there's some changes”</em>, to every citizen of the app. Save only when something really changed.</li>
+    <li>Leaving the page with unsaved changes, by a link, the back button or closing the tab, asks first.</li>
+  </ul>
+  <h3>Deleting a service</h3>
+  <ul>
+    <li><span class="badge super">Super Admin</span> <span class="ui">Delete Service</span> moves it to Deleted Records for 30 days.</li>
+    <li><span class="badge admin">Office Admin</span> <span class="ui">Delete Service</span> sends a <em>deletion request</em> to the Super Admin (<a class="xref" href="#fig-confirms"></a>, right). The service stays visible until the request is accepted. Asking twice for the same service shows <em>Already Requested</em>.</li>
+  </ul>
+
+  <!-- ------------------------------------------------ map -->
+  <h2 id="sec-map">Map Management <span class="badge super">Super Admin</span></h2>
+  <p>Map Management decides which office or room occupies each room of the City Hall's <strong>first floor</strong> (<a class="xref" href="#fig-map"></a>). The mobile app uses this map to guide citizens.</p>
+  <figure id="fig-map">
+    <img src="images/map-management.jpg" alt="">
+    <figcaption>Map Management: the first-floor plan and the tray of unplaced offices and rooms</figcaption>
+  </figure>
+  <ul>
+    <li><strong>Swap:</strong> drag a room onto another room.</li>
+    <li><strong>Place:</strong> drag a name from <span class="ui">Unplaced offices and rooms</span> onto an empty room.</li>
+    <li><strong>Remove:</strong> drag a room down into the tray.</li>
+    <li><strong>Edit:</strong> click a room or a name in the tray, or press <kbd>Enter</kbd> on it. This opens the office form with the current details.</li>
+    <li><span class="ui">Auto-fill empty rooms</span> places the unplaced names into empty rooms in alphabetical order.</li>
+    <li>Every change is saved immediately. A message at the bottom offers <span class="ui">Undo</span>.</li>
+  </ul>
+  <p>The plan has 15 rooms, numbered clockwise from the bottom-left wing (room 1) to the bottom-right wing (room 15). The elevator is fixed. Renaming through the edit form goes through the server, which also updates linked admins and <em>Navigate to</em> steps (<a class="xref" href="#sec-rename"></a>). Changing the floor of a placed office takes it off the map.</p>
+
+  <!-- ------------------------------------------------ analytics -->
+  <h2 id="sec-analytics">Analytics <span class="badge both">All admins</span></h2>
+  <p>The Super Admin sees the whole system (<a class="xref" href="#fig-analytics"></a> and <a class="xref" href="#fig-analytics-2"></a>). An office admin sees the same kind of numbers for their own office only (<a class="xref" href="#fig-analytics-office"></a>).</p>
+  <figure id="fig-analytics">
+    <img src="images/analytics-super.jpg" alt="">
+    <figcaption>Analytics for the Super Admin: citizen sign-ups, with Weekly, Monthly and Yearly views</figcaption>
+  </figure>
+  <figure id="fig-analytics-2">
+    <img src="images/analytics-super-2.jpg" alt="">
+    <figcaption>Analytics, lower part: offices and services, and how citizens use the services</figcaption>
+  </figure>
+  <figure id="fig-analytics-office">
+    <img src="images/analytics-office.jpg" alt="">
+    <figcaption>Analytics for an office admin: one office only</figcaption>
+  </figure>
+  <table id="tbl-analytics">
+    <caption>What the numbers mean</caption>
+    <thead><tr><th style="width:31%">Number or chart</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>Total Registered Users</td><td>Citizen accounts of the mobile app.</td></tr>
+      <tr><td>New Sign-ups Today / This Week / This Month</td><td>By the Manila calendar. The week starts on Monday.</td></tr>
+      <tr><td>New Sign-ups Trend</td><td>Weekly: the last 7 days. Monthly: the last 12 months. Yearly: the last 5 years.</td></tr>
+      <tr><td>Total Offices / Total Services</td><td>Active offices and their active services. Deleted Records are not counted.</td></tr>
+      <tr><td>Services per Office</td><td>Offices ranked by number of services. The top 5 are shown; <span class="ui">Show all</span> expands the list.</td></tr>
+      <tr><td>Service History Entries</td><td>Services that citizens track in the app, one entry per citizen and service.</td></tr>
+      <tr><td>Most-Used Services</td><td>The 5 services with the most history entries.</td></tr>
+      <tr><td>Completion Trend</td><td>Per month, for the last 12 months: entries last updated that month, split into <em>Completed</em> and <em>In Progress</em>.</td></tr>
+      <tr><td>Applicants <span class="small">(office admins)</span></td><td>Different citizens who track at least one of the office's services.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ------------------------------------------------ review queue -->
+  <h2 id="sec-review">Review Queue <span class="badge super">Super Admin</span></h2>
+  <p>The Review Queue has three tabs at the top: <span class="ui">Pending Request</span> (with a count), <span class="ui">Completed Request</span> and <span class="ui">Deleted Records</span>. Request tabs are filtered by date (<span class="ui">Today</span>, <span class="ui">This Week</span> = from Monday to yesterday, <span class="ui">Earlier</span>) and by type, and you can search them by name, e-mail, office or service.</p>
+  <figure id="fig-review">
+    <img src="images/review-pending.jpg" alt="">
+    <figcaption>Pending requests: a new admin account and two service deletions</figcaption>
+  </figure>
+  <table id="tbl-requests">
+    <caption>Request types and what Accept and Decline do</caption>
+    <thead><tr><th style="width:19%">Request</th><th>Accept</th><th>Decline</th></tr></thead>
+    <tbody>
+      <tr><td>Pending Admin Account</td><td>The account becomes <strong>Active</strong> and can sign in. The requester gets an <em>Approved</em> e-mail and an Activity Log entry.</td><td>The pending login and admin record are removed. The requester gets a <em>Not Approved</em> e-mail.</td></tr>
+      <tr><td>Pending Deleted Service</td><td>The service moves to Deleted Records (30 days). The server does this in the same transaction that closes the request. The requester is e-mailed and gets an Activity Log entry.</td><td>The request is removed and the service stays. The requester is e-mailed and gets an Activity Log entry.</td></tr>
+      <tr><td>Pending Admin Deleted Account</td><td>The admin's record and login are removed, and they are e-mailed.</td><td>The request is removed and the admin is e-mailed.</td></tr>
+    </tbody>
+  </table>
+  <div class="note"><span class="label">Note</span><p>Admins now delete their own account from <span class="ui">Edit Profile</span> (<a class="xref" href="#sec-profile"></a>), so the panel no longer creates <em>Admin Deleted Account</em> requests. The Review Queue still handles any that exist.</p></div>
+  <h3>Completed requests</h3>
+  <p>Accepted requests are kept as history, filtered by the date they were resolved (<a class="xref" href="#fig-review-completed"></a>). <span class="ui">Earlier</span> shows the latest 100. The trash icon on a card deletes that history record for good.</p>
+  <figure id="fig-review-completed">
+    <img src="images/review-completed.jpg" alt="">
+    <figcaption>Completed requests resolved this week</figcaption>
+  </figure>
+  <h3>Deleted Records</h3>
+  <p>Deleted offices and services are kept for <strong>30 days</strong> (<a class="xref" href="#fig-deleted"></a>). Each card shows who deleted it, or who asked for the deletion, when it was deleted and when it will be deleted for good. The days-left label turns red when 3 days or fewer remain.</p>
+  <figure id="fig-deleted">
+    <img src="images/review-deleted.jpg" alt="">
+    <figcaption>Deleted Records: two services and an office with its services</figcaption>
+  </figure>
+  <ul>
+    <li><span class="ui">Recover Service</span> puts the service back in its office. This is not possible while its office is itself deleted: recover the office first.</li>
+    <li><span class="ui">Recover Office</span> brings back the office with all its services, and puts it back in its map room if that room is still free.</li>
+    <li><span class="ui">Delete Permanently</span> asks twice. The second time you must type the exact name, which the server checks as well. It removes the item and everything stored under it. <strong>This cannot be undone.</strong></li>
+    <li>Every night at 3:00 AM (Manila time) the server permanently deletes items whose 30 days have passed.</li>
+  </ul>
+
+  <!-- ------------------------------------------------ accounts -->
+  <h2 id="sec-accounts">Account Management <span class="badge super">Super Admin</span></h2>
+  <p>Two lists, switched at the top right: <span class="ui">User Management</span> (citizens of the mobile app, <a class="xref" href="#fig-accounts"></a>) and <span class="ui">Admin Management</span> (web admins, with their office). Status tabs filter the list, and the search box matches names, e-mails and offices.</p>
+  <figure id="fig-accounts">
+    <img src="images/accounts-users.jpg" alt="">
+    <figcaption>User Management: citizen accounts with their last login and status</figcaption>
+  </figure>
+  <table id="tbl-account-status">
+    <caption>Account statuses</caption>
+    <thead><tr><th style="width:18%">Status</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>Active</td><td>Signed in or used the app in the last 90 days.</td></tr>
+      <tr><td>Inactive</td><td>No sign-in or app activity in the last 90 days. This is information only: the person can still sign in.</td></tr>
+      <tr><td>Deactivated</td><td>Turned off by the Super Admin. The person cannot sign in, but their record and history are kept.</td></tr>
+      <tr><td>Pending</td><td>Admins only: a sign-up waiting in the Review Queue. The row links there.</td></tr>
+    </tbody>
+  </table>
+  <p><span class="ui">Last Login</span> comes from Firebase Authentication and includes the mobile app's automatic session refreshes. <span class="ui">Deactivate</span> opens the dialog in <a class="xref" href="#fig-deactivate"></a>. It signs the person out on every device and blocks sign-in, and the optional reason is kept with the record. <span class="ui">Reactivate</span> restores the account's previous status. Your own account and Super Admin accounts cannot be changed here.</p>
+  <figure class="medium" id="fig-deactivate">
+    <img src="images/accounts-deactivate.jpg" alt="" style="width:118mm">
+    <figcaption>Deactivating an admin account</figcaption>
+  </figure>
+
+  <!-- ------------------------------------------------ activity -->
+  <h2 id="sec-activity">Activity Log <span class="badge both">All admins</span></h2>
+  <p>The Activity Log is a live list of what happened, newest first (<a class="xref" href="#fig-activity"></a>). Every admin has their own copy:</p>
+  <ul>
+    <li><strong>Super Admins</strong> get every entry: services added, changed or deleted, deletion requests, offices added or deleted, recoveries, accounts accepted, declined, deactivated or reactivated, and new admin requests.</li>
+    <li><strong>Office admins</strong> get entries about themselves: their account was accepted, and their deletion request was accepted or declined.</li>
+  </ul>
+  <figure id="fig-activity">
+    <img src="images/activity-log.jpg" alt="">
+    <figcaption>Activity Log with two entries ticked for deletion</figcaption>
+  </figure>
+  <p>Filter by <span class="ui">All</span>, <span class="ui">Today</span>, <span class="ui">This Week</span> or <span class="ui">This Month</span>, or search. Tick entries and click the trash icon at the top to delete them, or use a row's own trash icon. Deleting only removes <em>your</em> copy. The latest 300 entries are shown. <a class="xref" href="#app-activity"></a> lists every entry type.</p>
+
+  <!-- ------------------------------------------------ profile -->
+  <h2 id="sec-profile">Your profile and signing out <span class="badge both">All admins</span></h2>
+  <p>Click your name at the top right to open <span class="ui">Edit Profile</span> or <span class="ui">Sign Out</span>.</p>
+  <figure class="medium" id="fig-profile">
+    <img src="images/profile-edit.jpg" alt="" style="width:80mm">
+    <figcaption>Edit Profile: avatar, name and account deletion</figcaption>
+  </figure>
+  <ul>
+    <li><strong>Edit Profile</strong>: choose one of eight avatars and change your full name. Your e-mail, and office for office admins, are shown but cannot be changed here.</li>
+    <li><strong>Delete Account</strong>: after a warning, confirm your identity with your password, or the same Google account. A final confirmation then deletes your Activity Log, your admin record and your login, and returns you to Sign In.</li>
+    <li><strong>Sign Out</strong>: after confirming, the panel signs you out and clears what it stored in this browser: the session, cached lists and Firestore's offline copy. This matters on shared office computers.</li>
+  </ul>
+</section>
+
+<!-- ============================================================ CHAPTER 4 -->
+<section class="chapter">
+  <h1 id="ch-roles">Roles and Permissions</h1>
+  <p class="chapter-intro">Who may open which page and do which action, how an admin account moves from sign-up to removal, and the layers that enforce all of this.</p>
+
+  <h2 id="sec-states">Admin account states</h2>
+  <p>Every admin has a record at <code>admin/{uid}</code> with a <code>role</code> (<code>admin</code> or <code>super_admin</code>) and a <code>status</code>. <a class="xref" href="#fig-lifecycle"></a> shows how the status changes.</p>
+  <figure class="diagram" id="fig-lifecycle">
+    <svg class="dg" viewBox="0 0 720 222" role="img" aria-label="Admin account lifecycle">
+      <rect class="box-soft" x="8" y="40" width="130" height="56" rx="10"/>
+      <text class="t-title" x="22" y="63">Sign up</text>
+      <text class="t-s" x="22" y="80">e-mail or Google</text>
+      <rect class="box-amber" x="196" y="40" width="130" height="56" rx="10"/>
+      <text class="t-title" x="210" y="63">Pending</text>
+      <text class="t-s" x="210" y="80">status: pending</text>
+      <rect class="box-green" x="396" y="40" width="130" height="56" rx="10"/>
+      <text class="t-title" x="410" y="63">Active</text>
+      <text class="t-s" x="410" y="80">status: active · can sign in</text>
+      <rect class="box-red" x="584" y="40" width="130" height="56" rx="10"/>
+      <text class="t-title" x="598" y="63">Deactivated</text>
+      <text class="t-s" x="598" y="80">login disabled</text>
+      <rect class="box" x="296" y="158" width="130" height="52" rx="10"/>
+      <text class="t-title" x="310" y="180">Removed</text>
+      <text class="t-s" x="310" y="196">record and login deleted</text>
+      <path class="ar" d="M138 68 H194"/>
+      <text class="t-lbl" x="142" y="60">submitted</text>
+      <path class="ar-g" d="M326 68 H394"/>
+      <text class="t-lbl" x="334" y="60">accepted</text>
+      <path class="ar-r" d="M526 58 H582"/>
+      <text class="t-lbl" x="530" y="50">Deactivate</text>
+      <path class="ar-g" d="M584 80 H528"/>
+      <text class="t-lbl" x="530" y="94">Reactivate</text>
+      <path class="ar-m" d="M261 96 V184 H294"/>
+      <text class="t-lbl" x="206" y="140">declined</text>
+      <path class="ar-m" d="M461 96 V184 H428"/>
+      <text class="t-lbl" x="468" y="134">own account deleted, or</text>
+      <text class="t-lbl" x="468" y="146">deletion request accepted</text>
+      <text class="t-s" x="8" y="24">Super Admin decisions are made in the Review Queue (accept, decline) and Account Management (deactivate, reactivate).</text>
+    </svg>
+    <figcaption>Life of an admin account</figcaption>
+  </figure>
+  <ul>
+    <li><strong>Inactive</strong>, seen in Account Management, is not a stored status. It is worked out on the fly: no sign-in or app activity for 90 days.</li>
+    <li>Deactivating also disables the Firebase login and signs the person out everywhere. Reactivating restores the status the account had before.</li>
+    <li>There is no screen that creates a Super Admin. <a class="xref" href="#sec-make-super"></a> explains the manual steps.</li>
+  </ul>
+
+  <h2 id="sec-page-access">Page access</h2>
+  <table id="tbl-page-access">
+    <caption>Who can open each page</caption>
+    <thead><tr><th style="width:27%">Page</th><th style="width:18%">Office Admin</th><th style="width:16%">Super Admin</th><th>If an office admin opens it</th></tr></thead>
+    <tbody>
+      <tr><td>Dashboard</td><td><span class="part">Own office</span></td><td><span class="yes">Everything</span></td><td>—</td></tr>
+      <tr><td>Service Management (all offices)</td><td><span class="no">No</span></td><td><span class="yes">Yes</span></td><td>Sent to their own Office Services page</td></tr>
+      <tr><td>Office Services</td><td><span class="part">Own office</span></td><td><span class="yes">Any office</span></td><td>Always shows their own office</td></tr>
+      <tr><td>Add / Edit Service</td><td><span class="part">Own office</span></td><td><span class="yes">Any office</span></td><td>Other offices: <em>You can only manage services that belong to your own office.</em></td></tr>
+      <tr><td>Map Management</td><td><span class="no">No</span></td><td><span class="yes">Yes</span></td><td>Sent to the Dashboard</td></tr>
+      <tr><td>Analytics</td><td><span class="part">Own office</span></td><td><span class="yes">Everything</span></td><td>—</td></tr>
+      <tr><td>Review Queue</td><td><span class="no">No</span></td><td><span class="yes">Yes</span></td><td>Sent to the Dashboard</td></tr>
+      <tr><td>Account Management</td><td><span class="no">No</span></td><td><span class="yes">Yes</span></td><td>Sent to the Dashboard</td></tr>
+      <tr><td>Activity Log</td><td><span class="yes">Own entries</span></td><td><span class="yes">Own entries (receives all)</span></td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="sec-action-access">What each role can do</h2>
+  <table id="tbl-actions" class="compact">
+    <caption>Actions by role, and where the rule is enforced</caption>
+    <thead><tr><th style="width:30%">Action</th><th style="width:17%">Office Admin</th><th style="width:17%">Super Admin</th><th>Enforced by</th></tr></thead>
+    <tbody>
+      <tr><td>Add an office or room</td><td><span class="no">No</span></td><td><span class="yes">Yes</span></td><td>Panel; Firestore rules</td></tr>
+      <tr><td>Edit or rename an office</td><td><span class="no">No</span></td><td><span class="yes">Yes</span></td><td>Panel; rename: server (<code>renameOffice</code>)</td></tr>
+      <tr><td>Move an office to Deleted Records</td><td><span class="no">No</span></td><td><span class="yes">Yes</span></td><td>Server (<code>trashOffice</code>)</td></tr>
+      <tr><td>Add or edit a service</td><td><span class="part">Own office</span></td><td><span class="yes">Any office</span></td><td>Panel; Firestore rules</td></tr>
+      <tr><td>Delete a service</td><td><span class="part">Request only</span></td><td><span class="yes">Yes</span></td><td>Server (<code>trashService</code>)</td></tr>
+      <tr><td>Change the first-floor map</td><td><span class="no">No</span></td><td><span class="yes">Yes</span></td><td>Panel; Firestore rules</td></tr>
+      <tr><td>Accept or decline requests</td><td><span class="no">No</span></td><td><span class="yes">Yes</span></td><td>Panel; server for trash and login removal</td></tr>
+      <tr><td>Recover or permanently delete records</td><td><span class="no">No</span></td><td><span class="yes">Yes</span></td><td>Server (<code>restore*</code>, <code>purge*</code>)</td></tr>
+      <tr><td>List, deactivate or reactivate accounts</td><td><span class="no">No</span></td><td><span class="yes">Yes</span></td><td>Server (<code>listAccounts</code>, <code>setAccountStatus</code>)</td></tr>
+      <tr><td>See dashboard and analytics numbers</td><td><span class="part">Own office</span></td><td><span class="yes">All</span></td><td>Server (<code>getStats</code> returns only what the role may see)</td></tr>
+      <tr><td>Edit own profile, delete own account</td><td><span class="yes">Yes</span></td><td><span class="yes">Yes</span></td><td>Firebase Authentication (identity re-check)</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="sec-enforcement">How access is enforced</h2>
+  <p>Access is checked in four layers. Only the last two are real security. The first two make the panel pleasant and fail closed.</p>
+  <ol class="steps">
+    <li><strong>Menu.</strong> <code>js/shell.js</code> draws Super Admin items only when the role is known to be <code>super_admin</code>. While the role is unknown, they stay hidden.</li>
+    <li><strong>Page guard.</strong> Every page starts with <code>startPage()</code> → <code>requireAdmin()</code> (<code>js/core/session.js</code>). It sends signed-out, pending, deactivated and unknown users to the login page. An office admin who opens a Super Admin page goes to the page listed in <code>SUPER_ADMIN_PAGES</code>.</li>
+    <li><strong>Server.</strong> Each <code>adminApi</code> action names the role it needs. <code>requireRole()</code> (<code>functions/src/lib/auth.js</code>) reads the caller's admin record on every call and refuses anyone who is not active or not a Super Admin when one is required. <code>getStats</code> returns only the caller's office to office admins.</li>
+    <li><strong>Firestore security rules.</strong> The browser reads and writes many collections directly, so the rules in the Firebase console must allow only what <a class="xref" href="#tbl-actions"></a> allows. The rules are not stored in this repository.</li>
+  </ol>
+  <div class="warn"><span class="label">Important</span><p>Never rely on the menu or the page guard alone. Anyone can call Firebase directly from the browser's console, so every privileged action must be checked by the server or by the Firestore rules. <a class="xref" href="#sec-authorization"></a> lists what the rules should guarantee.</p></div>
+</section>
+
+<!-- ============================================================ CHAPTER 5 -->
+<section class="chapter">
+  <h1 id="ch-frontend">Frontend Architecture</h1>
+  <p class="chapter-intro">How the browser side of the panel is put together: the page structure, the modules, the session check, safe rendering, live data and caching, and the shared components and styles.</p>
+
+  <h2 id="sec-principles">Design principles</h2>
+  <div class="facts">
+    <div class="fact"><b>No framework, no build step</b><span>Plain HTML, CSS and JavaScript ES modules. The browser loads <code>public/</code> exactly as it is in the repository, so there is nothing to compile.</span></div>
+    <div class="fact"><b>One page = one HTML file + one module</b><span>Each page has a thin HTML file and a module in <code>js/pages/</code> that wires data to components.</span></div>
+    <div class="fact"><b>Layers</b><span><code>core/</code> (Firebase, session, API, helpers) → <code>data/</code> (Firestore queries) → <code>components/</code> (UI) → <code>pages/</code>.</span></div>
+    <div class="fact"><b>Safe by default</b><span>Markup is built with an escaping template tag and events are wired with delegation, so there is no inline JavaScript and the strict Content Security Policy holds.</span></div>
+    <div class="fact"><b>Live where it matters</b><span>Lists that change while you look (requests, offices, services, the activity log) use Firestore listeners. Heavy numbers come from the server.</span></div>
+    <div class="fact"><b>Server for privileged work</b><span>Anything that needs extra rights or reads a lot goes through the <code>adminApi</code> Cloud Function.</span></div>
+  </div>
+
+  <h2 id="sec-anatomy">Anatomy of a page</h2>
+  <p>Every admin page follows the same pattern (<a class="xref" href="#fig-anatomy"></a>). The shell script is a classic script in <code>&lt;head&gt;</code>, so <code>&lt;app-sidebar&gt;</code> and <code>&lt;app-topbar&gt;</code> are defined before the body is parsed and draw on the first paint. The page module runs after that.</p>
+  <figure class="diagram" id="fig-anatomy">
+    <svg class="dg" viewBox="0 0 720 300" role="img" aria-label="Anatomy of a page">
+      <rect class="group" x="8" y="8" width="300" height="284" rx="12"/>
+      <text class="t-lbl" x="22" y="28">dashboard.html</text>
+      <text class="t-s" x="22" y="48">&lt;head&gt;</text>
+      <rect class="box" x="22" y="56" width="272" height="30" rx="7"/>
+      <text x="34" y="75">css/base/fonts.css · css/app.css · css/pages/…</text>
+      <rect class="box-sky" x="22" y="92" width="272" height="38" rx="7"/>
+      <text class="t-b" x="34" y="108">js/shell.js</text>
+      <text class="t-s" x="34" y="122">classic script: defines sidebar + top bar</text>
+      <rect class="box-navy" x="22" y="136" width="272" height="38" rx="7"/>
+      <text class="t-w t-b" x="34" y="152">js/pages/dashboard.js</text>
+      <text class="t-wm" x="34" y="166">ES module: the page's logic</text>
+      <text class="t-s" x="22" y="196">&lt;body&gt;</text>
+      <rect class="box" x="22" y="204" width="272" height="30" rx="7"/>
+      <text x="34" y="223">&lt;app-sidebar active="dashboard"&gt;</text>
+      <rect class="box" x="22" y="240" width="272" height="38" rx="7"/>
+      <text x="34" y="256">&lt;main&gt; &lt;app-topbar&gt; + page markup</text>
+      <text class="t-s" x="34" y="270">banner, cards, lists (filled by the module)</text>
+      <!-- module graph -->
+      <rect class="box-navy" x="420" y="14" width="196" height="40" rx="9"/>
+      <text class="t-w t-b t-c" x="518" y="38">pages/dashboard.js</text>
+      <path class="ar-m" d="M294 155 H324 V34 H418"/>
+      <text class="t-lbl" x="330" y="30">loads</text>
+      <rect class="box" x="340" y="96" width="176" height="56" rx="9"/>
+      <text class="t-title" x="352" y="116">core/page.js</text>
+      <text class="t-s" x="352" y="131">startPage(): session check,</text>
+      <text class="t-s" x="352" y="144">profile menu, Review badge</text>
+      <rect class="box" x="536" y="96" width="176" height="56" rx="9"/>
+      <text class="t-title" x="548" y="116">core/api.js</text>
+      <text class="t-s" x="548" y="131">calls adminApi</text>
+      <text class="t-s" x="548" y="144">(Cloud Functions)</text>
+      <rect class="box" x="340" y="168" width="176" height="56" rx="9"/>
+      <text class="t-title" x="352" y="188">data/*.js</text>
+      <text class="t-s" x="352" y="203">Firestore queries and</text>
+      <text class="t-s" x="352" y="216">live listeners</text>
+      <rect class="box" x="536" y="168" width="176" height="56" rx="9"/>
+      <text class="t-title" x="548" y="188">components/*.js</text>
+      <text class="t-s" x="548" y="203">rank list, chart, office form,</text>
+      <text class="t-s" x="548" y="216">toasts, modal, …</text>
+      <rect class="box-soft" x="340" y="240" width="372" height="44" rx="9"/>
+      <text class="t-title" x="352" y="258">core/firebase.js</text>
+      <text class="t-s" x="352" y="273">one Firebase app · auth · Firestore with offline cache · functions</text>
+      <path class="line" d="M518 54 V76 M428 76 H624" style="stroke:#8a9bb8;stroke-width:1.2"/>
+      <path class="ar-m" d="M428 76 V94"/>
+      <path class="ar-m" d="M624 76 V94"/>
+      <path class="ar-m" d="M526 76 V160 H428 V166"/>
+      <path class="ar-m" d="M526 160 H624 V166"/>
+      <path class="ar-d" d="M428 224 V238"/>
+      <text class="t-s" x="440" y="234">every module reaches Firebase through it</text>
+    </svg>
+    <figcaption>Anatomy of a page: the HTML file (left) and the modules its page script uses (right)</figcaption>
+  </figure>
+  <pre><code>&lt;link rel="stylesheet" href="css/app.css"&gt;
+&lt;script src="js/shell.js"&gt;&lt;/script&gt;                        <span class="c">&lt;!-- sidebar + top bar on first paint --&gt;</span>
+&lt;script type="module" src="js/pages/dashboard.js"&gt;&lt;/script&gt;
+…
+&lt;app-sidebar active="dashboard"&gt;&lt;/app-sidebar&gt;
+&lt;main class="main"&gt;&lt;app-topbar&gt;&lt;/app-topbar&gt; …page content… &lt;/main&gt;
+
+<span class="c">// js/pages/dashboard.js</span>
+import { startPage } from '../core/page.js';
+const session = await startPage();   <span class="c">// { uid, email, name, role, status, office, officeId, photoURL }</span></code></pre>
+
+  <h2 id="sec-modules">Folders and modules</h2>
+  <table id="tbl-modules">
+    <caption>Frontend folders</caption>
+    <thead><tr><th style="width:22%">Folder</th><th>Responsibility</th><th style="width:31%">Main files</th></tr></thead>
+    <tbody>
+      <tr><td><code>js/shell.js</code></td><td>Sidebar and top bar custom elements, the menu (<code>NAV</code>), Super Admin page list, saved session hint, avatars, collapse and drawer.</td><td>—</td></tr>
+      <tr><td><code>js/core/</code></td><td>Infrastructure shared by every page.</td><td><code>firebase.js</code>, <code>session.js</code>, <code>page.js</code>, <code>api.js</code>, <code>cache.js</code>, <code>dom.js</code>, <code>activity-log.js</code>, <code>email.js</code>, <code>dates.js</code>, <code>schedule.js</code>, <code>password.js</code>, <code>constants.js</code></td></tr>
+      <tr><td><code>js/core/sdk/</code></td><td>Re-exports the Firebase SDK from <code>gstatic</code>. This is the only place the SDK version is written.</td><td><code>app.js</code>, <code>auth.js</code>, <code>firestore.js</code>, <code>functions.js</code></td></tr>
+      <tr><td><code>js/data/</code></td><td>Every Firestore query, one file per collection, with live listeners.</td><td><code>offices.js</code>, <code>services.js</code>, <code>requests.js</code>, <code>activity.js</code>, <code>live.js</code></td></tr>
+      <tr><td><code>js/components/</code></td><td>Reusable UI pieces (<a class="xref" href="#tbl-components"></a>).</td><td><code>toast.js</code>, <code>modal.js</code>, <code>service-editor.js</code>, <code>floor-plan.js</code>, …</td></tr>
+      <tr><td><code>js/pages/</code></td><td>One module per page. Connects data to components and handles the page's buttons.</td><td><code>dashboard.js</code>, <code>review-queue.js</code>, …</td></tr>
+      <tr><td><code>css/</code></td><td><code>app.css</code> imports <code>base/</code> (tokens, reset, layout) and <code>components/</code>. <code>pages/</code> holds page-only styles.</td><td><code>base/tokens.css</code>, <code>base/fonts.css</code></td></tr>
+      <tr><td><code>tools/</code></td><td>One-off maintenance scripts run from the browser console (<a class="xref" href="#sec-tools"></a>). Not served by Firebase Hosting.</td><td><code>fill_service_details.js</code>, …</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="sec-session">Session and page start-up</h2>
+  <p>Before a page shows data, <code>requireAdmin()</code> confirms who is signed in and whether they may be there (<a class="xref" href="#fig-startup"></a>).</p>
+  <figure class="diagram" id="fig-startup">
+    <svg class="dg" viewBox="0 0 720 196" role="img" aria-label="Page start-up">
+      <rect class="box" x="8" y="16" width="122" height="64" rx="9"/>
+      <text class="t-title" x="18" y="36">Page opens</text>
+      <text class="t-s" x="18" y="52">shell.js draws the menu</text>
+      <text class="t-s" x="18" y="65">from the saved hint</text>
+      <rect class="box" x="154" y="16" width="122" height="64" rx="9"/>
+      <text class="t-title" x="164" y="36">Who is signed in?</text>
+      <text class="t-s" x="164" y="52">waits for Firebase</text>
+      <text class="t-s" x="164" y="65">Authentication</text>
+      <rect class="box" x="300" y="16" width="122" height="64" rx="9"/>
+      <text class="t-title" x="310" y="36">Load session</text>
+      <text class="t-s" x="310" y="52">saved copy if under 10 min,</text>
+      <text class="t-s" x="310" y="65">else read admin/{uid}</text>
+      <rect class="box" x="446" y="16" width="122" height="64" rx="9"/>
+      <text class="t-title" x="456" y="36">Access rules</text>
+      <text class="t-s" x="456" y="52">status active? page</text>
+      <text class="t-s" x="456" y="65">allowed for the role?</text>
+      <rect class="box-navy" x="592" y="16" width="122" height="64" rx="9"/>
+      <text class="t-w t-b" x="602" y="36">Page starts</text>
+      <text class="t-wm" x="602" y="52">session shared with menu,</text>
+      <text class="t-wm" x="602" y="65">top bar and page</text>
+      <path class="ar" d="M130 48 H152"/>
+      <path class="ar" d="M276 48 H298"/>
+      <path class="ar" d="M422 48 H444"/>
+      <path class="ar" d="M568 48 H590"/>
+      <rect class="box-red" x="154" y="130" width="122" height="52" rx="9"/>
+      <text class="t-title" x="164" y="150">login.html</text>
+      <text class="t-s" x="164" y="166">nobody signed in</text>
+      <rect class="box-red" x="372" y="130" width="146" height="52" rx="9"/>
+      <text class="t-title" x="382" y="150">Sign out → login</text>
+      <text class="t-s" x="382" y="166">pending, deactivated, no record</text>
+      <rect class="box-amber" x="540" y="130" width="174" height="52" rx="9"/>
+      <text class="t-title" x="550" y="150">Redirect</text>
+      <text class="t-s" x="550" y="166">office admin on a Super Admin page</text>
+      <path class="ar-r" d="M215 80 V128"/>
+      <path class="ar-r" d="M490 80 V104 H445 V128"/>
+      <path class="ar-m" d="M530 80 V104 H627 V128"/>
+      <path class="ar-d" d="M361 80 V100 H300"/>
+      <text class="t-s" x="226" y="114">a saved session is re-checked in the background</text>
+    </svg>
+    <figcaption>Page start-up: from the first paint to a confirmed session</figcaption>
+  </figure>
+  <ul>
+    <li><strong>The session</strong> is <code>{ uid, email, name, role, status, office, officeId, photoURL, savedAt }</code>. <code>officeId</code> is found by looking up the office whose <code>office_name</code> equals the admin's <code>admin_office</code>.</li>
+    <li><strong>The saved hint</strong> is kept in <code>localStorage</code> (<code>gabayan_session</code>). It lets the menu and top bar draw instantly, but it is never trusted for access: it is replaced by the confirmed session, and a saved copy older than 10 minutes is read again.</li>
+    <li><strong>Background re-check.</strong> When a recent saved copy is used, the admin record is still read in the background. If access was revoked meanwhile, the page is left.</li>
+    <li><code>onSession(callback)</code> lets components react when the session changes, for example after the profile is edited.</li>
+  </ul>
+
+  <h2 id="sec-rendering">Rendering safely</h2>
+  <p>Names, descriptions and other text come from the database, so the panel never inserts them as raw HTML. <code>js/core/dom.js</code> provides:</p>
+  <pre><code>import { html, raw, render, on, $ } from '../core/dom.js';
+
+render(list, html`&lt;li data-id="${office.id}"&gt;${office.name}&lt;/li&gt;`);  <span class="c">// every ${…} is escaped</span>
+render(box, html`${items.map((i) =&gt; html`&lt;b&gt;${i}&lt;/b&gt;`)}`);       <span class="c">// nested html`` stays markup</span>
+on(list, 'click', '[data-action="delete"]', (event, button) =&gt; remove(button.dataset.id));</code></pre>
+  <ul>
+    <li><code>html`…`</code> escapes every value; <code>raw()</code> marks markup you built yourself.</li>
+    <li><code>render(el, content)</code> inserts <code>html</code> results as markup and plain strings as text.</li>
+    <li><code>on(root, type, selector, handler)</code> is event delegation, so there is no <code>onclick</code> in markup. Inline handlers would also be blocked by the Content Security Policy.</li>
+  </ul>
+
+  <h2 id="sec-caching">Live data and caching</h2>
+  <h3>Firestore listeners</h3>
+  <p>Firestore is started with a <strong>persistent local cache</strong> (IndexedDB, shared between tabs), so revisited pages show data at once. <code>liveQuery()</code> and <code>liveDoc()</code> in <code>js/data/live.js</code> skip the empty first answer that comes from the cache on a first visit. Pages therefore keep their loading skeleton instead of flashing “nothing here”.</p>
+  <h3>Version-checked server answers</h3>
+  <p>Answers from the server that every visit needs are kept in the browser and only downloaded again when the data really changed (<a class="xref" href="#fig-cache"></a>). These are the dashboard and analytics numbers, the account lists and Deleted Records. Firestore triggers bump a version number for each topic in <code>meta/versions</code> whenever relevant data is written (<a class="xref" href="#sec-triggers"></a>).</p>
+  <figure class="diagram" id="fig-cache">
+    <svg class="dg" viewBox="0 0 720 300" role="img" aria-label="Version-checked caching">
+      <rect class="box-navy" x="16" y="8" width="150" height="34" rx="8"/>
+      <text class="t-w t-b t-c" x="91" y="30">Page (browser)</text>
+      <rect class="box" x="196" y="8" width="150" height="34" rx="8"/>
+      <text class="t-title t-c" x="271" y="30">Browser storage</text>
+      <rect class="box-sky" x="376" y="8" width="150" height="34" rx="8"/>
+      <text class="t-title t-c" x="451" y="30">adminApi</text>
+      <rect class="box" x="556" y="8" width="150" height="34" rx="8"/>
+      <text class="t-title t-c" x="631" y="30">Firestore</text>
+      <path class="line" d="M91 42 V292 M271 42 V292 M451 42 V292 M631 42 V292" stroke-dasharray="3 3"/>
+      <path class="ar" d="M91 70 H269"/>
+      <text class="t-lbl" x="98" y="64">1  read the saved copy → draw it at once</text>
+      <path class="ar" d="M91 102 H449"/>
+      <text class="t-lbl" x="98" y="96">2  getStats({ version: version of the saved copy })</text>
+      <path class="ar" d="M451 132 H629"/>
+      <text class="t-lbl" x="458" y="126">3  read meta/versions</text>
+      <path class="ar-d" d="M631 154 H453"/>
+      <text class="t-s" x="520" y="168">current version</text>
+      <path class="ar-g" d="M451 190 H93"/>
+      <text class="t-lbl" x="98" y="184" style="fill:#16a34a">4a  same version → { unchanged: true } · keep the copy (one small read in total)</text>
+      <path class="ar" d="M451 222 H629"/>
+      <text class="t-lbl" x="458" y="216">4b  changed → load the data</text>
+      <path class="ar-d" d="M451 252 H93"/>
+      <text class="t-lbl" x="98" y="246">{ version, data } → redraw</text>
+      <path class="ar" d="M91 280 H269"/>
+      <text class="t-lbl" x="98" y="274">5  save the new copy and its version</text>
+    </svg>
+    <figcaption>Version-checked caching: the browser downloads data again only after a real change</figcaption>
+  </figure>
+  <table id="tbl-cache-keys" class="compact">
+    <caption>What the panel caches in the browser</caption>
+    <thead><tr><th style="width:27%">Cache key</th><th style="width:19%">Stored in</th><th>Content and refresh rule</th></tr></thead>
+    <tbody>
+      <tr><td><code>stats-v3</code></td><td>localStorage</td><td>Dashboard and Analytics numbers, shared by both pages. Checked on every visit and when the tab is shown again.</td></tr>
+      <tr><td><code>accounts:users</code>, <code>accounts:admins</code></td><td>sessionStorage</td><td>Account lists with names and e-mails, so kept for this tab only. Downloaded again when accounts change, and at least every 10 minutes for “last login”.</td></tr>
+      <tr><td><code>deleted</code></td><td>sessionStorage</td><td>Deleted Records. Updated in place after your own recover or delete.</td></tr>
+    </tbody>
+  </table>
+  <p>Every key is stored per admin (<code>gabayan_cache:{uid}:{key}</code>), and all of them are removed on sign-out. Pages pass <code>force</code> right after the admin's own change, because the trigger that bumps the version may not have run yet.</p>
+
+  <h2 id="sec-api">Calling the server</h2>
+  <p><code>js/core/api.js</code> wraps the two callable functions:</p>
+  <pre><code>import { api, recovery } from '../core/api.js';
+
+const { accounts } = await api.listAccounts('admins');          <span class="c">// adminApi, action "listAccounts"</span>
+await api.trashService(officeId, serviceId);                   <span class="c">// Super Admin only (checked on the server)</span>
+await recovery.sendCode(email);                                <span class="c">// adminAuth, no sign-in needed</span></code></pre>
+  <ul>
+    <li>Every call sends <code>{ action, data }</code>. The Firebase SDK adds the caller's ID token, which the server verifies.</li>
+    <li>Errors become a normal <code>Error</code> with the server's user-friendly message and a <code>.code</code> such as <code>permission-denied</code>, <code>not-found</code> or <code>invalid-argument</code>. Network problems become <em>Could not reach the server…</em></li>
+    <li>The timeout is 540 seconds, long enough for permanently deleting a large office.</li>
+    <li><code>newNotifyId()</code> creates the random ID that tells the server to notify citizens about a save (<a class="xref" href="#sec-publish"></a>).</li>
+  </ul>
+
+  <h2 id="sec-activity-email">Activity log entries and e-mails</h2>
+  <h3>Writing activity entries</h3>
+  <p><code>logActivity(type, details)</code> (<code>js/core/activity-log.js</code>) writes one copy of the entry to the activity log of <strong>every Super Admin</strong> listed in <code>app_settings/super_admin.uids</code>. It can also add an extra recipient: <code>details.recipient_uid</code> is one admin, and <code>'all_admins'</code> means every active admin, for Super Admin actions only. It never throws and is never awaited before a success message, so a logging problem cannot block real work.</p>
+  <h3>E-mails</h3>
+  <p>Status e-mails are sent from the browser through EmailJS (<code>js/core/email.js</code>). EmailJS is loaded only when the first e-mail is sent. Recovery codes are sent by the server instead (<a class="xref" href="#sec-adminauth"></a>).</p>
+  <table id="tbl-emails" class="compact">
+    <caption>E-mails sent by the admin panel</caption>
+    <thead><tr><th style="width:30%">When</th><th style="width:20%">To</th><th>Subject</th></tr></thead>
+    <tbody>
+      <tr><td>Admin account requested</td><td>Requester</td><td>GaBayan Account Request - Under Review</td></tr>
+      <tr><td>Admin account requested</td><td>Super Admin address</td><td>GaBayan - New Admin Account Request</td></tr>
+      <tr><td>Account request accepted / declined</td><td>Requester</td><td>GaBayan Account Request - Approved / Not Approved</td></tr>
+      <tr><td>Office admin asks to delete a service</td><td>Super Admin address</td><td>GaBayan - Service Deletion Request</td></tr>
+      <tr><td>Deletion request accepted / declined</td><td>Requester</td><td>GaBayan - Your service deletion (or account deletion) request was approved / not approved</td></tr>
+      <tr><td>Forgot password</td><td>The admin</td><td>Recovery code (sent by the <code>adminAuth</code> function)</td></tr>
+    </tbody>
+  </table>
+  <p class="small">The Super Admin's address is the <code>SUPER_ADMIN_EMAIL</code> constant in <code>js/core/email.js</code>. With the emulators, e-mails are only logged in the console.</p>
+
+  <h2 id="sec-components">User-interface components</h2>
+  <table id="tbl-components" class="compact">
+    <caption>Reusable components in js/components</caption>
+    <thead><tr><th style="width:24%">Component</th><th>What it does</th><th style="width:25%">Used by</th></tr></thead>
+    <tbody>
+      <tr><td><code>toast.js</code></td><td>Centred message dialogs: <code>toast.success/error/info/loading</code>, <code>confirm()</code>, <code>promptMatch()</code> (type the name to confirm) and the bottom <code>snackbar()</code> with Undo.</td><td>Every page</td></tr>
+      <tr><td><code>modal.js</code></td><td>Dialog base: backdrop, Escape and outside-click closing, focus kept inside, optional “are you sure?” before closing.</td><td>Forms and dialogs</td></tr>
+      <tr><td><code>office-form-modal.js</code></td><td>Add and edit office or room form, with duplicate checks, schedule building and validation.</td><td>Dashboard, Service and Map Management</td></tr>
+      <tr><td><code>service-editor.js</code></td><td>Channel tabs, transaction details, requirements and steps, with drag-to-reorder and validation.</td><td>Add / Edit Service</td></tr>
+      <tr><td><code>combo-box.js</code></td><td>Text field with suggestions. With <code>strict</code>, only listed values are accepted.</td><td>Service editor</td></tr>
+      <tr><td><code>office-picker.js</code></td><td>Live suggestion sources: all offices, and first-floor “destinations”.</td><td>Service editor</td></tr>
+      <tr><td><code>floor-plan.js</code></td><td>SVG first-floor plan with 15 rooms, drag and drop with mouse, pen or touch, and keyboard support.</td><td>Map Management</td></tr>
+      <tr><td><code>chart.js</code></td><td>Line charts with Chart.js, loaded on demand with an integrity hash.</td><td>Dashboard, Analytics</td></tr>
+      <tr><td><code>rank-list.js</code>, <code>skeleton.js</code></td><td>Ranked lists with bars; loading placeholders.</td><td>Dashboard, Analytics, lists</td></tr>
+      <tr><td><code>leave-guard.js</code></td><td>Asks before leaving with unsaved changes: links, browser Back, closing the tab.</td><td>Add / Edit Service</td></tr>
+      <tr><td><code>profile-menu.js</code></td><td>Profile dropdown, Edit Profile, Delete Account, Sign Out.</td><td>Every page (via <code>startPage</code>)</td></tr>
+      <tr><td><code>review-badge.js</code></td><td>Live count of pending requests on the sidebar.</td><td>Every page for Super Admins</td></tr>
+      <tr><td><code>admin-agreement.js</code>, <code>admin-legal-content.js</code></td><td>Terms &amp; Conditions and Privacy Policy dialog and text (version 1.0).</td><td>Sign up</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="sec-styles">Styles and design tokens</h2>
+  <p>All colours, type sizes, spacing, radii and shadows are defined once in <code>css/base/tokens.css</code> and used through CSS variables. This document uses the same palette.</p>
+  <table id="tbl-tokens" class="compact">
+    <caption>Main design tokens</caption>
+    <thead><tr><th style="width:8%"></th><th style="width:24%">Token</th><th style="width:15%">Value</th><th>Used for</th></tr></thead>
+    <tbody>
+      <tr><td><span class="swatch" style="background:#002D62"></span></td><td><code>--navy</code></td><td>#002D62</td><td>Headings, primary buttons, active menu text</td></tr>
+      <tr><td><span class="swatch" style="background:#2057CE"></span></td><td><code>--navy-light</code></td><td>#2057CE</td><td>Highlights, focus, links in cards</td></tr>
+      <tr><td><span class="swatch" style="background:linear-gradient(135deg,#003a7a,#1565c0)"></span></td><td><code>--banner-from</code> → <code>--banner-to</code></td><td>#003a7a → #1565c0</td><td>Page banners</td></tr>
+      <tr><td><span class="swatch" style="background:#dce8f5"></span></td><td><code>--main-bg</code></td><td>#dce8f5</td><td>Page background</td></tr>
+      <tr><td><span class="swatch" style="background:#e8eef8"></span></td><td><code>--panel-bg</code> / <code>--active-bg</code></td><td>#e8eef8</td><td>Panels, active menu item</td></tr>
+      <tr><td><span class="swatch" style="background:#0d1f3c"></span></td><td><code>--text-dark</code></td><td>#0d1f3c</td><td>Body text</td></tr>
+      <tr><td><span class="swatch" style="background:#6b7a99"></span></td><td><code>--text-muted</code></td><td>#6b7a99</td><td>Secondary text</td></tr>
+      <tr><td><span class="swatch" style="background:#16a34a"></span></td><td><code>--success</code> · <code>--warning</code> · <code>--danger</code></td><td>#16a34a · #d97706 · #dc2626</td><td>Status badges and messages</td></tr>
+    </tbody>
+  </table>
+  <p>The typeface is <strong>Inter</strong>, self-hosted in <code>public/assets/fonts</code> (variable font, weights 400–800) and declared in <code>css/base/fonts.css</code>.</p>
+</section>
+
+<!-- ============================================================ CHAPTER 6 -->
+<section class="chapter">
+  <h1 id="ch-backend">Cloud Functions</h1>
+  <p class="chapter-intro">The server side of the panel lives in <code>functions/</code> and deploys as the Firebase codebase <code>admin</code>, in region <code>asia-southeast1</code>. This chapter describes every function, what it checks and what it writes.</p>
+
+  <h2 id="sec-functions-overview">Overview</h2>
+  <table id="tbl-functions" class="compact">
+    <caption>Functions of the admin codebase (functions/index.js)</caption>
+    <thead><tr><th style="width:27%">Function</th><th style="width:17%">Kind</th><th>Runs when / does</th></tr></thead>
+    <tbody>
+      <tr><td><code>adminApi</code></td><td>Callable (HTTPS)</td><td>The panel calls it for every privileged action (<a class="xref" href="#tbl-adminapi"></a>). Timeout 540 s.</td></tr>
+      <tr><td><code>adminAuth</code></td><td>Callable (HTTPS)</td><td>The login page's <em>Forgot password</em> (no sign-in needed). Uses the secret <code>EMAILJS_PRIVATE_KEY</code>.</td></tr>
+      <tr><td><code>onAdminCreated</code></td><td>Firestore trigger</td><td><code>admin/{uid}</code> created: gives the login the custom claim <code>admin: true</code> and marks its e-mail verified, so password and Google sign-in can share one account.</td></tr>
+      <tr><td><code>onServiceWritten</code></td><td>Firestore trigger</td><td>A service was written with a new <code>notify_id</code>: notifies every citizen about a new or changed service.</td></tr>
+      <tr><td><code>onOfficeCreated</code></td><td>Firestore trigger</td><td>A new office with a <code>notify_id</code>: notifies every citizen.</td></tr>
+      <tr><td><code>versionsOn…Written</code> (5)</td><td>Firestore triggers</td><td>Bump cache version numbers in <code>meta/versions</code> (<a class="xref" href="#tbl-versions"></a>).</td></tr>
+      <tr><td><code>purgeExpiredDeletedServices</code></td><td>Scheduled</td><td>Every day at 03:00 Asia/Manila: permanently deletes Deleted Records older than 30 days.</td></tr>
+    </tbody>
+  </table>
+  <p>Global options (<code>functions/index.js</code>): region <code>asia-southeast1</code>, 512 MiB of memory, at most 10 instances. Both callable functions accept browser calls only from the panel's own addresses and add security headers to every response (<a class="xref" href="#sec-fn-hardening"></a>).</p>
+
+  <h2 id="sec-adminapi">adminApi: one function, many actions</h2>
+  <p>The panel sends <code>{ action, data }</code>. The function looks the action up in a table that names the role it needs and its handler, then:</p>
+  <ol class="steps">
+    <li>Refuses unknown actions (<code>invalid-argument</code>).</li>
+    <li>Runs <code>requireRole()</code>. It needs a valid sign-in (the callable protocol has already verified the ID token) and reads <code>admin/{uid}</code> on every call: the status must be <code>active</code>, and the role must be <code>super_admin</code> when the action needs it.</li>
+    <li>Calls the handler with the caller (<code>uid</code>, <code>name</code>, <code>role</code>, <code>office</code>) and the data. Expected errors (<code>HttpsError</code>) reach the page with a friendly message. Anything else is logged and returned as <em>Something went wrong. Please try again.</em></li>
+  </ol>
+  <p>A single function means one warm instance serves every action, which gives fewer cold starts.</p>
+  <table id="tbl-adminapi" class="compact">
+    <caption>adminApi actions</caption>
+    <thead><tr><th style="width:25%">Action</th><th style="width:12%">Role</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>listAccounts</code></td><td><span class="badge super">Super</span></td><td>Lists <code>users</code> or <code>admin</code> merged with Firebase Auth data: last sign-in, last token refresh and whether the login is disabled. Version-checked (topics <code>users</code> / <code>admins</code>).</td></tr>
+      <tr><td><code>setAccountStatus</code></td><td><span class="badge super">Super</span></td><td><em>deactivate</em>: disables the login, revokes its sessions and records who, when and why. <em>reactivate</em>: enables the login and restores the previous status. Refuses your own account, Super Admins and pending admins.</td></tr>
+      <tr><td><code>deleteAuthUser</code></td><td><span class="badge super">Super</span></td><td>Deletes an admin's Firebase login, after a declined sign-up or an accepted deletion. Refuses yourself and Super Admins.</td></tr>
+      <tr><td><code>trashService</code></td><td><span class="badge super">Super</span></td><td>Marks the service deleted and starts its 30 days. With <code>requestId</code>, closes the matching deletion request in the same transaction.</td></tr>
+      <tr><td><code>trashOffice</code></td><td><span class="badge super">Super</span></td><td>Marks the office deleted, frees its map room (kept for recovery) and leaves its services untouched.</td></tr>
+      <tr><td><code>listDeleted</code></td><td><span class="badge super">Super</span></td><td>All deleted services (one collection-group query) and offices, with service counts. Version-checked (topic <code>deleted</code>).</td></tr>
+      <tr><td><code>restoreService</code></td><td><span class="badge super">Super</span></td><td>Removes the trash fields. Refused while the service's office is deleted.</td></tr>
+      <tr><td><code>restoreOffice</code></td><td><span class="badge super">Super</span></td><td>Removes the trash fields and gives the office its map room back if nobody took it.</td></tr>
+      <tr><td><code>purgeService</code>, <code>purgeOffice</code></td><td><span class="badge super">Super</span></td><td>Permanent, recursive delete. Only for items in Deleted Records, and <code>confirmName</code> must equal the name exactly.</td></tr>
+      <tr><td><code>renameOffice</code></td><td><span class="badge super">Super</span></td><td>Renames an office or room, refuses names already in use, and updates every <code>admin.admin_office</code> and every step's <code>navigate_to</code> that used the old name.</td></tr>
+      <tr><td><code>deleteCompletedRequest</code></td><td><span class="badge super">Super</span></td><td>Deletes a <code>completed_requests</code> history record. The browser is not allowed to.</td></tr>
+      <tr><td><code>getStats</code></td><td><span class="badge both">Any</span></td><td>Dashboard and Analytics numbers. An office admin receives only their office (<a class="xref" href="#sec-stats"></a>).</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="sec-adminauth">adminAuth: password recovery</h2>
+  <p>The whole forgot-password flow is checked on the server. The browser never sees the code (<a class="xref" href="#fig-recovery"></a>). The flow is a port of the mobile app's, limited to active admin accounts and kept in its own collection.</p>
+  <figure class="diagram" id="fig-recovery">
+    <svg class="dg" viewBox="0 0 720 250" role="img" aria-label="Password recovery on the server">
+      <rect class="box-navy" x="8" y="10" width="220" height="38" rx="9"/>
+      <text class="t-w t-b" x="20" y="34">1  sendRecoveryCode(email)</text>
+      <rect class="box-navy" x="250" y="10" width="220" height="38" rx="9"/>
+      <text class="t-w t-b" x="262" y="34">2  verifyRecoveryCode(email, code)</text>
+      <rect class="box-navy" x="492" y="10" width="220" height="38" rx="9"/>
+      <text class="t-w t-b" x="504" y="34">3  resetPasswordWithCode(…)</text>
+      <path class="ar" d="M228 29 H248"/>
+      <path class="ar" d="M470 29 H490"/>
+      <rect class="box" x="8" y="58" width="220" height="100" rx="9"/>
+      <text x="20" y="80">• e-mail must belong to an active admin</text>
+      <text x="20" y="98">• one code per 60 seconds at most</text>
+      <text x="20" y="116">• 6 digits, saved as a salted SHA-256</text>
+      <text x="20" y="134">• valid 5 minutes; e-mailed via EmailJS</text>
+      <text class="t-s" x="20" y="150">(emulators: printed in the log instead)</text>
+      <rect class="box" x="250" y="58" width="220" height="100" rx="9"/>
+      <text x="262" y="80">• expired code → request a new one</text>
+      <text x="262" y="98">• hashes compared in constant time</text>
+      <text x="262" y="116">• wrong code → attempts + 1</text>
+      <text x="262" y="134">• 5 wrong tries → code deleted</text>
+      <rect class="box" x="492" y="58" width="220" height="100" rx="9"/>
+      <text x="504" y="80">• checks the code again</text>
+      <text x="504" y="98">• 8+ chars, capital, number, symbol</text>
+      <text x="504" y="116">• sets the new password</text>
+      <text x="504" y="134">• signs out other sessions, deletes code</text>
+      <rect class="box-soft" x="150" y="196" width="420" height="46" rx="9"/>
+      <text class="t-title" x="164" y="215">admin_password_resets/{email}</text>
+      <text class="t-s" x="164" y="231">codeHash · salt · attempts · createdAt · lastSentAt · expiresAt</text>
+      <path class="ar-d" d="M118 158 V219 H148"/>
+      <path class="ar-d" d="M360 158 V194"/>
+      <path class="ar-d" d="M602 158 V219 H572"/>
+    </svg>
+    <figcaption>Password recovery on the server (adminAuth)</figcaption>
+  </figure>
+  <ul>
+    <li>Wrong e-mails get the same answer as unknown ones (<em>Email is not registered or invalid.</em>). The password rules match the login page's checklist.</li>
+    <li>If e-mailing fails, the saved code is deleted again and the user sees <em>Could not reach the email service…</em></li>
+    <li>The EmailJS private key is a Firebase secret (Secret Manager), never stored in the code.</li>
+  </ul>
+
+  <h2 id="sec-triggers">Firestore triggers</h2>
+  <h3>New admins</h3>
+  <p><code>onAdminCreated</code> runs when an admin record is created at sign-up. It sets the custom claim <code>admin: true</code> and marks the e-mail verified, so the same person can later sign in with e-mail and password or with Google.</p>
+  <h3>Citizen notifications</h3>
+  <p>Saving a service or adding an office in the panel stamps a fresh random <code>notify_id</code> on the document, and only that sends notifications. Maintenance scripts, translation updates and trash or recovery writes do not stamp it, so they notify nobody. The trigger writes <code>users/{uid}/notifications/{notify_id}</code> for every citizen. Using <code>notify_id</code> as the document ID means a retried trigger overwrites instead of notifying twice. The mobile codebase's <code>sendPushOnNotificationCreated</code> then pushes each notification to the citizen's devices.</p>
+  <table id="tbl-notifications" class="compact">
+    <caption>Notifications sent to citizens</caption>
+    <thead><tr><th style="width:18%">Event</th><th style="width:34%">Title</th><th>Body</th></tr></thead>
+    <tbody>
+      <tr><td>New service</td><td>Hi Citizen! A new service added.</td><td><em>{service}</em> has been added to the <em>{office}</em>.</td></tr>
+      <tr><td>Changed service</td><td>Hi Citizen! Look, there's some changes.</td><td>The <em>{service}</em> service has some changes, come check it out.</td></tr>
+      <tr><td>New office</td><td>Hi Citizen! A new office added</td><td>A new office, <em>{office}</em>, is now available on GaBayan.</td></tr>
+    </tbody>
+  </table>
+  <h3>Cache version numbers</h3>
+  <p>Five triggers keep <code>meta/versions</code> current. Each topic is a counter that goes up when data shown by a cached page changes (<a class="xref" href="#sec-caching"></a>).</p>
+  <table id="tbl-versions" class="compact">
+    <caption>Which writes bump which cache topic</caption>
+    <thead><tr><th style="width:29%">Trigger</th><th style="width:28%">Watches</th><th>Bumps</th></tr></thead>
+    <tbody>
+      <tr><td><code>versionsOnHistoryWritten</code></td><td><code>users/{uid}/service_history/*</code></td><td><code>stats</code> on every write (citizens ticking steps)</td></tr>
+      <tr><td><code>versionsOnUserWritten</code></td><td><code>users/{uid}</code></td><td><code>stats</code> when a citizen is added or removed; <code>users</code> when a field shown in Account Management changes. Push tokens and other profile writes do not count.</td></tr>
+      <tr><td><code>versionsOnAdminWritten</code></td><td><code>admin/{uid}</code></td><td><code>admins</code> when a field shown in Account Management changes</td></tr>
+      <tr><td><code>versionsOnOfficeWritten</code></td><td><code>offices/{id}</code></td><td><code>stats</code> when the name or deleted flag changes; <code>deleted</code> when trash fields of a deleted office change</td></tr>
+      <tr><td><code>versionsOnServiceWritten</code></td><td><code>offices/{id}/services/{id}</code></td><td>The same, for services</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="sec-purge">Nightly purge of Deleted Records</h2>
+  <p><code>purgeExpiredDeletedServices</code> runs every day at 03:00 Asia/Manila with a 540-second timeout.</p>
+  <ol class="steps">
+    <li>Offices first: every office whose <code>permanentDeleteAt</code> has passed is deleted recursively, with all its services and their data.</li>
+    <li>Then services, found with one collection-group query (or office by office if that index is missing), the same way.</li>
+    <li>Safety: a document is only ever deleted if <code>isDeleted</code> is still <code>true</code>. Recovered items have no <code>permanentDeleteAt</code>, so they never match. Counts and failures are logged.</li>
+  </ol>
+
+  <h2 id="sec-stats">Statistics engine</h2>
+  <p><code>getStats</code> counts next to the database, so browsers never download every record. <code>computeStats()</code> reads, with only the needed fields:</p>
+  <ul>
+    <li><code>offices</code> (name, deleted flag) and all <code>services</code> (deleted flag): active offices and services, and services per office;</li>
+    <li><code>users</code> (<code>createdAt</code>): citizen totals and sign-ups per day, month and year (last 7 days, 12 months, 5 years);</li>
+    <li>every <code>service_history</code> entry: totals, applicants, the 5 most-used services and the 12-month completion trend, for all offices together and for each office on its own.</li>
+  </ul>
+  <p>All calendar maths uses <strong>Manila time</strong>, a fixed UTC+8 with no daylight saving, and weeks start on Monday. A history entry counts as <em>completed</em> when its status is <code>completed</code> or <code>done</code>, and as <em>in progress</em> when it contains <code>in progress</code> or <code>in_progress</code>, or is <code>pending</code> or <code>processing</code>. Its month comes from <code>last_updated</code>.</p>
+  <h3>Caching on the server and in the browser</h3>
+  <ul>
+    <li>The result is saved in <code>stats/summary</code> (<code>computedAt</code>, <code>changeCount</code>, <code>data</code>). It is counted again only when the <code>stats</code> version moved, the Manila date changed (for “today” and “this week”), or the copy is over an hour old as a safety net. <code>refresh: true</code> forces a recount right after an admin's own change.</li>
+    <li><code>viewFor()</code> trims the result per caller. A Super Admin gets <code>scope: "all"</code>. An office admin gets <code>scope: "office"</code> with only the entry whose name matches their <code>admin_office</code>.</li>
+    <li>The version sent to the browser is <code>{stats version}:{Manila date}:{role}:{office}</code>, so a change of role, office or day never leaves an old view on screen.</li>
+  </ul>
+
+  <h2 id="sec-fn-hardening">Shared helpers and hardening</h2>
+  <table id="tbl-fn-lib" class="compact">
+    <caption>functions/src/lib</caption>
+    <thead><tr><th style="width:25%">File</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>auth.js</code></td><td><code>requireRole(request, role)</code>: the admin record must be active, with the right role.</td></tr>
+      <tr><td><code>refs.js</code></td><td>Firestore handles and <code>validId()</code>: IDs from the browser must be non-empty, at most 1500 characters and contain no <code>/</code>.</td></tr>
+      <tr><td><code>errors.js</code></td><td>Short helpers for friendly <code>HttpsError</code>s: invalid, not found, conflict, forbidden, too many.</td></tr>
+      <tr><td><code>time.js</code></td><td>Manila calendar helpers (<code>manilaParts</code>, <code>manilaMidnight</code>, <code>toMillis</code>).</td></tr>
+      <tr><td><code>versions.js</code></td><td><code>bump()</code> and <code>withVersion()</code> for version-checked answers.</td></tr>
+      <tr><td><code>cors.js</code></td><td><code>ALLOWED_ORIGINS</code>: the only websites that may call the functions from a browser.</td></tr>
+      <tr><td><code>security-headers.js</code></td><td>Wraps both callables to add <code>Strict-Transport-Security</code>, <code>X-Content-Type-Options</code> and no-cache headers.</td></tr>
+    </tbody>
+  </table>
+  <p>Destructive actions run in <strong>transactions</strong>: trash, recover and closing a request. Permanent deletes need the exact name a second time. <a class="xref" href="#ch-security"></a> covers the security settings in detail.</p>
+
+  <h2 id="sec-mobile-functions">Functions owned by the mobile app <span class="badge mobile">Mobile app</span></h2>
+  <p>The mobile repository deploys its own codebase, <code>default</code>, to the same project. Admin changes set them off: for example, a new service is translated to Filipino by <code>translateService</code>, and every citizen notification becomes a push message. Do not deploy or delete them from this repository.</p>
+  <table id="tbl-mobile-functions" class="compact">
+    <caption>Functions of the mobile codebase (DocsEase-MobileApplication/docsease/functions)</caption>
+    <thead><tr><th style="width:38%">Function</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>sendRecoveryCode</code>, <code>verifyRecoveryCode</code>, <code>resetPasswordWithCode</code>, <code>resetUserPassword</code></td><td>Citizen password recovery.</td></tr>
+      <tr><td><code>changePasswordWithCode</code></td><td>Password change while signed in (the app's Edit Profile).</td></tr>
+      <tr><td><code>isEmailRegistered</code></td><td>Checks an e-mail during the app's flows.</td></tr>
+      <tr><td><code>translateService</code>, <code>translateOffice</code></td><td>Firestore triggers that add Filipino fields (<code>…_fil</code>) with Google Cloud Translation and set <code>_translated: true</code>. Documents already marked are skipped.</td></tr>
+      <tr><td><code>translateExistingData</code></td><td>HTTPS endpoint that translates existing data in one go.</td></tr>
+      <tr><td><code>sendPushOnNotificationCreated</code></td><td>Sends a push notification for each new <code>users/{uid}/notifications</code> document to the devices in <code>users/{uid}.fcm_tokens</code>.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============================================================ CHAPTER 7 -->
+<section class="chapter">
+  <h1 id="ch-data">Data Model</h1>
+  <p class="chapter-intro">Every Firestore collection the panel reads or writes, with its fields and who writes them. Both apps share these collections, so any change to them must be checked against the mobile app too.</p>
+
+  <h2 id="sec-collections">Collection map</h2>
+  <figure class="diagram" id="fig-collections">
+    <svg class="dg" viewBox="0 0 720 352" role="img" aria-label="Firestore collections">
+      <text class="t-lbl" x="8" y="12">CONTENT</text>
+      <text class="t-lbl" x="248" y="12">PEOPLE</text>
+      <text class="t-lbl" x="488" y="12">WORKFLOW AND SYSTEM</text>
+      <!-- content -->
+      <rect class="box-sky" x="8" y="20" width="224" height="54" rx="9"/>
+      <text class="t-title" x="20" y="40">offices/{officeId}</text>
+      <text class="t-s" x="20" y="56">Offices (category Regular Service)</text>
+      <text class="t-s" x="20" y="68">panel · server (trash, rename)</text>
+      <path class="line" d="M18 74 V104 H28"/>
+      <rect class="box-sky" x="28" y="82" width="204" height="54" rx="9"/>
+      <text class="t-title" x="40" y="102">services/{serviceId}</text>
+      <text class="t-s" x="40" y="118">Services, with channels and steps</text>
+      <text class="t-s" x="40" y="130">panel · server · mobile (translation)</text>
+      <rect class="box-sky" x="8" y="150" width="224" height="54" rx="9"/>
+      <text class="t-title" x="20" y="170">other_room/{roomId}</text>
+      <text class="t-s" x="20" y="186">Rooms: desks, comfort rooms, …</text>
+      <text class="t-s" x="20" y="198">panel · server (rename)</text>
+      <!-- people -->
+      <rect class="box-violet" x="248" y="20" width="224" height="54" rx="9"/>
+      <text class="t-title" x="260" y="40">admin/{uid}</text>
+      <text class="t-s" x="260" y="56">Web admins: role, status, office</text>
+      <text class="t-s" x="260" y="68">panel · server</text>
+      <path class="line" d="M258 74 V100 H268"/>
+      <rect class="box-violet" x="268" y="82" width="204" height="40" rx="9"/>
+      <text class="t-title" x="280" y="100">activity_logs/{logId}</text>
+      <text class="t-s" x="280" y="114">Activity Log copies · panel</text>
+      <rect class="box-green" x="248" y="136" width="224" height="54" rx="9"/>
+      <text class="t-title" x="260" y="156">users/{uid}</text>
+      <text class="t-s" x="260" y="172">Citizens of the mobile app</text>
+      <text class="t-s" x="260" y="184">mobile · server (status)</text>
+      <path class="line" d="M258 190 V318 H268 M258 222 H268 M258 270 H268"/>
+      <rect class="box-green" x="268" y="200" width="204" height="40" rx="9"/>
+      <text class="t-title" x="280" y="218">service_history/{serviceId}</text>
+      <text class="t-s" x="280" y="232">Tracked services · mobile</text>
+      <rect class="box-green" x="268" y="248" width="204" height="40" rx="9"/>
+      <text class="t-title" x="280" y="266">notifications/{notifyId}</text>
+      <text class="t-s" x="280" y="280">In-app notifications · server</text>
+      <rect class="box-green" x="268" y="296" width="204" height="44" rx="9"/>
+      <text class="t-title" x="280" y="314">conversations/{id}/messages</text>
+      <text class="t-s" x="280" y="330">Chatbot history · mobile</text>
+      <!-- workflow and system -->
+      <rect class="box-amber" x="488" y="20" width="224" height="44" rx="9"/>
+      <text class="t-title" x="500" y="38">requests/{id}</text>
+      <text class="t-s" x="500" y="54">Open requests · panel</text>
+      <rect class="box-amber" x="488" y="72" width="224" height="44" rx="9"/>
+      <text class="t-title" x="500" y="90">completed_requests/{id}</text>
+      <text class="t-s" x="500" y="106">Accepted requests · panel · server</text>
+      <rect class="box" x="488" y="128" width="224" height="44" rx="9"/>
+      <text class="t-title" x="500" y="146">app_settings/super_admin</text>
+      <text class="t-s" x="500" y="162">Super Admin UIDs · set by hand</text>
+      <rect class="box" x="488" y="180" width="224" height="44" rx="9"/>
+      <text class="t-title" x="500" y="198">meta/versions</text>
+      <text class="t-s" x="500" y="214">Cache versions · server triggers</text>
+      <rect class="box" x="488" y="232" width="224" height="44" rx="9"/>
+      <text class="t-title" x="500" y="250">stats/summary</text>
+      <text class="t-s" x="500" y="266">Saved statistics · server</text>
+      <rect class="box" x="488" y="284" width="224" height="56" rx="9"/>
+      <text class="t-title" x="500" y="302">admin_password_resets/{email}</text>
+      <text class="t-s" x="500" y="318">Hashed recovery codes · server</text>
+      <text class="t-s" x="500" y="330">(deleted after use)</text>
+    </svg>
+    <figcaption>Firestore collections used by the admin panel, grouped by purpose, with who writes them</figcaption>
+  </figure>
+
+  <h2 id="sec-offices-data">offices</h2>
+  <p>Document ID: the office name in capitals with dashes, for example <code>BUSINESS-PERMITS-AND-LICENSING-OFFICE</code>. A new office therefore cannot reuse the name of one in Deleted Records.</p>
+  <table id="tbl-office-fields" class="compact">
+    <caption>Fields of an office document</caption>
+    <thead><tr><th style="width:28%">Field</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>office_name</code></td><td>Display name. Admins are linked to the office by this name.</td></tr>
+      <tr><td><code>description</code>, <code>schedule</code></td><td>Free text. Schedule is formatted like <code>Mon-Fri, 8AM-5PM</code>.</td></tr>
+      <tr><td><code>floor</code></td><td><code>first_floor</code>, <code>second_floor</code> or <code>third_floor</code></td></tr>
+      <tr><td><code>category</code></td><td>Always <code>regular_service</code> for offices.</td></tr>
+      <tr><td><code>map_slot</code>, <code>map_slot_v</code></td><td>Room on the first-floor plan (<code>s1</code>–<code>s15</code>) and numbering version (2). Older numbering is converted automatically.</td></tr>
+      <tr><td><code>notify_id</code></td><td>Random ID stamped by the panel on creation; triggers the citizen notification.</td></tr>
+      <tr><td><code>created_at</code></td><td>Server time of creation.</td></tr>
+      <tr><td><code>isDeleted</code>, <code>deletedAt</code>, <code>deletedBy_uid</code>, <code>deletedBy_name</code>, <code>permanentDeleteAt</code>, <code>deletedMapSlot</code>, <code>deletedMapSlotV</code></td><td>Trash fields: present while the office is in Deleted Records.</td></tr>
+      <tr><td><code>restoredAt</code>, <code>restoredBy_uid</code></td><td>Last recovery.</td></tr>
+      <tr><td><code>office_name_fil</code>, <code>_translated</code></td><td>Filipino name, written by the mobile app's translation function.</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="sec-services-data">services</h2>
+  <p>Path <code>offices/{officeId}/services/{serviceId}</code>. Document ID: <code>{officeId}-{SERVICE-NAME}</code>, for example <code>BUSINESS-PERMITS-AND-LICENSING-OFFICE-NEW-BUSINESS-APPLICATION</code>.</p>
+  <table id="tbl-service-fields" class="compact">
+    <caption>Fields of a service document</caption>
+    <thead><tr><th style="width:28%">Field</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>service_name</code>, <code>description</code></td><td>Name and general description.</td></tr>
+      <tr><td><code>location</code>, <code>contact_phone</code>, <code>contact_email</code></td><td>Where and how to reach the office for this service.</td></tr>
+      <tr><td><code>tabs</code></td><td>The channels, each with transaction details, requirements and steps (structure below).</td></tr>
+      <tr><td><code>created_at</code>, <code>updated_at</code>, <code>notify_id</code></td><td>Timestamps, and the notification trigger ID stamped on every panel save.</td></tr>
+      <tr><td><code>isDeleted</code> + trash fields</td><td>As for offices, plus <code>deletedFromOffice_id/_name</code>, <code>deletionRequest_id</code> and <code>deletionRequestedBy_uid/_name</code>.</td></tr>
+      <tr><td><code>service_name_fil</code>, <code>description_fil</code>, <code>tabs_fil</code>, <code>_translated</code></td><td>Filipino translations, written once by the mobile app's <code>translateService</code> (<a class="xref" href="#sec-limitations"></a>).</td></tr>
+    </tbody>
+  </table>
+  <pre><code>tabs: [
+  {
+    tab_name: "Walk-In",
+    transaction_type: "G2B – Government to Business",     <span class="c">// optional</span>
+    who_may_avail: "…", total_fee: "…", total_processing_time: "1 Day",   <span class="c">// optional</span>
+    requirements: [ { requirement_name: "Barangay Clearance", secure_at: "Barangay Hall" } ],
+    procedures: [
+      {
+        process_name: "Payment", fee: "…", processing_time: "15 Minutes",
+        process_description: "…", person_in_charge: "…",
+        agency_actions: ["Issuance of official receipt"],  <span class="c">// optional, list</span>
+        notes: "", online_link: "",                       <span class="c">// optional</span>
+        navigate_to: "Office of the City Treasurer 1"      <span class="c">// optional, first-floor place</span>
+      }
+    ]
+  }
+]</code></pre>
+  <p class="small">Older services kept the transaction details on the service itself. The editor moves them into the first channel when the service is opened, and saving stores them there.</p>
+
+  <h2 id="sec-rooms-data">other_room</h2>
+  <p>Rooms that are not offices, such as the information desk, comfort rooms or first aid. Same ID scheme as offices. Fields: <code>room_name</code>, <code>description</code>, <code>floor</code>, <code>category</code> (one of the non-office categories), <code>schedule</code>, <code>created_at</code>, <code>map_slot</code>, <code>map_slot_v</code>. The document <code>ELEVATOR</code> is drawn as a fixed label on the map and cannot be moved.</p>
+
+  <h2 id="sec-admin-data">admin and activity_logs</h2>
+  <table id="tbl-admin-fields" class="compact">
+    <caption>Fields of an admin document (admin/{uid})</caption>
+    <thead><tr><th style="width:30%">Field</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>admin_id</code>, <code>full_name</code>, <code>email</code></td><td>Identity. The document ID is the Firebase Auth UID.</td></tr>
+      <tr><td><code>role</code></td><td><code>admin</code> or <code>super_admin</code></td></tr>
+      <tr><td><code>status</code></td><td><code>pending</code>, <code>active</code> or <code>deactivated</code></td></tr>
+      <tr><td><code>admin_office</code></td><td>Office name, which links the admin to <code>offices.office_name</code>. Empty for Super Admins.</td></tr>
+      <tr><td><code>sign_in_method</code></td><td><code>email</code> or <code>google</code></td></tr>
+      <tr><td><code>accepted_terms_version</code>, <code>accepted_terms_at</code></td><td>Agreement accepted at sign-up.</td></tr>
+      <tr><td><code>createdAt</code>, <code>updatedAt</code>, <code>approvedAt</code>, <code>approvedBy_uid</code></td><td>History of the account.</td></tr>
+      <tr><td><code>previous_status</code>, <code>deactivated_at</code>, <code>deactivated_by</code>, <code>deactivated_by_name</code>, <code>deactivation_reason</code>, <code>reactivated_at</code>, <code>reactivated_by</code></td><td>Written by <code>setAccountStatus</code>.</td></tr>
+    </tbody>
+  </table>
+  <p><strong>Activity entries</strong> (<code>admin/{uid}/activity_logs/{logId}</code>) hold <code>type</code>, <code>actor_uid</code>, <code>actor_name</code>, <code>actor_role</code>, <code>office_name</code>, <code>service_name</code>, <code>target_name</code>, <code>target_uid</code> and <code>createdAt</code>. The page turns them into sentences (<a class="xref" href="#app-activity"></a>).</p>
+
+  <h2 id="sec-requests-data">requests and completed_requests</h2>
+  <ul>
+    <li><code>requests/{id}</code> holds only <strong>open</strong> requests: <code>type</code> (<code>new_admin</code>, <code>delete_service</code> or <code>delete_admin</code>), <code>status: "pending"</code>, <code>requested_by_uid</code>, <code>requested_by_name</code>, <code>requested_by_email</code> and <code>createdAt</code>. Sign-ups add <code>target_admin_uid</code> and <code>office_name</code>; service deletions add <code>office_id</code>, <code>office_name</code>, <code>service_id</code> and <code>service_name</code>.</li>
+    <li><code>completed_requests/{id}</code> keeps the same ID and fields plus <code>status: "completed"</code>, <code>resolvedAt</code>, <code>resolvedBy_uid</code> and <code>resolvedBy_name</code>. Declined requests are simply removed.</li>
+  </ul>
+
+  <h2 id="sec-users-data">users and their sub-collections <span class="badge mobile">Mobile app</span></h2>
+  <table id="tbl-user-fields" class="compact">
+    <caption>Citizen data written by the mobile app (read by the panel)</caption>
+    <thead><tr><th style="width:32%">Document</th><th>Fields the panel uses</th></tr></thead>
+    <tbody>
+      <tr><td><code>users/{uid}</code></td><td><code>username</code> (or <code>full_name</code> / <code>first_name</code> + <code>last_name</code>), <code>email</code>, <code>createdAt</code>, <code>fcm_tokens</code>. Account Management adds <code>status</code> and the deactivation fields.</td></tr>
+      <tr><td><code>…/service_history/{serviceId}</code></td><td><code>service_id</code>, <code>service_name</code>, <code>status</code> (<code>In Progress</code> or <code>Completed</code>), <code>progress</code> (0–1), <code>completed_steps</code>, <code>checked_requirements</code>, <code>tab_progress</code>, <code>last_updated</code></td></tr>
+      <tr><td><code>…/notifications/{notifyId}</code></td><td><code>title</code>, <code>body</code>, <code>service_id</code>, <code>is_read</code>, <code>timestamp</code>. Written by the admin triggers.</td></tr>
+      <tr><td><code>…/conversations/{id}/messages</code></td><td>Chatbot history. Not used by the panel.</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="sec-system-docs">System documents</h2>
+  <table id="tbl-system-docs" class="compact">
+    <caption>Single documents used by the system</caption>
+    <thead><tr><th style="width:32%">Document</th><th>Content</th></tr></thead>
+    <tbody>
+      <tr><td><code>app_settings/super_admin</code></td><td><code>uids</code>: the Super Admins who receive every Activity Log entry. Kept by hand (<a class="xref" href="#sec-make-super"></a>).</td></tr>
+      <tr><td><code>meta/versions</code></td><td>Counters <code>stats</code>, <code>users</code>, <code>admins</code>, <code>deleted</code>.</td></tr>
+      <tr><td><code>stats/summary</code></td><td><code>computedAt</code>, <code>changeCount</code> and <code>data</code>, the full statistics including <code>byOffice</code>.</td></tr>
+      <tr><td><code>admin_password_resets/{email}</code></td><td><code>codeHash</code>, <code>salt</code>, <code>attempts</code>, <code>createdAt</code>, <code>lastSentAt</code>, <code>expiresAt</code></td></tr>
+    </tbody>
+  </table>
+  <div class="tip"><span class="label">Tip</span><p><code>meta/versions</code> and <code>stats/summary</code> can be deleted safely. They are rebuilt on the next request, and every browser downloads fresh data once.</p></div>
+
+  <h2 id="sec-indexes">Indexes</h2>
+  <p><code>firestore.indexes.json</code> turns on collection-group indexes for <code>services.isDeleted</code> and <code>services.permanentDeleteAt</code>. Deleted Records and the nightly purge use them to search every office's services at once. If an index is missing, both fall back to searching office by office. Deploy it with <code>firebase deploy --only firestore:indexes</code>. The other queries use Firestore's automatic single-field indexes.</p>
+
+  <h2 id="sec-browser-storage">What the panel keeps in the browser</h2>
+  <table id="tbl-storage" class="compact">
+    <caption>Browser storage used by the panel</caption>
+    <thead><tr><th style="width:34%">Key</th><th style="width:16%">Where</th><th>Content</th></tr></thead>
+    <tbody>
+      <tr><td><code>gabayan_session</code></td><td>localStorage</td><td>Session hint: uid, name, role, status, office, avatar. Never trusted for access.</td></tr>
+      <tr><td><code>gabayan_cache:{uid}:stats-v3</code></td><td>localStorage</td><td>Dashboard and Analytics numbers</td></tr>
+      <tr><td><code>gabayan_cache:{uid}:accounts:*</code>, <code>…:deleted</code></td><td>sessionStorage</td><td>Account lists and Deleted Records, for this tab only</td></tr>
+      <tr><td><code>gabayan_sidebar_collapsed</code></td><td>localStorage</td><td>Sidebar collapsed or not</td></tr>
+      <tr><td><code>gabayan_badge_pending</code></td><td>sessionStorage</td><td>Last pending-requests count, so the badge draws at once</td></tr>
+      <tr><td><code>gabayan_login_lockout</code></td><td>localStorage</td><td>Failed sign-in counters per e-mail (lockout)</td></tr>
+      <tr><td><code>gabayan_emulators</code></td><td>sessionStorage</td><td><code>1</code> while the tab uses the emulators</td></tr>
+      <tr><td>Firestore and Auth databases</td><td>IndexedDB</td><td>Firestore offline cache and the Firebase sign-in</td></tr>
+    </tbody>
+  </table>
+  <p>Signing out removes the session hint and every cache entry, and deletes Firestore's offline cache.</p>
+</section>
+
+<!-- ============================================================ CHAPTER 8 -->
+<section class="chapter">
+  <h1 id="ch-workflows">Key Workflows</h1>
+  <p class="chapter-intro">The processes that cross pages, functions and both apps, followed from start to finish.</p>
+
+  <h2 id="sec-approval">Approving a new admin</h2>
+  <figure class="diagram" id="fig-approval">
+    <svg class="dg" viewBox="0 0 720 262" role="img" aria-label="Admin approval workflow">
+      <rect class="lane" x="8" y="6" width="704" height="60" rx="8"/>
+      <rect class="lane" x="8" y="70" width="704" height="60" rx="8"/>
+      <rect class="lane" x="8" y="134" width="704" height="60" rx="8"/>
+      <rect class="lane" x="8" y="198" width="704" height="58" rx="8"/>
+      <text class="t-lbl" x="16" y="26">NEW ADMIN</text>
+      <text class="t-lbl" x="16" y="90">FIRESTORE</text>
+      <text class="t-lbl" x="16" y="154">SUPER ADMIN</text>
+      <text class="t-lbl" x="16" y="218">E-MAIL</text>
+      <rect class="box-navy" x="110" y="16" width="120" height="40" rx="8"/>
+      <text class="t-w t-b" x="122" y="34">Sign up</text>
+      <text class="t-wm" x="122" y="48">form or Google</text>
+      <rect class="box-amber" x="250" y="78" width="172" height="44" rx="8"/>
+      <text class="t-title" x="262" y="96">admin/{uid} · pending</text>
+      <text class="t-s" x="262" y="111">+ new_admin request + log entry</text>
+      <rect class="box" x="250" y="204" width="172" height="46" rx="8"/>
+      <text class="t-title" x="262" y="222">Two e-mails</text>
+      <text class="t-s" x="262" y="236">Under Review → requester</text>
+      <text class="t-s" x="262" y="246">New request → Super Admin</text>
+      <rect class="box-sky" x="438" y="144" width="118" height="40" rx="8"/>
+      <text class="t-title" x="448" y="162">Review Queue</text>
+      <text class="t-s" x="448" y="176">badge shows it live</text>
+      <rect class="box-green" x="576" y="78" width="136" height="44" rx="8"/>
+      <text class="t-title" x="588" y="96">Accept: active</text>
+      <text class="t-s" x="588" y="111">+ completed_requests</text>
+      <rect class="box-green" x="576" y="206" width="136" height="42" rx="8"/>
+      <text class="t-title" x="588" y="224">Approved e-mail</text>
+      <text class="t-s" x="588" y="239">+ Activity Log entry</text>
+      <rect class="box-green" x="576" y="16" width="136" height="40" rx="8"/>
+      <text class="t-title" x="588" y="34">Can sign in</text>
+      <text class="t-s" x="588" y="48">Dashboard opens</text>
+      <path class="ar" d="M190 56 V100 H248"/>
+      <path class="ar" d="M150 56 V227 H248"/>
+      <path class="ar" d="M422 100 H497 V142"/>
+      <path class="ar-g" d="M556 160 H566 V100 H574"/>
+      <path class="ar-g" d="M556 170 H566 V227 H574"/>
+      <path class="ar-g" d="M644 78 V58"/>
+    </svg>
+    <figcaption>Approving a new admin account. Declining removes the pending login and record instead and sends a Not Approved e-mail.</figcaption>
+  </figure>
+  <ol class="steps">
+    <li>The new admin signs up (<a class="xref" href="#sec-signup"></a>). The browser creates the login, the <code>admin/{uid}</code> record (<code>pending</code>) and the <code>new_admin</code> request, logs <em>admin_account_requested</em> for the Super Admins and sends the two e-mails.</li>
+    <li><code>onAdminCreated</code> gives the new login the <code>admin</code> claim.</li>
+    <li>The Super Admin sees the request (sidebar badge, Review Queue) and accepts it. The record becomes <code>active</code>, the request moves to <code>completed_requests</code>, the requester is e-mailed and gets an Activity Log entry.</li>
+    <li>Declining instead calls <code>deleteAuthUser</code>, removes the record and the request, and e-mails <em>Not Approved</em>.</li>
+  </ol>
+
+  <h2 id="sec-publish">Publishing a service to citizens</h2>
+  <figure class="diagram" id="fig-publish">
+    <svg class="dg" viewBox="0 0 720 210" role="img" aria-label="Publishing a service">
+      <rect class="box-navy" x="8" y="80" width="122" height="50" rx="9"/>
+      <text class="t-w t-b" x="20" y="101">Admin saves</text>
+      <text class="t-wm" x="20" y="116">Add / Edit Service</text>
+      <rect class="box-sky" x="150" y="80" width="142" height="50" rx="9"/>
+      <text class="t-title" x="162" y="101">services/{id}</text>
+      <text class="t-s" x="162" y="116">fields + new notify_id</text>
+      <rect class="box" x="318" y="10" width="172" height="50" rx="9"/>
+      <text class="t-title" x="330" y="31">onServiceWritten</text>
+      <text class="t-s" x="330" y="46">writes users/*/notifications</text>
+      <rect class="box-green" x="510" y="10" width="202" height="50" rx="9"/>
+      <text class="t-title" x="522" y="31">sendPushOnNotificationCreated</text>
+      <text class="t-s" x="522" y="46">mobile codebase · push to devices</text>
+      <rect class="box-green" x="318" y="80" width="172" height="50" rx="9"/>
+      <text class="t-title" x="330" y="101">translateService</text>
+      <text class="t-s" x="330" y="116">mobile · Filipino fields (first time)</text>
+      <rect class="box" x="318" y="150" width="172" height="50" rx="9"/>
+      <text class="t-title" x="330" y="171">versionsOnServiceWritten</text>
+      <text class="t-s" x="330" y="186">bumps stats if name/deleted changed</text>
+      <rect class="box-blue" x="510" y="80" width="202" height="50" rx="9"/>
+      <text class="t-w t-b" x="522" y="101">Citizens' mobile app</text>
+      <text class="t-wm" x="522" y="116">new or changed service, notification</text>
+      <path class="ar" d="M130 105 H148"/>
+      <path class="ar" d="M292 95 H304 V35 H316"/>
+      <path class="ar" d="M292 105 H316"/>
+      <path class="ar" d="M292 115 H304 V175 H316"/>
+      <path class="ar" d="M490 35 H508"/>
+      <path class="ar" d="M611 60 V78"/>
+      <path class="ar" d="M490 105 H508"/>
+    </svg>
+    <figcaption>What one save of a service sets off across both codebases</figcaption>
+  </figure>
+  <ul>
+    <li>The panel stamps a new <code>notify_id</code> on every save, so <strong>every</strong> save notifies every citizen. A new service says <em>new service added</em> and an edit says <em>there's some changes</em>.</li>
+    <li>The notification document's ID is the <code>notify_id</code>, so retries never notify twice, and each notification becomes a push message on the citizen's devices.</li>
+    <li>Changes appear in the app right away because the app reads the same documents.</li>
+    <li>Filipino translations are only made the first time a service is written (<a class="xref" href="#sec-limitations"></a>).</li>
+  </ul>
+
+  <h2 id="sec-delete-lifecycle">Deleting and recovering</h2>
+  <figure class="diagram" id="fig-delete">
+    <svg class="dg" viewBox="0 0 720 206" role="img" aria-label="Deletion lifecycle">
+      <rect class="box-green" x="8" y="70" width="140" height="56" rx="10"/>
+      <text class="t-title" x="20" y="93">Active</text>
+      <text class="t-s" x="20" y="110">visible in the app</text>
+      <rect class="box-amber" x="206" y="8" width="160" height="50" rx="10"/>
+      <text class="t-title" x="218" y="29">Deletion request</text>
+      <text class="t-s" x="218" y="45">Review Queue · pending</text>
+      <rect class="box-red" x="400" y="70" width="170" height="56" rx="10"/>
+      <text class="t-title" x="412" y="93">Deleted Records</text>
+      <text class="t-s" x="412" y="110">isDeleted · 30 days to recover</text>
+      <rect class="box-navy" x="612" y="70" width="100" height="56" rx="10"/>
+      <text class="t-w t-b" x="624" y="93">Gone</text>
+      <text class="t-wm" x="624" y="110">recursive delete</text>
+      <path class="ar" d="M78 70 V33 H204"/>
+      <text class="t-lbl" x="84" y="26">office admin asks</text>
+      <path class="ar" d="M366 33 H485 V68"/>
+      <text class="t-lbl" x="378" y="26">Super Admin accepts</text>
+      <path class="ar-m" d="M286 58 V84 H150"/>
+      <text class="t-lbl" x="214" y="78">declined</text>
+      <path class="ar" d="M148 108 H398"/>
+      <text class="t-lbl" x="206" y="122">Super Admin deletes</text>
+      <path class="ar-g" d="M485 126 V162 H78 V128"/>
+      <text class="t-lbl" x="190" y="178" style="fill:#16a34a">Recover (an office brings its services back)</text>
+      <path class="ar-r" d="M570 98 H610"/>
+      <text class="t-lbl" x="520" y="152" style="fill:#dc2626">Delete Permanently, or the</text>
+      <text class="t-lbl" x="520" y="164" style="fill:#dc2626">03:00 purge after 30 days</text>
+    </svg>
+    <figcaption>Life of a deleted service or office</figcaption>
+  </figure>
+  <ul>
+    <li><strong>Soft delete.</strong> Deleting only marks the document (<code>isDeleted: true</code> plus trash fields). IDs, fields and everything stored under it stay until recovery or permanent deletion.</li>
+    <li><strong>Offices</strong> hide all their services while deleted. A service of a deleted office cannot be recovered on its own; recover the office first.</li>
+    <li><strong>Map rooms.</strong> A deleted office leaves its map room, which is remembered in <code>deletedMapSlot</code>. On recovery it gets the room back only if nothing else took it. Otherwise the message asks you to place it again.</li>
+    <li><strong>Adding while deleted.</strong> A new office or service with the same name is refused while the old one is in Deleted Records, because the IDs would collide.</li>
+  </ul>
+
+  <h2 id="sec-rename">Renaming an office</h2>
+  <p>Admins are linked to their office by name, and service steps point to destinations by name (<code>navigate_to</code>). A plain rename would lock the office's admins out of their office and break navigation steps, so renames always go through the server (<code>renameOffice</code>):</p>
+  <ol class="steps">
+    <li>The Super Admin changes the name in the edit form (Map Management).</li>
+    <li>The server refuses empty names, names over 100 characters, names with <code>/</code>, and names already used by another office or room.</li>
+    <li>It updates the office or room, every admin whose <code>admin_office</code> was the old name, and every step whose <code>navigate_to</code> was the old name (ignoring case) in every service, all in one bulk write.</li>
+    <li>Signed-in office admins pick up the new name on their next session check.</li>
+  </ol>
+
+  <h2 id="sec-deactivation">Deactivating and reactivating accounts</h2>
+  <table id="tbl-deactivation" class="compact">
+    <caption>What setAccountStatus changes</caption>
+    <thead><tr><th style="width:18%">Action</th><th style="width:36%">Firebase Authentication</th><th>Firestore record</th></tr></thead>
+    <tbody>
+      <tr><td>Deactivate</td><td>Login disabled; refresh tokens revoked, so every device is signed out within the hour or on its next token refresh.</td><td><code>status: deactivated</code>, <code>previous_status</code>, <code>deactivated_at/_by/_by_name</code>, <code>deactivation_reason</code></td></tr>
+      <tr><td>Reactivate</td><td>Login enabled.</td><td><code>status</code> back to <code>previous_status</code>; deactivation fields removed; <code>reactivated_at/_by</code> added</td></tr>
+    </tbody>
+  </table>
+  <p>The same action works for citizens (<code>users</code>) and admins (<code>admin</code>). The mobile app and the panel both refuse disabled logins.</p>
+</section>
+
+<!-- ============================================================ CHAPTER 9 -->
+<section class="chapter">
+  <h1 id="ch-security">Security</h1>
+  <p class="chapter-intro">How the panel and its data are protected: sign-in, permissions, the web security headers, the Cloud Functions safeguards, data left in the browser, keys and secrets, and the results of the latest security scan.</p>
+
+  <h2 id="sec-sec-overview">Layers of protection</h2>
+  <table id="tbl-sec-layers" class="compact">
+    <caption>Security layers</caption>
+    <thead><tr><th style="width:24%">Layer</th><th style="width:40%">Protects against</th><th>Where</th></tr></thead>
+    <tbody>
+      <tr><td>Sign-in and admin status</td><td>Strangers; unapproved or deactivated accounts</td><td>Firebase Authentication; <code>session.js</code>; <code>requireRole()</code></td></tr>
+      <tr><td>Server-side checks</td><td>Someone using the browser to do more than their role allows</td><td><code>adminApi</code> (role per action, office-only statistics)</td></tr>
+      <tr><td>Firestore security rules</td><td>Direct database access from scripts</td><td>Firebase console</td></tr>
+      <tr><td>Web security headers</td><td>Script injection, clickjacking, file-type confusion, HTTP downgrade, caching on shared machines</td><td><code>vercel.json</code>, <code>firebase.json</code>, a <code>&lt;meta&gt;</code> policy in every page</td></tr>
+      <tr><td>Function safeguards</td><td>Other websites calling the functions; bad input; accidental destruction; code guessing</td><td><code>functions/src/lib</code>, <code>auth-recovery.js</code></td></tr>
+      <tr><td>Browser data hygiene</td><td>Data left on shared office computers</td><td>Sign-out clears caches and Firestore's offline copy</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="sec-authentication">Authentication</h2>
+  <ul>
+    <li><strong>Accounts</strong>: Firebase Authentication with e-mail/password or Google. A login alone is not enough; the <code>admin/{uid}</code> record must exist and be <code>active</code>.</li>
+    <li><strong>Passwords</strong>: at least 8 characters with a capital letter, a number and a symbol. These are checked in the browser at sign-up and by the server on reset.</li>
+    <li><strong>Brute force</strong>: Firebase throttles repeated failures. The login page also locks an e-mail for 10 minutes after 5 wrong passwords in that browser.</li>
+    <li><strong>Recovery</strong>: server-side codes, hashed with a salt, valid for 5 minutes, at most 5 tries and one code per minute (<a class="xref" href="#sec-adminauth"></a>).</li>
+    <li><strong>Revocation</strong>: deactivating an account disables the login and revokes its sessions, and a password reset signs out other sessions. Pages re-check the admin record in the background, so a revoked admin is sent out.</li>
+    <li><strong>Re-authentication</strong>: deleting your own account requires your password or Google sign-in again.</li>
+  </ul>
+
+  <h2 id="sec-authorization">Authorization and Firestore rules</h2>
+  <p>The server checks every <code>adminApi</code> action (<a class="xref" href="#sec-enforcement"></a>). The browser also reads and writes Firestore directly, so the security rules, kept in the Firebase console, must hold the same line. Review them against this list whenever they change:</p>
+  <table id="tbl-rules" class="compact">
+    <caption>What the Firestore rules should guarantee</caption>
+    <thead><tr><th style="width:30%">Collection</th><th>Expected rule</th></tr></thead>
+    <tbody>
+      <tr><td><code>offices</code>, <code>other_room</code></td><td>Readable by signed-in users and the app. Writable only by active Super Admins.</td></tr>
+      <tr><td><code>offices/*/services</code></td><td>Writable by active Super Admins, and by active office admins only for the office whose <code>office_name</code> equals their <code>admin_office</code>. No client may set <code>isDeleted</code>: trash goes through the server.</td></tr>
+      <tr><td><code>admin/{uid}</code></td><td>A new user may create only their own record, with <code>role: "admin"</code> and <code>status: "pending"</code>. Users may update only their own name fields. Role and status of others change only by Super Admins or the server.</td></tr>
+      <tr><td><code>admin/{uid}/activity_logs</code></td><td>The owner reads and deletes. Active admins may add entries (the fan-out).</td></tr>
+      <tr><td><code>requests</code></td><td>Active admins may create requests for themselves; a new sign-up may create its own <code>new_admin</code> request. Super Admins read, update and delete.</td></tr>
+      <tr><td><code>completed_requests</code></td><td>Super Admins create and read. No client deletes; deletion is done by the server.</td></tr>
+      <tr><td><code>app_settings</code>, <code>meta</code>, <code>stats</code></td><td>No client writes. <code>app_settings/super_admin</code> readable by admins.</td></tr>
+      <tr><td><code>admin_password_resets</code></td><td>No client access at all (server only).</td></tr>
+      <tr><td><code>users</code></td><td>Owned by the mobile app's rules. Status fields change only through the server.</td></tr>
+    </tbody>
+  </table>
+  <div class="tip"><span class="label">Tip</span><p>Keep a copy of the rules in the repository, for example <code>firestore.rules</code> referenced from <code>firebase.json</code>. Changes are then reviewed and versioned like code. Test them with the emulators before publishing.</p></div>
+
+  <h2 id="sec-headers">Web security headers</h2>
+  <p>The same headers are set in three places: <code>vercel.json</code> (repository root), <code>public/vercel.json</code> (identical copy) and <code>firebase.json</code>, for Firebase Hosting. Each HTML page also carries the Content Security Policy as a <code>&lt;meta&gt;</code> tag, so the policy applies even on a plain local server.</p>
+  <table id="tbl-headers" class="compact">
+    <caption>Response headers of the website</caption>
+    <thead><tr><th style="width:27%">Header</th><th style="width:33%">Value</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>Content-Security-Policy</code></td><td>see below</td><td>Only approved sources may load scripts, styles, fonts, frames and connections.</td></tr>
+      <tr><td><code>X-Frame-Options</code></td><td><code>DENY</code></td><td>No other site may show the panel in a frame (clickjacking). Also <code>frame-ancestors 'none'</code>.</td></tr>
+      <tr><td><code>X-Content-Type-Options</code></td><td><code>nosniff</code></td><td>Browsers use the declared file type.</td></tr>
+      <tr><td><code>Strict-Transport-Security</code></td><td><code>max-age=31536000; includeSubDomains</code></td><td>Browsers use HTTPS only for this site.</td></tr>
+      <tr><td><code>Referrer-Policy</code></td><td><code>strict-origin-when-cross-origin</code></td><td>Other sites only learn the origin, never page addresses.</td></tr>
+      <tr><td><code>Cache-Control</code> (pages)</td><td><code>no-cache, no-store, must-revalidate, private</code> + <code>Pragma: no-cache</code>, <code>Expires: 0</code></td><td>Pages are never stored by browsers or shared proxies.</td></tr>
+      <tr><td><code>Cache-Control</code> (JS, CSS)</td><td><code>no-cache</code></td><td>Always revalidated, so updates show at once (file names are not versioned).</td></tr>
+      <tr><td><code>Cache-Control</code> (images, fonts)</td><td><code>public, max-age=86400</code></td><td>Cached for a day.</td></tr>
+    </tbody>
+  </table>
+  <pre><code>default-src 'self';
+script-src  'self' https://www.gstatic.com https://cdn.jsdelivr.net https://apis.google.com;
+style-src   'self' 'unsafe-inline';
+font-src    'self';
+img-src     'self' data: blob: https:;
+connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com
+            https://securetoken.googleapis.com https://www.googleapis.com
+            https://asia-southeast1-docsease-efacc.cloudfunctions.net https://api.emailjs.com
+            https://cdn.jsdelivr.net http://127.0.0.1:9099 http://127.0.0.1:8080 http://127.0.0.1:5001;
+frame-src   https://docsease-efacc.firebaseapp.com https://accounts.google.com;
+object-src  'none';  base-uri 'self';  frame-ancestors 'none'</code></pre>
+  <ul>
+    <li><strong>Subresource Integrity</strong>: Chart.js is pinned and loaded with an integrity hash. The Inter font is self-hosted, so no outside stylesheet is needed.</li>
+    <li>The <code>127.0.0.1</code> ports are the local emulators. Browsers only reach them on the developer's own machine.</li>
+    <li>Adding an outside script or service means updating the policy everywhere it is set (<a class="xref" href="#sec-recipes"></a>).</li>
+  </ul>
+
+  <h2 id="sec-fn-security">Cloud Functions safeguards</h2>
+  <ul>
+    <li><strong>CORS allow-list</strong> (<code>functions/src/lib/cors.js</code>): browsers may call <code>adminApi</code> and <code>adminAuth</code> only from <code>https://gabayan-admin-portal-m4q9.vercel.app</code>, <code>https://docsease-efacc.web.app</code>, <code>https://docsease-efacc.firebaseapp.com</code> and <code>localhost</code> / <code>127.0.0.1</code>. A new panel address must be added here and the functions deployed again. The mobile app is not affected, because native apps send no <code>Origin</code>.</li>
+    <li><strong>Security headers</strong> on every function response: HSTS, <code>nosniff</code> and no-store caching (<code>security-headers.js</code>).</li>
+    <li><strong>Input checks</strong>: IDs must be plain document IDs (<code>validId</code>). Types, actions, names and passwords are validated. Unknown actions are refused.</li>
+    <li><strong>Safe destruction</strong>: trash and recovery run in transactions. Permanent deletes only touch items already in Deleted Records and require the exact name. The nightly purge double-checks <code>isDeleted</code>.</li>
+    <li><strong>No secrets in code</strong>: the EmailJS private key is a Firebase secret. Error details are logged on the server, and users see friendly messages.</li>
+  </ul>
+
+  <h2 id="sec-browser-data">Data kept in the browser</h2>
+  <p>The panel stores no passwords or tokens itself. Firebase keeps its own sign-in in IndexedDB. Lists with names and e-mails (accounts, Deleted Records) are cached in <code>sessionStorage</code>, so they disappear when the tab closes. The dashboard numbers and the session hint use <code>localStorage</code> (<a class="xref" href="#tbl-storage"></a>). <span class="ui">Sign Out</span> removes all of it and deletes Firestore's offline copy, which is important on shared computers in City Hall.</p>
+
+  <h2 id="sec-secrets">Keys and secrets</h2>
+  <table id="tbl-secrets" class="compact">
+    <caption>Keys used by the system</caption>
+    <thead><tr><th style="width:27%">Key</th><th style="width:22%">Secret?</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Firebase web API key</td><td>No, public by design</td><td>Identifies the project. Access is decided by Authentication, rules and functions. Optional hardening: restrict it to the panel's addresses in Google Cloud Console → Credentials, after checking whether the mobile app uses the same key.</td></tr>
+      <tr><td>EmailJS public key, service and template IDs</td><td>No, public</td><td>In <code>js/core/email.js</code>. If the EmailJS plan allows it, limit sending to the panel's domain in the EmailJS dashboard.</td></tr>
+      <tr><td><code>EMAILJS_PRIVATE_KEY</code></td><td><strong>Yes</strong></td><td>Firebase secret (Secret Manager), used only by <code>adminAuth</code>. Set or rotate it with <code>firebase functions:secrets:set EMAILJS_PRIVATE_KEY</code>, then deploy the functions.</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="sec-scan">Security scan results</h2>
+  <p>An OWASP ZAP scan of the production site (November 2026) raised 14 alerts. All were reviewed. The fixes are in the code and take effect once <code>main</code> is deployed by Vercel and the functions are deployed.</p>
+  <table id="tbl-scan" class="compact">
+    <caption>OWASP ZAP alerts and their resolution</caption>
+    <thead><tr><th style="width:4%">#</th><th style="width:30%">Alert</th><th>Resolution</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Content Security Policy header not set</td><td><span class="yes">Fixed.</span> Strict policy in every page and in the hosting headers.</td></tr>
+      <tr><td>2</td><td>Cross-domain misconfiguration (CORS)</td><td><span class="yes">Fixed.</span> Functions accept browser calls only from the panel's addresses.</td></tr>
+      <tr><td>3</td><td>Missing anti-clickjacking header</td><td><span class="yes">Fixed.</span> <code>X-Frame-Options: DENY</code> and <code>frame-ancestors 'none'</code>.</td></tr>
+      <tr><td>4</td><td>Session ID in URL rewrite</td><td><span class="part">False positive.</span> Firestore's own connection ID on Google's servers; the panel never puts sessions in URLs.</td></tr>
+      <tr><td>5</td><td>Sub Resource Integrity attribute missing</td><td><span class="yes">Fixed.</span> Inter self-hosted; Chart.js already had an integrity hash.</td></tr>
+      <tr><td>6</td><td>Strict-Transport-Security not set</td><td><span class="yes">Fixed.</span> Added to the functions (the site already sent it). Google-owned hosts are out of scope.</td></tr>
+      <tr><td>7</td><td>Timestamp disclosure (Unix)</td><td><span class="part">Not sensitive.</span> Constants inside Google's SDK or dates the panel shows anyway.</td></tr>
+      <tr><td>8</td><td>X-Content-Type-Options missing</td><td><span class="yes">Fixed.</span> <code>nosniff</code> on the site and the functions.</td></tr>
+      <tr><td>9</td><td>Information in browser localStorage</td><td><span class="part">Reviewed.</span> No credentials stored; personal lists use sessionStorage.</td></tr>
+      <tr><td>10</td><td>Sensitive information in URL</td><td><span class="part">False positive.</span> The public Firebase API key and Firestore's connection ID.</td></tr>
+      <tr><td>11</td><td>Suspicious comments</td><td><span class="part">Reviewed.</span> Comments describe code only; no secrets.</td></tr>
+      <tr><td>12</td><td>Modern web application</td><td><span class="part">Informational.</span> Advice to use ZAP's browser-based spider.</td></tr>
+      <tr><td>13</td><td>Re-examine Cache-Control directives</td><td><span class="yes">Fixed.</span> Cache rules per file type; function responses never cached.</td></tr>
+      <tr><td>14</td><td>Retrieved from cache</td><td><span class="yes">Fixed.</span> <code>private</code>, <code>Pragma</code>, <code>Expires</code> added. Vercel's edge cache serves only static, non-personal files.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============================================================ CHAPTER 10 -->
+<section class="chapter">
+  <h1 id="ch-maintenance">Maintenance and Troubleshooting</h1>
+  <p class="chapter-intro">Recipes for common changes, operating tasks, the maintenance scripts, fixes for problems you may meet, known limitations, and how to rebuild this document.</p>
+
+  <h2 id="sec-recipes">Common changes</h2>
+  <h3>Add a page to the menu</h3>
+  <ol class="steps">
+    <li>Copy an existing page in <code>public/</code>, for example <code>activity-log.html</code>. Keep its <code>&lt;meta&gt;</code> Content Security Policy, <code>css/base/fonts.css</code>, <code>css/app.css</code> and <code>js/shell.js</code>. Point the module script at your new <code>js/pages/&lt;name&gt;.js</code>.</li>
+    <li>Start the module with <code>const session = await startPage();</code> (or <code>startPage({ superAdminOnly: true })</code>).</li>
+    <li>Add the item to <code>NAV</code> in <code>js/shell.js</code>. For a Super Admin page, set <code>superAdminOnly: true</code> and add it to <code>SUPER_ADMIN_PAGES</code> with where office admins should be sent.</li>
+  </ol>
+  <h3>Add a server action</h3>
+  <ol class="steps">
+    <li>Write the handler <code>(caller, data) =&gt; result</code> in <code>functions/src/api/&lt;area&gt;.js</code>. Validate IDs with <code>validId</code> and throw the helpers from <code>lib/errors.js</code> with friendly messages.</li>
+    <li>Register it in <code>ACTIONS</code> (<code>functions/src/api/index.js</code>) with the role it needs.</li>
+    <li>Add a method to <code>api</code> in <code>public/js/core/api.js</code>, then deploy the functions.</li>
+  </ol>
+  <h3>Other frequent changes</h3>
+  <table id="tbl-recipes" class="compact">
+    <caption>Where to make common changes</caption>
+    <thead><tr><th style="width:33%">Change</th><th>Where</th></tr></thead>
+    <tbody>
+      <tr><td>New Activity Log entry type</td><td>Call <code>logActivity('type', details)</code> where it happens; add its wording to <code>forSuperAdmin()</code> / <code>forAdmin()</code> in <code>js/pages/activity-log.js</code> and to <a class="xref" href="#app-activity"></a>.</td></tr>
+      <tr><td>Trash retention (30 days)</td><td><code>TRASH_RETENTION_DAYS</code> in <code>functions/src/api/trash.js</code>, which is the real value, and the fallback in <code>public/js/core/constants.js</code>.</td></tr>
+      <tr><td>New address for the panel</td><td>Add it to <code>ALLOWED_ORIGINS</code> (<code>functions/src/lib/cors.js</code>) and deploy the functions; add it to Firebase Authentication → Authorized domains for Google sign-in.</td></tr>
+      <tr><td>New outside script or service</td><td>The Content Security Policy in every <code>public/*.html</code> <code>&lt;meta&gt;</code> tag, both <code>vercel.json</code> files and <code>firebase.json</code>.</td></tr>
+      <tr><td>Terms &amp; Privacy text</td><td><code>js/components/admin-legal-content.js</code>; bump <code>version</code> when the meaning changes.</td></tr>
+      <tr><td>Firebase SDK version</td><td>The four files in <code>js/core/sdk/</code>.</td></tr>
+      <tr><td>Floors or categories</td><td><code>FLOORS</code> and <code>CATEGORIES</code> in <code>js/core/constants.js</code>. Check the mobile app as well.</td></tr>
+      <tr><td>Super Admin e-mail address</td><td><code>SUPER_ADMIN_EMAIL</code> in <code>js/core/email.js</code>.</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="sec-make-super">Making someone a Super Admin</h2>
+  <p>There is deliberately no button for this. In the Firebase console:</p>
+  <ol class="steps">
+    <li>Let the person sign up normally, and accept the request so the account is active.</li>
+    <li>In Firestore, open <code>admin/{their uid}</code> and set <code>role</code> to <code>super_admin</code>. Leave <code>admin_office</code> empty.</li>
+    <li>Add their UID to the <code>uids</code> array of <code>app_settings/super_admin</code>, so they receive every Activity Log entry.</li>
+    <li>They sign out and in again. The extra menu items appear.</li>
+  </ol>
+  <p>To remove the role, reverse the steps. Super Admin accounts cannot be deactivated or removed from the panel, on purpose.</p>
+
+  <h2 id="sec-tools">Maintenance scripts</h2>
+  <p><code>public/tools/</code> holds one-off scripts for bulk data work. They run in the browser console of a signed-in admin page and use the panel's own modules, so they follow the same rules: they log activity, and a normal admin's deletions become requests.</p>
+  <pre><code><span class="c">// on any admin page (served over http, signed in) → DevTools console</span>
+const fill = await import('./tools/fill_service_details.js');
+await fill.preview();   <span class="c">// shows what would change, writes nothing</span>
+await fill.run();       <span class="c">// downloads a backup, then updates</span></code></pre>
+  <table id="tbl-tools" class="compact">
+    <caption>Scripts in public/tools</caption>
+    <thead><tr><th style="width:37%">Script</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>fill_service_details.js</code> (+ <code>.core.js</code>, <code>.data.js</code>)</td><td>Fills <em>empty</em> transaction details, steps, location and contact fields of existing services from the 2026 Citizen's Charter. Never overwrites a value.</td></tr>
+      <tr><td><code>seed_treasurer2_services.js</code> (+ <code>treasurer2_services.data.js</code>)</td><td>Adds the Office of the City Treasurer 2 services from the Charter (pages 100–119), the same way the Add Service page would.</td></tr>
+      <tr><td><code>cleanup_treasurer1_services.js</code></td><td>Removes services of the Office of the City Treasurer 1 that are not on its keep-list, after downloading a backup.</td></tr>
+    </tbody>
+  </table>
+  <div class="warn"><span class="label">Important</span><p>The scripts write real data. <code>fill_service_details</code> and <code>seed_treasurer2_services</code> do not stamp a <code>notify_id</code>, so citizens are not notified. Only <code>seed.run({ notifyUsers: true })</code> sends the “new service” notification. Always look at <code>preview()</code> or a dry run first, and try them against the emulators when unsure.</p></div>
+
+  <h2 id="sec-troubleshooting">Troubleshooting</h2>
+  <table id="tbl-troubleshooting" class="compact">
+    <caption>Problems and fixes</caption>
+    <thead><tr><th style="width:31%">Symptom</th><th style="width:30%">Likely cause</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>Deploy fails: <em>Couldn't find firebase-functions package…</em></td><td>Function dependencies not installed on this computer</td><td><code>cd functions</code>, <code>npm install</code>, deploy again.</td></tr>
+      <tr><td>Emulators: <em>firebase-tools no longer supports Java version before 21</em></td><td>Java 17 installed</td><td>Install JDK 21, or run <code>npx firebase-tools@13 emulators:start …</code></td></tr>
+      <tr><td>Sign-in: <em>not registered as an admin</em></td><td>No <code>admin/{uid}</code> record (e.g. a citizen login)</td><td>Sign up for an admin account.</td></tr>
+      <tr><td>Sign-in: <em>awaiting Super Admin approval</em></td><td>Status <code>pending</code></td><td>Accept the request in the Review Queue.</td></tr>
+      <tr><td>Office admin sees <em>Your office "…" was not found</em></td><td><code>admin_office</code> does not match any <code>office_name</code></td><td>Correct the name on the admin record, or rename the office through Map Management so both match.</td></tr>
+      <tr><td>Browser console: CORS error calling a function</td><td>The panel's address is not in <code>ALLOWED_ORIGINS</code>, or the functions were not redeployed</td><td>Add the address (<a class="xref" href="#sec-recipes"></a>) and deploy the functions.</td></tr>
+      <tr><td>Console: <em>Refused to load … Content Security Policy</em></td><td>A new outside source is not in the policy</td><td>Add it in all four places (<a class="xref" href="#sec-headers"></a>).</td></tr>
+      <tr><td>Dashboard numbers look old</td><td>A version trigger is missing or failed</td><td>Check the <code>versionsOn…</code> functions are deployed. Deleting <code>stats/summary</code> forces a recount (the copy also expires hourly).</td></tr>
+      <tr><td>Deleted Records slow or incomplete</td><td>The <code>services</code> collection-group index is not deployed</td><td><code>firebase deploy --only firestore:indexes</code></td></tr>
+      <tr><td>Console: <em>[activity-log] no recipients</em></td><td><code>app_settings/super_admin.uids</code> is empty</td><td>Add the Super Admins' UIDs (<a class="xref" href="#sec-make-super"></a>).</td></tr>
+      <tr><td>Status e-mails do not arrive</td><td>EmailJS quota, template or key problem; or using the emulators</td><td>Check the browser console and the EmailJS dashboard. With emulators, e-mails are only logged.</td></tr>
+      <tr><td>Recovery code e-mail never arrives</td><td>EmailJS rejected the server's request or the secret is wrong</td><td>Check the <code>adminAuth</code> logs in the Firebase console and the <code>EMAILJS_PRIVATE_KEY</code> secret.</td></tr>
+      <tr><td>Google sign-in: <em>This domain is not authorized</em></td><td>The address is missing from Firebase Authentication's authorized domains</td><td>Add it in Firebase console → Authentication → Settings.</td></tr>
+      <tr><td>Security scanner: header still missing on the site</td><td>Vercel serves <code>main</code>, and the change is only on <code>Enguerra</code></td><td>Merge to <code>main</code>; check the Vercel project's Root and Output Directory settings.</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="sec-limitations">Known limitations</h2>
+  <ul>
+    <li><strong>Filipino translations are not refreshed.</strong> The mobile app's <code>translateService</code> and <code>translateOffice</code> skip documents already marked <code>_translated: true</code>, and the panel does not clear that flag when saving. After the first save, edits and renames do not update the Filipino text. A fix is to clear <code>_translated</code> when a service is saved or an office renamed, or to let the triggers compare old and new text. This needs matching changes in both repositories.</li>
+    <li><strong>Offices on the second and third floors cannot be edited</strong> in the panel. Editing details and renaming are only reachable from Map Management, which shows the first floor.</li>
+    <li><strong>Every save notifies every citizen</strong>, even for a small correction.</li>
+    <li><strong>The Firestore rules are not in the repository</strong>, so they are not reviewed or versioned with the code (<a class="xref" href="#sec-authorization"></a>).</li>
+    <li><strong>The sign-in lockout is per browser.</strong> Firebase's own throttling is the real protection.</li>
+    <li><strong>Lists are capped</strong>: the Activity Log shows the latest 300 entries, and older completed requests show the latest 100.</li>
+  </ul>
+
+  <h2 id="sec-regenerate">Rebuilding this document</h2>
+  <p>The source of this PDF is in <code>docs/source/</code>: <code>documentation.html</code> (content), <code>documentation.css</code> (layout), <code>numbering.js</code> (numbering and contents), <code>images/</code> (screenshots) and <code>tools/</code> (scripts).</p>
+  <ol class="steps">
+    <li>Install the tools once: <code>cd docs/source &amp;&amp; npm install</code>. Puppeteer uses your installed Chrome; set <code>CHROME</code> if it is not found.</li>
+    <li>To refresh the screenshots, start the emulators, run <code>npm run seed</code>, serve <code>public/</code> on port 5510, then run <code>npm run screenshots</code>.</li>
+    <li>Build the PDF: <code>npm run build</code>. It writes <code>docs/GaBayan-Admin-Documentation.pdf</code>, with the page numbers in the Contents filled in.</li>
+  </ol>
+  <p>To preview while editing, open <code>documentation.html</code> in Chrome and use Print → Save as PDF; page numbers in the Contents are filled only by <code>npm run build</code>.</p>
+</section>
+
+<!-- ============================================================ APPENDICES -->
+<section class="appendix">
+  <h1 id="app-glossary">Glossary</h1>
+  <table id="tbl-glossary" class="compact">
+    <caption>Terms used in this document</caption>
+    <thead><tr><th style="width:26%">Term</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>Admin panel</td><td>The GaBayan web administration portal (this repository).</td></tr>
+      <tr><td>Office Admin</td><td>Staff member managing the services of one office (role <code>admin</code>).</td></tr>
+      <tr><td>Super Admin</td><td>Administrator of the whole system (role <code>super_admin</code>).</td></tr>
+      <tr><td>Citizen / user</td><td>Person using the GaBayan mobile app (<code>users</code> collection).</td></tr>
+      <tr><td>Office</td><td>A City Hall department that offers services (category Regular Service, collection <code>offices</code>).</td></tr>
+      <tr><td>Room</td><td>A place without services, such as a desk, comfort room or first aid (<code>other_room</code>).</td></tr>
+      <tr><td>Service</td><td>Something citizens can avail of from an office, such as a permit or a certificate.</td></tr>
+      <tr><td>Channel (tab)</td><td>One way to avail of a service (Walk-In, Online, …), each with its own requirements and steps.</td></tr>
+      <tr><td>Requirement</td><td>A document or item the citizen must bring, and where to get it.</td></tr>
+      <tr><td>Step (procedure)</td><td>One stage of the process, with fee, time, person in charge and an optional destination.</td></tr>
+      <tr><td>Navigate to</td><td>A first-floor office or room the app can guide the citizen to for a step.</td></tr>
+      <tr><td>Service history</td><td>A citizen's progress on a service, from the requirements and steps ticked in the app.</td></tr>
+      <tr><td>Applicant</td><td>A citizen with service history for at least one of an office's services.</td></tr>
+      <tr><td>Review Queue</td><td>Where the Super Admin answers requests and manages Deleted Records.</td></tr>
+      <tr><td>Deleted Records (trash)</td><td>Soft-deleted offices and services, kept for 30 days.</td></tr>
+      <tr><td>Purge</td><td>Permanent, recursive deletion of a document and everything under it.</td></tr>
+      <tr><td>Map slot</td><td>One of the 15 rooms on the first-floor plan (<code>s1</code>–<code>s15</code>).</td></tr>
+      <tr><td><code>notify_id</code></td><td>Random ID the panel stamps on a save to tell the server to notify citizens.</td></tr>
+      <tr><td>Callable function</td><td>A Cloud Function the browser calls with the user's sign-in attached (<code>adminApi</code>, <code>adminAuth</code>).</td></tr>
+      <tr><td>Trigger</td><td>A Cloud Function that runs when a Firestore document is written.</td></tr>
+      <tr><td>Codebase</td><td>A group of functions deployed together: <code>admin</code> (this repository) or <code>default</code> (mobile app).</td></tr>
+      <tr><td>Emulators</td><td>Local copies of Firebase services for safe testing (project <code>demo-gabayan</code>).</td></tr>
+      <tr><td>CSP</td><td>Content Security Policy: the browser rule listing allowed sources of scripts, styles and connections.</td></tr>
+      <tr><td>CORS</td><td>Cross-Origin Resource Sharing: which websites a browser lets call the functions.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="appendix">
+  <h1 id="app-files">File Reference</h1>
+  <p class="chapter-intro">Every file in the repository, in one line each.</p>
+  <table id="tbl-files-pages" class="compact plain">
+    <caption>Pages, shell and core modules (public/)</caption>
+    <thead><tr><th style="width:36%">File</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>login.html</code> · <code>js/pages/login.js</code></td><td>Sign In, Sign Up, Forgot Password screens on one sliding strip; Google profile dialog; lockout.</td></tr>
+      <tr><td><code>index.html</code> · <code>js/index-redirect.js</code></td><td>Sends visitors straight to the login page.</td></tr>
+      <tr><td><code>dashboard.html</code> · <code>js/pages/dashboard.js</code></td><td>Dashboard (numbers from <code>getStats</code>).</td></tr>
+      <tr><td><code>service-management.html</code> · <code>…/service-management.js</code></td><td>Office tiles, add and delete offices.</td></tr>
+      <tr><td><code>office-services.html</code> · <code>…/office-services.js</code></td><td>Services of one office.</td></tr>
+      <tr><td><code>service-form.html</code> · <code>…/service-form.js</code></td><td>Add and Edit Service.</td></tr>
+      <tr><td><code>map-management.html</code> · <code>…/map-management.js</code></td><td>First-floor plan.</td></tr>
+      <tr><td><code>analytics.html</code> · <code>…/analytics.js</code></td><td>Analytics.</td></tr>
+      <tr><td><code>review-queue.html</code> · <code>…/review-queue.js</code></td><td>Requests, history, Deleted Records.</td></tr>
+      <tr><td><code>account-management.html</code> · <code>…/account-management.js</code></td><td>Citizen and admin accounts.</td></tr>
+      <tr><td><code>activity-log.html</code> · <code>…/activity-log.js</code></td><td>Activity Log and its wording.</td></tr>
+      <tr><td><code>robots.txt</code>, <code>vercel.json</code></td><td>Asks search engines not to crawl the panel; security headers for Vercel.</td></tr>
+      <tr><td><code>js/shell.js</code></td><td>Sidebar and top bar, menu, Super Admin pages, session hint, drawer, badge.</td></tr>
+      <tr><td><code>js/core/firebase.js</code></td><td>Firebase app, auth, Firestore (offline cache), functions; emulator switch; clearing local data.</td></tr>
+      <tr><td><code>js/core/session.js</code> · <code>page.js</code></td><td>Session check and access rules; <code>startPage()</code>.</td></tr>
+      <tr><td><code>js/core/api.js</code></td><td><code>adminApi</code> and <code>adminAuth</code> clients; <code>newNotifyId()</code>.</td></tr>
+      <tr><td><code>js/core/cache.js</code></td><td>Version-checked browser cache.</td></tr>
+      <tr><td><code>js/core/dom.js</code></td><td>Safe <code>html``</code>, <code>render</code>, <code>on</code> and small helpers.</td></tr>
+      <tr><td><code>js/core/activity-log.js</code> · <code>email.js</code></td><td>Activity entries fan-out; EmailJS notifications.</td></tr>
+      <tr><td><code>js/core/dates.js</code> · <code>schedule.js</code> · <code>password.js</code> · <code>constants.js</code></td><td>Dates and periods; office hours text; password rules; floors, categories, labels.</td></tr>
+      <tr><td><code>js/core/sdk/*.js</code></td><td>Firebase SDK 10.8.1 re-exports.</td></tr>
+      <tr><td><code>js/data/offices.js</code> · <code>services.js</code></td><td>Offices, rooms, map slots; services and deletion requests.</td></tr>
+      <tr><td><code>js/data/requests.js</code> · <code>activity.js</code> · <code>live.js</code></td><td>Review Queue data; Activity Log data; live listeners.</td></tr>
+      <tr><td><code>js/components/*.js</code></td><td>Shared UI (<a class="xref" href="#tbl-components"></a>).</td></tr>
+      <tr><td><code>css/app.css</code>, <code>css/base/*</code></td><td>Tokens, reset, layout, fonts.</td></tr>
+      <tr><td><code>css/components/*</code></td><td>Buttons, cards, forms, modal, toast, sidebar, top bar, tabs, stats, skeleton, combo box, profile menu, agreement.</td></tr>
+      <tr><td><code>css/pages/*</code></td><td>Login, dashboard, review queue, accounts, activity log, map, service form.</td></tr>
+      <tr><td><code>assets/</code></td><td>Logo and wordmark, menu icons, avatars, floor plan, login photos, fonts.</td></tr>
+    </tbody>
+  </table>
+  <table id="tbl-files-functions" class="compact plain">
+    <caption>Cloud Functions and project files</caption>
+    <thead><tr><th style="width:36%">File</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>functions/index.js</code></td><td>Global options and the list of exported functions.</td></tr>
+      <tr><td><code>functions/src/api/index.js</code></td><td><code>adminApi</code>: action table and role checks.</td></tr>
+      <tr><td><code>functions/src/api/accounts.js</code></td><td><code>listAccounts</code>, <code>setAccountStatus</code>, <code>deleteAuthUser</code>.</td></tr>
+      <tr><td><code>functions/src/api/trash.js</code></td><td>Trash, list, recover, purge; retention constant.</td></tr>
+      <tr><td><code>functions/src/api/offices.js</code> · <code>requests.js</code></td><td><code>renameOffice</code>; <code>deleteCompletedRequest</code>.</td></tr>
+      <tr><td><code>functions/src/api/stats.js</code></td><td>Statistics engine and per-role views.</td></tr>
+      <tr><td><code>functions/src/auth-recovery.js</code></td><td><code>adminAuth</code>: password recovery.</td></tr>
+      <tr><td><code>functions/src/lib/*</code></td><td>Role check, Firestore refs and IDs, errors, Manila time, versions, CORS, security headers.</td></tr>
+      <tr><td><code>functions/src/triggers/*</code></td><td>Admin claim, citizen notifications, cache versions.</td></tr>
+      <tr><td><code>functions/src/scheduled/purge-trash.js</code></td><td>Nightly purge of expired Deleted Records.</td></tr>
+      <tr><td><code>firebase.json</code> · <code>.firebaserc</code></td><td>Hosting headers, functions codebase, emulator ports; default project.</td></tr>
+      <tr><td><code>firestore.indexes.json</code></td><td>Collection-group index settings for services.</td></tr>
+      <tr><td><code>vercel.json</code> · <code>README.md</code></td><td>Vercel security headers; short developer guide.</td></tr>
+      <tr><td><code>docs/</code></td><td>Citizen's Charter 2026, pilot consultation revisions, this document and its source.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="appendix">
+  <h1 id="app-activity">Activity Log Entry Types</h1>
+  <table id="tbl-activity-types" class="compact">
+    <caption>Entry types, when they are written and who receives them</caption>
+    <thead><tr><th style="width:29%">Type</th><th style="width:35%">Written when</th><th>Received by</th></tr></thead>
+    <tbody>
+      <tr><td><code>admin_account_requested</code></td><td>Someone signs up for an admin account</td><td>Super Admins</td></tr>
+      <tr><td><code>admin_account_accepted</code></td><td>Super Admin accepts a sign-up</td><td>Super Admins + the new admin</td></tr>
+      <tr><td><code>admin_account_declined</code></td><td>Super Admin declines a sign-up</td><td>Super Admins</td></tr>
+      <tr><td><code>service_added</code> · <code>service_updated</code></td><td>A service is added or saved</td><td>Super Admins</td></tr>
+      <tr><td><code>service_deleted</code></td><td>Super Admin deletes a service directly</td><td>Super Admins</td></tr>
+      <tr><td><code>service_delete_requested</code></td><td>Office admin asks to delete a service</td><td>Super Admins</td></tr>
+      <tr><td><code>service_delete_accepted</code> · <code>service_delete_declined</code></td><td>Super Admin answers that request</td><td>Super Admins + the requester</td></tr>
+      <tr><td><code>service_restored</code> · <code>service_purged</code></td><td>Service recovered or permanently deleted</td><td>Super Admins</td></tr>
+      <tr><td><code>office_added</code> · <code>office_deleted</code></td><td>Office or room added; office moved to Deleted Records</td><td>Super Admins</td></tr>
+      <tr><td><code>office_restored</code> · <code>office_purged</code></td><td>Office recovered or permanently deleted</td><td>Super Admins</td></tr>
+      <tr><td><code>user_account_deactivated</code> · <code>…_reactivated</code></td><td>Citizen account status changed</td><td>Super Admins</td></tr>
+      <tr><td><code>admin_account_deactivated</code> · <code>…_reactivated</code></td><td>Admin account status changed</td><td>Super Admins</td></tr>
+    </tbody>
+  </table>
+  <p class="small">Each entry stores who did it (<code>actor_*</code>), the office, service or person concerned, and the time. The Activity Log page writes the sentence, in the first person (“You…”) when the reader did it.</p>
+</section>
+
+</body>
+</html>
