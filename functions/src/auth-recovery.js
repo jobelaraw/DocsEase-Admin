@@ -7,6 +7,7 @@ const crypto = require("crypto");
 const admin = require("firebase-admin");
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { ALLOWED_ORIGINS } = require("./lib/cors");
+const { withSecurityHeaders } = require("./lib/security-headers");
 const { defineSecret } = require("firebase-functions/params");
 const { db, Timestamp } = require("./lib/refs");
 const { invalid, notFound, conflict, tooMany, unavailable } = require("./lib/errors");
@@ -177,7 +178,7 @@ async function resetPasswordWithCode({ email: rawEmail, code, newPassword }) {
 const ACTIONS = { sendRecoveryCode, verifyRecoveryCode, resetPasswordWithCode };
 
 // Public (no sign-in needed): used by the login page's "Forgot password" screens.
-exports.adminAuth = onCall({ cors: ALLOWED_ORIGINS, secrets: [EMAILJS_PRIVATE_KEY] }, async (request) => {
+exports.adminAuth = withSecurityHeaders(onCall({ cors: ALLOWED_ORIGINS, secrets: [EMAILJS_PRIVATE_KEY] }, async (request) => {
   const { action, data } = request.data || {};
   const run = Object.prototype.hasOwnProperty.call(ACTIONS, action) ? ACTIONS[action] : null;
   if (!run) throw new HttpsError("invalid-argument", "Unknown action.");
@@ -188,4 +189,4 @@ exports.adminAuth = onCall({ cors: ALLOWED_ORIGINS, secrets: [EMAILJS_PRIVATE_KE
     console.error(`adminAuth.${action} failed:`, error);
     throw new HttpsError("internal", "Something went wrong. Please try again.");
   }
-});
+}));
