@@ -14,12 +14,16 @@
           { "key": "X-Content-Type-Options", "value": "nosniff" },
           { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains" },
           { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-          { "key": "Cache-Control", "value": "no-cache" },
+          { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
           {
             "key": "Content-Security-Policy",
             "value": "default-src 'self'; script-src 'self' https://www.gstatic.com https://cdn.jsdelivr.net https://apis.google.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://asia-southeast1-docsease-efacc.cloudfunctions.net https://api.emailjs.com https://cdn.jsdelivr.net http://127.0.0.1:9099 http://127.0.0.1:8080 http://127.0.0.1:5001; frame-src https://docsease-efacc.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
           }
         ]
+      },
+      {
+        "source": "**/*.@(js|css)",
+        "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
       },
       {
         "source": "**/*.@(png|jpg|jpeg|gif|svg|webp|ico|woff2)",

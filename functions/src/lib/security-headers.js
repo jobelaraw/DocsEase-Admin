@@ -6,7 +6,9 @@
 const HEADERS = {
   // Browsers must use HTTPS for this host for 2 years (RFC 6797)
   "Strict-Transport-Security": "max-age=63072000; includeSubDomains",
-  "X-Content-Type-Options": "nosniff"
+  "X-Content-Type-Options": "nosniff",
+  // Responses carry account data and stats: never keep them in browser or proxy caches
+  "Cache-Control": "no-store"
 };
 
 function withSecurityHeaders(fn) {
