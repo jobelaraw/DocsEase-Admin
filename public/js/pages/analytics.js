@@ -85,7 +85,6 @@ function drawStats(data) {
   }
   setStat('#stat-applicants', stats.history.applicants);
   setStat('#stat-services', stats.services);
-  setStat('#stat-untranslated', stats.untranslatedServices);
   setStat('#stat-history', stats.history.total);
   renderRankList($('#most-used'), stats.history.mostUsed);
   $$('[data-chart-skel]').forEach((el) => el.remove());

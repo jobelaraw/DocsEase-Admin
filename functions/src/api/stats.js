@@ -59,7 +59,7 @@ async function computeStats() {
   const now = Date.now();
   const [offices, services, users, history] = await Promise.all([
     db().collection("offices").select("office_name", "isDeleted").get(),
-    db().collectionGroup("services").select("isDeleted", "_translated").get(),
+    db().collectionGroup("services").select("isDeleted").get(),
     db().collection("users").select("createdAt").get(),
     db().collectionGroup("service_history").select(
       "service_id", "status", "progress_status", "service_name", "serviceName", "last_updated", "updatedAt", "createdAt",
@@ -73,11 +73,10 @@ async function computeStats() {
     const d = o.data() || {};
     if (d.isDeleted !== true) activeOffices.set(o.id, { name: d.office_name || o.id, count: 0 });
   });
-  let untranslatedServices = 0;
   let activeServices = 0;
   const officeOfService = new Map(); // serviceId -> officeId (history records only store the service id)
-  const perOffice = new Map(); // officeId -> { services, untranslated }
-  activeOffices.forEach((_, id) => perOffice.set(id, { services: 0, untranslated: 0 }));
+  const perOffice = new Map(); // officeId -> { services }
+  activeOffices.forEach((_, id) => perOffice.set(id, { services: 0 }));
   services.docs.forEach((s) => {
     const officeDoc = s.ref.parent.parent;
     if (!officeDoc || s.ref.parent.parent.parent.id !== "offices") return;
@@ -88,10 +87,6 @@ async function computeStats() {
     office.count++;
     activeServices++;
     perOffice.get(officeDoc.id).services++;
-    if (d._translated !== true) {
-      untranslatedServices++;
-      perOffice.get(officeDoc.id).untranslated++;
-    }
   });
   const servicesPerOffice = [...activeOffices.values()].sort((a, b) => b.count - a.count);
 
@@ -149,7 +144,6 @@ async function computeStats() {
     byOffice[id] = {
       name: office.name,
       services: counts.services,
-      untranslatedServices: counts.untranslated,
       history: historySummary(historyByOffice.get(id) || newHistoryTally())
     };
   });
@@ -158,7 +152,6 @@ async function computeStats() {
     computedAt: now,
     offices: activeOffices.size,
     services: activeServices,
-    untranslatedServices,
     users: users.size,
     newUsers: {
       today: signupTimes.filter((t) => t >= startOfToday).length,
@@ -191,7 +184,6 @@ function viewFor(caller, full) {
     computedAt: full.computedAt,
     office: office ? { id: officeId, name: office.name } : null,
     services: office ? office.services : 0,
-    untranslatedServices: office ? office.untranslatedServices : 0,
     history: office ? office.history : {
       total: 0,
       applicants: 0,
