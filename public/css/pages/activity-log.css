@@ -8,12 +8,16 @@
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  opacity: 0.4;
-  transition: opacity 0.15s ease, background 0.15s ease;
+  /* Hidden until at least one log is ticked (js/pages/activity-log.js adds .active);
+     visibility keeps its space so the tabs row does not shift. */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s ease, background 0.15s ease;
 }
 
 .btn-delete-selected.active {
   opacity: 1;
+  visibility: visible;
 }
 
 .btn-delete-selected.active:hover {
