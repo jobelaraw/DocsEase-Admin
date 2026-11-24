@@ -48,19 +48,29 @@
   vertical-align: middle;
 }
 
+/* Search on the left, type filters on the right, on one centred row */
 .rq-toolbar {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 16px;
 }
 
-/* Type filters next to the search box */
+.rq-toolbar .search-box {
+  flex: 1 1 240px;
+}
+
+/* Type filters: one row; scrolls sideways instead of wrapping when the labels
+   are long (Completed Request) or the screen is narrow. */
 .pill-filters {
-  flex: 1;
+  flex: 0 1 auto;
   min-width: 0;
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
+  overflow-x: auto;
+  padding: 3px; /* room for the focus outline inside the scroll area */
+  scrollbar-width: thin;
 }
 
 .pill-filter {
@@ -303,6 +313,10 @@
   .rq-toolbar {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .rq-toolbar .search-box {
+    flex: none;
   }
 
   .rq-grid {
