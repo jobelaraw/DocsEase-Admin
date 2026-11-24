@@ -1,0 +1,34 @@
+/* Dashboard (dashboard.html): the welcome banner's date and clock. */
+.banner-datetime {
+  text-align: right;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.banner-datetime .date {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.banner-datetime .time {
+  font-size: var(--fs-2xl);
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.dashboard-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+  .banner-datetime {
+    text-align: left;
+  }
+
+  .dashboard-actions .btn-cta {
+    width: 100%;
+  }
+}

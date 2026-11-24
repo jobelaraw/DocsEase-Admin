@@ -1,0 +1,83 @@
+/* Text field with a suggestion dropdown (js/components/combo-box.js). */
+.combo-box {
+  position: relative;
+  display: flex;
+  width: 100%;
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  transition: border-color 0.2s;
+}
+
+.combo-box:focus-within {
+  border-color: var(--navy);
+}
+
+.combo-box.is-invalid {
+  border-color: var(--danger);
+}
+
+.combo-box input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 14px;
+  border: none;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  background: transparent;
+  font-size: var(--fs-md);
+  color: var(--text-dark);
+  outline: none;
+}
+
+.combo-box input:disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.combo-drop {
+  padding: 0 12px;
+  border: none;
+  border-left: 1px solid var(--input-border);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.combo-drop:hover {
+  background: var(--active-bg);
+}
+
+.combo-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: var(--z-dropdown);
+}
+
+.combo-item {
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  color: var(--text-dark);
+  cursor: pointer;
+}
+
+.combo-item:hover,
+.combo-item.is-active {
+  background: var(--active-bg);
+  color: var(--navy);
+  font-weight: 600;
+}
+
+.combo-empty {
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: #888;
+}

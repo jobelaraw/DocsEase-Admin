@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GaBayan – Authentication</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="assets/logo_whitebg.png" />
+  <link rel="stylesheet" href="css/base/tokens.css" />
+  <link rel="stylesheet" href="css/components/toast.css" />
+  <link rel="stylesheet" href="css/pages/login.css" />
+  <link rel="stylesheet" href="css/components/admin-agreement.css" />
+  <script src="js/shell.js"></script>
+  <script type="module" src="js/pages/login.js"></script>
+  <meta name="robots" content="noindex, nofollow" />
+</head>
+
+<body>
+
+  <div class="wrapper" id="wrapper">
+
+    <!-- ════════════════════════════
+        SCREEN 1 — SIGN IN
+    ════════════════════════════ -->
+    <div class="screen" id="screen-signin">
+
+      <!-- Photo -->
+      <div class="photo-panel">
+        <img class="bg" src="assets/bg_cityhall2.jpg" alt="City Hall" />
+        <div class="photo-text">
+          <h1>Manage Services.<br>Guide <span class="accent" id="typewriter"></span></h1>
+          <p>Log in to your administrative dashboard to manage, update, and streamline municipal services in real-time.
+            Use this portal to configure document requirements, update application fees, and ensure citizens always have
+            the most accurate processing guides in the palm of their hands.</p>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <div class="form-panel">
+
+        <div class="panel-logo">
+          <div class="logo-icon">
+            <img src="assets/logo.png" alt="GaBayan" />
+          </div>
+          <span class="logo-wordmark"><img src="assets/docsease_text.png" alt="GaBayan"
+              style="height:20px; width:auto; object-fit:contain;" /></span>
+        </div>
+        <div class="panel-heading">
+          <h2>Welcome back, Admin!</h2>
+          <p>Please sign in to your account.</p>
+        </div>
+
+        <div class="form-body">
+
+          <div class="field-group">
+            <label class="field-label">Email</label>
+            <div class="input-wrap">
+              <input type="email" id="si-email" placeholder="Enter your email" autocomplete="email" />
+              <span class="error-icon">!</span>
+            </div>
+            <div class="field-error" id="err-si-email"></div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-row">
+              <label class="field-label">Password</label>
+              <a href="#" class="forgot-link" data-go="forgotpass">Forgot Password</a>
+            </div>
+            <div class="input-wrap">
+              <input type="password" id="si-password" placeholder="Enter your password"
+                autocomplete="current-password" />
+              <button type="button" class="eye-btn" data-eye="si-password"
+                aria-label="Toggle password">
+                <img id="eye-si" src="assets/eyeHide.svg" alt="Show password" />
+              </button>
+              <span class="error-icon">!</span>
+            </div>
+            <div class="field-error" id="err-si-password"></div>
+          </div>
+
+          <button type="button" id="sign-in-btn" class="btn-main" data-action="sign-in" disabled>Sign in</button>
+
+          <div class="or-divider">OR</div>
+
+          <button class="btn-google" type="button" data-action="google">
+            <img class="g-logo" src="assets/google.png" alt="Google" />
+            Continue with Google
+          </button>
+
+        </div>
+
+        <p class="panel-footer">
+          Don't have an account? <a href="#" data-go="signup">Sign up</a>
+        </p>
+
+      </div>
+    </div>
+
+
+    <!-- ════════════════════════════
+        SCREEN 2 — SIGN UP  
+    ════════════════════════════ -->
+    <div class="screen" id="screen-signup">
+
+      <!-- Form panel -->
+      <div class="form-panel">
+
+        <div class="panel-logo">
+          <div class="logo-icon">
+            <img src="assets/logo.png" alt="GaBayan" />
+          </div>
+          <span class="logo-wordmark"><img src="assets/docsease_text.png" alt="GaBayan"
+              style="height:20px; width:auto; object-fit:contain;" /></span>
+        </div>
+        <div class="panel-heading">
+          <h2>Create Account</h2>
+          <p>Sign up to get started with GaBayan.</p>
+        </div>
+
+        <div class="form-body">
+
+          <div class="field-group">
+            <label class="field-label">Full Name</label>
+            <div class="input-wrap" id="wrap-su-name">
+              <input type="text" id="su-name" placeholder="Enter your full name" />
+              <span class="error-icon">!</span>
+              <span class="success-icon">✓</span>
+            </div>
+            <div class="field-error" id="err-su-name"></div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">EMAIL</label>
+            <div class="input-wrap" id="wrap-su-email">
+              <input type="email" id="su-email" placeholder="Enter your email" />
+              <span class="error-icon">!</span>
+              <span class="success-icon">✓</span>
+            </div>
+            <div class="field-error" id="err-su-email"></div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">OFFICE</label>
+            <div class="input-wrap" id="wrap-su-office">
+            <select id="su-office" class="custom-select">                
+              <option value="" disabled selected>Loading offices...</option>
+              </select>
+              <span class="error-icon">!</span>
+              <span class="success-icon">✓</span>
+            </div>
+            <div class="field-error" id="err-su-office"></div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">PASSWORD</label>
+            <div class="input-wrap" id="wrap-su-password">
+              <input type="password" id="su-password" placeholder="Enter your password" />
+              <button type="button" class="eye-btn" data-eye="su-password" aria-label="Toggle">
+                <img id="eye-su" src="assets/eyeHide.svg" alt="Show password" />
+              </button>
+              <span class="error-icon">!</span>
+              <span class="success-icon">✓</span>
+            </div>
+            <div class="field-error" id="err-su-password"></div>
+
+            <div class="password-rules-container" id="su-password-rules" style="display: none;">
+              <div class="rule-item" id="rule-length">
+                <span class="rule-icon">✕</span>
+                <span>Use at least 8 characters</span>
+              </div>
+              <div class="rule-item" id="rule-symbol">
+                <span class="rule-icon">✕</span>
+                <span>Add a symbol (like ! or #)</span>
+              </div>
+              <div class="rule-item" id="rule-capital">
+                <span class="rule-icon">✕</span>
+                <span>Include a capital letter</span>
+              </div>
+              <div class="rule-item" id="rule-number">
+                <span class="rule-icon">✕</span>
+                <span>Include a number</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Confirm Password</label>
+            <div class="input-wrap" id="wrap-su-confirm">
+              <input type="password" id="su-confirm" placeholder="Re-enter your password" />
+              <button type="button" class="eye-btn" data-eye="su-confirm" aria-label="Toggle">
+                <img id="eye-su2" src="assets/eyeHide.svg" alt="Show password" />
+              </button>
+              <span class="error-icon">!</span>
+              <span class="success-icon">✓</span>
+            </div>
+            <div class="field-error" id="err-su-confirm"></div>
+          </div>
+          <div class="agr-row">
+            <button type="button" id="agr-checkbox" class="agr-check" role="checkbox"
+              aria-checked="false" aria-label="Agree to the Terms and Conditions and Privacy Policy">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="5 12.5 10 17.5 19 7" /></svg>
+            </button>
+            <span class="agr-label">I agree to the
+              <a href="#" class="agr-link" data-agr-tab="terms">Terms &amp; Conditions</a> and
+              <a href="#" class="agr-link" data-agr-tab="privacy">Privacy Policy</a></span>
+          </div>
+          <button type="button" id="sign-up-btn" class="btn-main" data-action="sign-up" disabled>SIGN UP</button>
+
+          <div class="or-divider">OR</div>
+
+          <button class="btn-google" type="button" data-action="google">
+            <img class="g-logo" src="assets/google.png" alt="Google" />
+            Continue with Google
+          </button>
+
+        </div>
+
+        <p class="panel-footer">
+          Already have an account? <a href="#" data-go="signin">Sign in</a>
+        </p>
+
+      </div>
+
+      <!-- Photo panel -->
+      <div class="photo-panel">
+        <img class="bg" src="assets/bg_cityhall2.jpg" alt="City Hall" />
+        <div class="photo-text">
+          <h1><span class="accent" id="typewriter2"></span> the<br>GaBayan<br>Community.</h1>
+          <p>Create your administrator account and start managing municipal services, document workflows, and citizen
+            guidance in one secure platform.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════
+       SCREEN 3 — FORGOT PASSWORD
+  ════════════════════════════ -->
+    <div class="screen" id="screen-forgotpass">
+
+      <!-- Form panel (left) -->
+      <div class="form-panel">
+
+        <div class="panel-logo">
+          <div class="logo-icon">
+            <img src="assets/logo.png" alt="GaBayan" />
+          </div>
+          <span class="logo-wordmark"><img src="assets/docsease_text.png" alt="GaBayan"
+              style="height:20px; width:auto; object-fit:contain;" /></span>
+        </div>
+
+        <div class="panel-heading">
+          <h2>Enter Email Address</h2>
+          <p>Input your registered email address below so we can verify your identity.</p>
+        </div>
+
+        <div class="form-body">
+          <div class="field-group">
+            <label class="field-label">Email Address</label>
+            <div class="input-wrap" id="wrap-recovery-email">
+              <input type="email" id="recovery-email" placeholder="Enter your registered email" autocomplete="email" />
+              <span class="error-icon">!</span>
+            </div>
+            <div class="field-error" id="err-recovery-email"></div>
+          </div>
+
+          <button type="button" class="btn-main" data-action="send-code">NEXT</button>
+        </div>
+
+        <p class="panel-footer">
+          Remember your password? <a href="#" data-go="signin">Back to Sign in</a>
+        </p>
+
+      </div>
+
+      <!-- Photo panel (right) -->
+      <div class="photo-panel">
+        <img class="bg" src="assets/bg_cityhall2.jpg" alt="City Hall" />
+        <div class="photo-text">
+          <h1><span class="accent" id="typewriter3"></span> your <br>password?</h1>
+          <p>We'll help you regain access to your administrator dashboard safely and securely.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ════════════════════════════
+       SCREEN 4 — RECOVERY CODE
+  ════════════════════════════ -->
+    <div class="screen" id="screen-recoverycode">
+
+      <!-- Form panel (left) -->
+      <div class="form-panel">
+
+        <div class="panel-logo">
+          <div class="logo-icon">
+            <img src="assets/logo.png" alt="GaBayan" />
+          </div>
+          <span class="logo-wordmark"><img src="assets/docsease_text.png" alt="GaBayan"
+              style="height:20px; width:auto; object-fit:contain;" /></span>
+        </div>
+
+        <div class="panel-heading">
+          <h2>Enter Recovery Code</h2>
+          <p>Please type the 6-digit verification code sent to your registered email address.</p>
+        </div>
+
+        <div class="form-body">
+          <div class="field-group">
+            <label class="field-label">Recovery Code</label>
+            <div class="input-wrap" id="wrap-recovery-code">
+              <input type="text" id="recovery-code" placeholder="Enter 6-digit code" maxlength="6"
+                autocomplete="one-time-code" />
+              <span class="error-icon">!</span>
+            </div>
+            <div class="field-error" id="err-recovery-code"></div>
+          </div>
+
+          <button type="button" class="btn-main" data-action="verify-code">Verify</button>
+          <button type="button" class="btn-resend" id="btn-resend" disabled data-action="resend-code">Resend Code
+            (<span id="resend-timer">30</span>s)</button>
+        </div>
+
+        <p class="panel-footer">
+          Wrong email? <a href="#" data-go="forgotpass">Go back</a>
+        </p>
+
+      </div>
+
+      <!-- Photo panel (right) -->
+      <div class="photo-panel">
+        <img class="bg" src="assets/bg_cityhall2.jpg" alt="City Hall" />
+        <div class="photo-text">
+          <h1><span class="accent" id="typewriter3b"></span> your <br>password?</h1>
+          <p>We'll help you regain access to your administrator dashboard safely and securely.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ════════════════════════════
+       SCREEN 5 — RESET PASSWORD
+  ════════════════════════════ -->
+    <div class="screen" id="screen-resetpass">
+
+      <!-- Form panel (left) -->
+      <div class="form-panel">
+
+        <div class="panel-logo">
+          <div class="logo-icon">
+            <img src="assets/logo.png" alt="GaBayan" />
+          </div>
+          <span class="logo-wordmark"><img src="assets/docsease_text.png" alt="GaBayan"
+              style="height:20px; width:auto; object-fit:contain;" /></span>
+        </div>
+
+        <div class="panel-heading">
+          <h2>Reset Password</h2>
+          <p>Create a new password for your account. Make sure it's strong and secure.</p>
+        </div>
+
+        <div class="form-body">
+          <div class="field-group">
+            <label class="field-label">New Password</label>
+            <div class="input-wrap" id="wrap-new-password">
+              <input type="password" id="new-password" placeholder="Enter new password" autocomplete="new-password" />
+              <button type="button" class="eye-btn" data-eye="new-password"
+                aria-label="Toggle password">
+                <img id="eye-np" src="assets/eyeHide.svg" alt="Show password" />
+              </button>
+              <span class="error-icon">!</span>
+              <span class="success-icon">✓</span>
+            </div>
+            <div class="field-error" id="err-new-password"></div>
+
+            <div class="password-rules-container" id="reset-password-rules" style="display: none;">
+              <div class="rule-item" id="rule-reset-length">
+                <span class="rule-icon">✕</span>
+                <span>Use at least 8 characters</span>
+              </div>
+              <div class="rule-item" id="rule-reset-symbol">
+                <span class="rule-icon">✕</span>
+                <span>Add a symbol (like ! or #)</span>
+              </div>
+              <div class="rule-item" id="rule-reset-capital">
+                <span class="rule-icon">✕</span>
+                <span>Include a capital letter</span>
+              </div>
+              <div class="rule-item" id="rule-reset-number">
+                <span class="rule-icon">✕</span>
+                <span>Include a number</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Confirm Password</label>
+            <div class="input-wrap" id="wrap-confirm-new-password">
+              <input type="password" id="confirm-new-password" placeholder="Re-enter new password"
+                autocomplete="new-password" />
+              <button type="button" class="eye-btn" data-eye="confirm-new-password"
+                aria-label="Toggle password">
+                <img id="eye-cnp" src="assets/eyeHide.svg" alt="Show password" />
+              </button>
+              <span class="error-icon">!</span>
+              <span class="success-icon">✓</span>
+            </div>
+            <div class="field-error" id="err-confirm-new-password"></div>
+          </div>
+
+          <button type="button" class="btn-main" data-action="reset-password">Reset Password</button>
+        </div>
+
+        <p class="panel-footer">
+          Remember your password? <a href="#" data-go="signin">Back to Sign in</a>
+        </p>
+
+      </div>
+
+      <!-- Photo panel (right) -->
+      <div class="photo-panel">
+        <img class="bg" src="assets/bg_cityhall2.jpg" alt="City Hall" />
+        <div class="photo-text">
+          <h1><span class="accent" id="typewriter3c"></span> your <br>password?</h1>
+          <p>We'll help you regain access to your administrator dashboard safely and securely.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ════════════════════════════
+      GOOGLE SIGNUP — COMPLETE YOUR PROFILE
+  ════════════════════════════ -->
+  <div class="gsignup-modal-overlay" id="gsignup-modal">
+    <div class="gsignup-modal-box">
+      <div class="gsignup-modal-header">
+        <h2>Complete Your Profile</h2>
+      </div>
+      <p class="gsignup-modal-sub">You're signed in with Google. Just confirm your details below to submit your admin account for approval.</p>
+
+      <div class="form-body">
+        <div class="field-group">
+          <label class="field-label">Full Name</label>
+          <div class="input-wrap" id="wrap-gs-name">
+            <input type="text" id="gs-name" placeholder="Enter your full name" />
+            <span class="error-icon">!</span>
+          </div>
+          <div class="field-error" id="err-gs-name"></div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Office</label>
+          <div class="input-wrap" id="wrap-gs-office">
+            <select id="gs-office" class="custom-select" required>
+              <option value="" disabled selected>Loading offices...</option>
+            </select>
+            <span class="error-icon">!</span>
+          </div>
+          <div class="field-error" id="err-gs-office"></div>
+        </div>
+      </div>
+
+      <div class="gsignup-modal-actions">
+        <button type="button" class="btn-modal-cancel" data-action="google-cancel">Cancel</button>
+        <button type="button" class="btn-main" id="gs-confirm-btn" data-action="google-confirm">Confirm & Submit</button>
+      </div>
+    </div>
+  </div>
+
+</body>
+
+</html>

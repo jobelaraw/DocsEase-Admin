@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GaBayan – Analytics</title>
+  <link rel="icon" type="image/png" href="assets/logo_whitebg.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+  <link rel="stylesheet" href="css/app.css" />
+  <script src="js/shell.js"></script>
+  <script type="module" src="js/pages/analytics.js"></script>
+</head>
+<body>
+  <app-sidebar active="analytics"></app-sidebar>
+
+  <main class="main">
+    <app-topbar></app-topbar>
+
+    <div class="content">
+      <header class="banner">
+        <div>
+          <h1>Analytics</h1>
+          <p data-scope="all">Citizen sign-ups, offices and services, and how the services are used.</p>
+          <p data-scope="office" id="office-sub">Your office's services and how citizens are using them.</p>
+        </div>
+        <div class="chip-group" role="group" aria-label="Sign-up period" data-scope="all">
+          <button type="button" class="chip active" data-period="weekly" aria-pressed="true">Weekly</button>
+          <button type="button" class="chip" data-period="monthly" aria-pressed="false">Monthly</button>
+          <button type="button" class="chip" data-period="yearly" aria-pressed="false">Yearly</button>
+        </div>
+      </header>
+
+      <div class="stats-row" data-scope="all">
+        <div class="stat-card"><div class="stat-label">Total Registered Users</div><div class="stat-value" id="stat-users" data-skel></div><div class="stat-sub">All citizen accounts</div></div>
+        <div class="stat-card"><div class="stat-label">New Sign-ups Today</div><div class="stat-value" id="stat-today" data-skel></div><div class="stat-sub">Since midnight</div></div>
+        <div class="stat-card"><div class="stat-label">New Sign-ups This Week</div><div class="stat-value" id="stat-week" data-skel></div><div class="stat-sub">Since Monday</div></div>
+        <div class="stat-card"><div class="stat-label">New Sign-ups This Month</div><div class="stat-value" id="stat-month" data-skel></div><div class="stat-sub">Since the 1st</div></div>
+      </div>
+
+      <section class="card" data-scope="all">
+        <div class="card-header"><h2 class="card-title">New Sign-ups Trend</h2></div>
+        <div class="chart-wrap chart-wide">
+          <canvas id="signup-chart" aria-label="New sign-ups over time"></canvas>
+          <span class="skel skel-fill" data-chart-skel aria-hidden="true"></span>
+        </div>
+      </section>
+
+      <h2 class="section-heading" data-scope="all">Services &amp; Offices</h2>
+      <h2 class="section-heading" data-scope="office" id="office-heading">Your Office</h2>
+      <div class="stats-row">
+        <div class="stat-card" data-scope="all"><div class="stat-label">Total Offices</div><div class="stat-value" id="stat-offices" data-skel></div><div class="stat-sub">Not counting Deleted Records</div></div>
+        <div class="stat-card" data-scope="office"><div class="stat-label">Applicants</div><div class="stat-value" id="stat-applicants" data-skel></div><div class="stat-sub">Citizens tracking your office's services</div></div>
+        <div class="stat-card"><div class="stat-label">Total Services</div><div class="stat-value" id="stat-services" data-skel></div><div class="stat-sub" data-scope="all">Across all offices</div><div class="stat-sub" data-scope="office">In your office</div></div>
+        <div class="stat-card"><div class="stat-label">Service History Entries</div><div class="stat-value" id="stat-history" data-skel></div><div class="stat-sub">Citizen service records</div></div>
+      </div>
+
+      <section class="card" data-scope="all">
+        <div class="card-header"><h2 class="card-title">Services per Office</h2></div>
+        <div class="rank-list" id="per-office" aria-busy="true"></div>
+        <button type="button" class="card-toggle" id="per-office-toggle" aria-controls="per-office" aria-expanded="false" hidden></button>
+      </section>
+
+      <h2 class="section-heading">Service History (Citizen Activity)</h2>
+      <div class="card-grid">
+        <section class="card">
+          <div class="card-header"><h2 class="card-title">Most-Used Services</h2></div>
+          <div class="rank-list" id="most-used" aria-busy="true"></div>
+        </section>
+        <section class="card">
+          <div class="card-header"><h2 class="card-title">Completion Trend</h2></div>
+          <div class="chart-wrap">
+            <canvas id="trend-chart" aria-label="Completed and in-progress services per month"></canvas>
+            <span class="skel skel-fill" data-chart-skel aria-hidden="true"></span>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

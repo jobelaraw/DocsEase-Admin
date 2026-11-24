@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GaBayan – Activity Log</title>
+  <link rel="icon" type="image/png" href="assets/logo_whitebg.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+  <link rel="stylesheet" href="css/app.css" />
+  <link rel="stylesheet" href="css/pages/activity-log.css" />
+  <script src="js/shell.js"></script>
+  <script type="module" src="js/pages/activity-log.js"></script>
+</head>
+<body>
+  <app-sidebar active="activity"></app-sidebar>
+
+  <main class="main main--fixed">
+    <app-topbar>
+      <label class="search-box">
+        <img src="assets/search.svg" alt="" />
+        <input type="search" id="search" placeholder="Search activity..." aria-label="Search activity log" autocomplete="off" />
+      </label>
+    </app-topbar>
+
+    <div class="content">
+      <section class="list-card" aria-label="Activity log">
+        <div class="list-toolbar">
+          <div class="tabs" role="tablist" aria-label="Period">
+            <button type="button" class="tab active" data-period="all" role="tab" aria-selected="true">All</button>
+            <button type="button" class="tab" data-period="today" role="tab" aria-selected="false">Today</button>
+            <button type="button" class="tab" data-period="week" role="tab" aria-selected="false">This Week</button>
+            <button type="button" class="tab" data-period="month" role="tab" aria-selected="false">This Month</button>
+          </div>
+          <button type="button" class="btn-delete-selected" id="delete-selected" title="Delete selected logs" aria-label="Delete selected logs">
+            <img src="assets/delete.svg" alt="" />
+          </button>
+        </div>
+        <div class="list-body" id="log-list" aria-busy="true" aria-live="polite"></div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

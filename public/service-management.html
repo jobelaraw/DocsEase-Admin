@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GaBayan – Service Management</title>
+  <link rel="icon" type="image/png" href="assets/logo_whitebg.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+  <link rel="stylesheet" href="css/app.css" />
+  <script src="js/shell.js"></script>
+  <script type="module" src="js/pages/service-management.js"></script>
+</head>
+<body>
+  <app-sidebar active="services"></app-sidebar>
+
+  <main class="main main--fixed">
+    <app-topbar></app-topbar>
+
+    <div class="content">
+      <header class="banner">
+        <div>
+          <h1>Office Category List</h1>
+          <p>Monitor and manage service information across Biñan city departments.</p>
+        </div>
+      </header>
+
+      <div class="toolbar">
+        <label class="search-box">
+          <img src="assets/search.svg" alt="" />
+          <input type="search" id="search" placeholder="Search office..." aria-label="Search offices" />
+        </label>
+        <button type="button" class="btn btn-cta" id="add-office">
+          <img src="assets/add_service.svg" alt="" />
+          <span>Add New Office</span>
+        </button>
+      </div>
+
+      <div class="panel-scroll">
+        <div class="tile-grid" id="offices" aria-busy="true"></div>
+        <p class="empty-state" id="status" hidden></p>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

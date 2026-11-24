@@ -1,0 +1,130 @@
+/* Activity Log (activity-log.html). */
+.btn-delete-selected {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 6px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  /* Hidden until at least one log is ticked (js/pages/activity-log.js adds .active);
+     visibility keeps its space so the tabs row does not shift. */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s ease, background 0.15s ease;
+}
+
+.btn-delete-selected.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.btn-delete-selected.active:hover {
+  background: #ffdcdc;
+}
+
+.btn-delete-selected img {
+  width: 18px;
+  height: 18px;
+}
+
+.log-row {
+  display: grid;
+  grid-template-columns: 22px 1fr auto 32px;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 8px;
+  border-bottom: 1px solid #eceff5;
+  font-size: var(--fs-xs);
+  transition: background 0.12s ease;
+}
+
+.log-row:hover {
+  background: #f6f9fe;
+}
+
+.log-row.selected {
+  background: #eef4ff;
+}
+
+.log-check {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--navy);
+  cursor: pointer;
+}
+
+.log-text {
+  min-width: 0;
+  line-height: 1.5;
+  color: #4a5568;
+}
+
+.log-title {
+  margin-right: 8px;
+  font-weight: 800;
+  color: var(--text-dark);
+}
+
+.log-desc {
+  font-size: 0.72rem;
+  color: #4a5568;
+}
+
+.log-time {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.log-row-delete {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: #fff0f0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.log-row:hover .log-row-delete,
+.log-row-delete:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.log-row-delete:hover {
+  background: #ffdcdc;
+}
+
+.log-row-delete img {
+  width: 16px;
+  height: 16px;
+}
+
+@media (hover: none) {
+  .log-row-delete {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .log-row {
+    grid-template-columns: 22px 1fr 32px;
+  }
+
+  .log-time {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .log-row-delete {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+  }
+}
