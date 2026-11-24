@@ -75,9 +75,41 @@ function resetForms(scope) {
 }
 
 const SCREENS = { signin: 'wrapper', signup: 'wrapper signup-mode', forgotpass: 'wrapper forgotpass-mode', recoverycode: 'wrapper recoverycode-mode', resetpass: 'wrapper resetpass-mode' };
+const NATURAL = Object.keys(SCREENS); // left-to-right order in login.html
 const screenEl = (name) => document.getElementById(`screen-${name}`);
 let current = 'signin';
 let slideId = 0;
+
+// ---------- strip order ----------
+// The screens sit side by side on one strip and the strip slides. Sign In -> Sign Up
+// moves one screen over, so the two form panels meet in the middle. Screens further
+// apart (Sign In -> Forgot Password) would slide past the screens in between, so the
+// target is first moved right next to the current screen - on the side it lies in
+// the natural order - and every change becomes the same one-screen slide.
+let strip = [...NATURAL];
+
+function placeStrip() {
+  strip.forEach((name, i) => { screenEl(name).style.order = i; });
+}
+
+function showPosition(name) {
+  wrapper.style.transform = `translateX(-${strip.indexOf(name) * (100 / strip.length)}%)`;
+}
+
+// Puts `to` beside `from` (if it isn't already on the right side), without anything
+// visible moving: the strip is re-shown at `from`'s new position in the same frame.
+function bringBeside(from, to) {
+  const side = NATURAL.indexOf(to) > NATURAL.indexOf(from) ? 1 : -1;
+  if (strip.indexOf(to) === strip.indexOf(from) + side) return;
+  strip = strip.filter((n) => n !== to);
+  strip.splice(strip.indexOf(from) + (side > 0 ? 1 : 0), 0, to);
+  wrapper.style.transition = 'none';
+  placeStrip();
+  showPosition(from);
+  void wrapper.offsetWidth; // apply before the transition is turned back on
+  wrapper.style.transition = '';
+}
+placeStrip();
 
 // Only the screen on view can be focused or clicked: tabbing into an off-screen
 // field would make the browser scroll the strip and jump the layout.
@@ -113,13 +145,15 @@ function go(screen, { keepValues = false, instant = false } = {}) {
     Object.keys(SCREENS).forEach((n) => { if (n !== from || from === screen) resetForms(screenEl(n)); });
   }
 
+  wrapper.className = SCREENS[screen]; // which screen is showing (e.g. signup-mode)
   if (instant) {
     wrapper.style.transition = 'none';
-    wrapper.className = SCREENS[screen];
+    showPosition(screen);
     void wrapper.offsetWidth; // apply the jump before turning the transition back on
     wrapper.style.transition = '';
-  } else {
-    wrapper.className = SCREENS[screen];
+  } else if (from !== screen) {
+    bringBeside(from, screen);
+    showPosition(screen);
     wrapper.dataset.sliding = '';
     afterSlide(() => { if (id === slideId) delete wrapper.dataset.sliding; });
   }

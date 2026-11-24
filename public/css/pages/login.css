@@ -38,21 +38,8 @@
       }
     }
 
-    .wrapper.signup-mode {
-      transform: translateX(-20%);
-    }
-
-    .wrapper.forgotpass-mode {
-      transform: translateX(-40%);
-    }
-
-    .wrapper.recoverycode-mode {
-      transform: translateX(-60%);
-    }
-
-    .wrapper.resetpass-mode {
-      transform: translateX(-80%);
-    }
+    /* The strip's position and the screens' order are set by js/pages/login.js
+       (go()): each change slides exactly one screen. */
 
     .screen {
       width: 20%;
