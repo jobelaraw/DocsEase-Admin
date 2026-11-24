@@ -1,7 +1,7 @@
 {
   "hosting": {
     "public": "public",
-    "ignore": ["tools/**", "**/.*"],
+    "ignore": ["tools/**", "**/.*", "vercel.json"],
     "redirects": [
       { "source": "/", "destination": "/login.html", "type": 302 },
       { "source": "/index.html", "destination": "/login.html", "type": 302 }
