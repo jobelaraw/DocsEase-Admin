@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GaBayan – Review Queue</title>
+  <link rel="icon" type="image/png" href="assets/logo_whitebg.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+  <link rel="stylesheet" href="css/app.css" />
+  <link rel="stylesheet" href="css/pages/review-queue.css" />
+  <script src="js/shell.js"></script>
+  <script type="module" src="js/pages/review-queue.js"></script>
+</head>
+<body>
+  <app-sidebar active="review"></app-sidebar>
+
+  <main class="main">
+    <app-topbar>
+      <div class="rq-tabs" role="tablist" aria-label="Requests">
+        <button type="button" class="rq-maintab active" data-tab="pending" role="tab" aria-selected="true">Pending Request<span class="rq-count" id="pending-count" hidden></span></button>
+        <button type="button" class="rq-maintab" data-tab="completed" role="tab" aria-selected="false">Completed Request</button>
+        <button type="button" class="rq-maintab" data-tab="deleted" role="tab" aria-selected="false">Deleted Records</button>
+      </div>
+    </app-topbar>
+
+    <div class="content">
+      <header class="banner">
+        <div>
+          <h1 id="banner-title">Review Request</h1>
+          <p id="banner-sub">Manage request, accept or decline request admin.</p>
+        </div>
+        <div class="chip-group" id="date-filters" role="group" aria-label="When">
+          <button type="button" class="chip active" data-range="today" aria-pressed="true">Today</button>
+          <button type="button" class="chip" data-range="week" aria-pressed="false">This Week</button>
+          <button type="button" class="chip" data-range="earlier" aria-pressed="false">Earlier</button>
+        </div>
+      </header>
+
+      <div class="rq-toolbar">
+        <label class="search-box">
+          <img src="assets/search.svg" alt="" />
+          <input type="search" id="search" placeholder="Search requests..." aria-label="Search requests" autocomplete="off" />
+        </label>
+        <div class="pill-filters" id="type-filters" role="group" aria-label="Request type"></div>
+      </div>
+
+      <div class="rq-grid" id="grid" aria-busy="true" aria-live="polite"></div>
+    </div>
+  </main>
+</body>
+</html>

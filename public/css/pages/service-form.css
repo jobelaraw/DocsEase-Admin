@@ -1,0 +1,311 @@
+/* Add / Edit Service page (service-form.html). */
+.form-wrapper {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 40px 24px;
+}
+
+.form-wrapper .field {
+  margin-bottom: 16px;
+}
+
+.form-wrapper .field-row {
+  margin-bottom: 0;
+}
+
+/* Tabs = transaction channels (Walk-In, Online, ...) */
+.tab-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding: 5px;
+  background: #e8edf2;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.tab-btn {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 15px;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.25s, box-shadow 0.25s;
+}
+
+.tab-btn.active {
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(10, 30, 80, 0.1);
+}
+
+.tab-btn input {
+  width: 90px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  text-align: center;
+  outline: none;
+  cursor: pointer;
+}
+
+.tab-btn.active input {
+  color: #2f2fe4;
+}
+
+.tab-delete {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: none;
+  padding: 4px;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  opacity: 0.5;
+}
+
+.tab-delete img {
+  width: 14px;
+  height: 14px;
+}
+
+.tab-btn:hover .tab-delete,
+.tab-btn.active .tab-delete {
+  display: flex;
+}
+
+.tab-delete:hover {
+  opacity: 1;
+  background: #fde8e8;
+}
+
+.btn-add-tab {
+  padding: 0 20px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.btn-add-tab:hover {
+  background: var(--active-bg);
+  border-color: var(--text-muted);
+}
+
+/* Requirement rows and step cards */
+.req-item {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  margin-bottom: 12px;
+  padding: 16px;
+  border-radius: var(--radius);
+  background: var(--hover-bg);
+}
+
+.req-item .field {
+  margin-bottom: 0;
+}
+
+.req-item .field:first-child {
+  flex: 2;
+}
+
+.req-item .field:nth-child(2) {
+  flex: 1;
+}
+
+.btn-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 10px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 10px;
+  background: transparent;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.btn-remove:hover {
+  background: #fcf1f1;
+  border-color: #ef4444;
+}
+
+.btn-remove img {
+  width: 18px;
+  height: 18px;
+}
+
+.btn-add-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 14px;
+  border: 1px dashed var(--input-border);
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--navy);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.btn-add-row:hover {
+  background: #f5f7fa;
+}
+
+.step-card {
+  margin-bottom: 16px;
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius);
+  background: var(--hover-bg);
+}
+
+.step-card.dragging {
+  opacity: 0.5;
+  border-style: dashed;
+}
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-bottom: 1px solid transparent;
+  background: none;
+  text-align: left;
+  user-select: none;
+}
+
+.step-card.open .step-header {
+  border-bottom-color: var(--input-border);
+}
+
+.drag-handle {
+  padding: 0 8px;
+  color: var(--text-muted);
+  font-size: 1.4rem;
+  cursor: grab;
+}
+
+.step-title-display {
+  flex: 1;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.toggle-icon {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  transition: transform 0.3s;
+}
+
+.step-card.open .toggle-icon {
+  transform: rotate(180deg);
+}
+
+.step-body {
+  display: none;
+  padding: 20px;
+}
+
+.step-card.open .step-body {
+  display: block;
+}
+
+.step-title-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.step-title-row .field {
+  flex: 1;
+}
+
+.field-help {
+  margin-top: 4px;
+  font-size: var(--fs-xs);
+  color: #888;
+}
+
+/* Bottom action bar */
+.actions-bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  padding: 24px 40px;
+  border-top: 1px solid #e0e6ed;
+  background: var(--main-bg);
+  flex-shrink: 0;
+}
+
+.actions-bar .btn {
+  padding: 12px 32px;
+  font-size: var(--fs-base);
+  font-weight: 600;
+}
+
+.btn-delete-service {
+  margin-right: auto;
+  gap: 8px;
+  padding: 12px 20px;
+  border: 1.5px solid #e74c3c;
+  background: #fff;
+  color: #e74c3c;
+}
+
+.btn-delete-service:hover {
+  background: #fff0ee;
+}
+
+.btn-delete-service img {
+  width: 16px;
+  height: 16px;
+}
+
+@media (max-width: 850px) {
+  .req-item,
+  .step-title-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 768px) {
+  .form-wrapper {
+    padding: 0 var(--space-4) var(--space-4);
+  }
+
+  .actions-bar {
+    flex-wrap: wrap;
+    padding: var(--space-4);
+    gap: var(--space-3);
+  }
+
+  .actions-bar .btn {
+    flex: 1;
+    padding: 12px 16px;
+  }
+
+  .btn-delete-service {
+    flex-basis: 100%;
+    margin-right: 0;
+  }
+}

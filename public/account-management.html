@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GaBayan – Account Management</title>
+  <link rel="icon" type="image/png" href="assets/logo_whitebg.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+  <link rel="stylesheet" href="css/app.css" />
+  <link rel="stylesheet" href="css/pages/account-management.css" />
+  <script src="js/shell.js"></script>
+  <script type="module" src="js/pages/account-management.js"></script>
+</head>
+<body>
+  <app-sidebar active="accounts"></app-sidebar>
+
+  <main class="main main--fixed">
+    <app-topbar>
+      <label class="search-box">
+        <img src="assets/search.svg" alt="" />
+        <input type="search" id="search" placeholder="Search name or email..." aria-label="Search accounts" autocomplete="off" />
+      </label>
+    </app-topbar>
+
+    <div class="content">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Account Management</h1>
+          <p class="page-subtitle">Monitor, deactivate and reactivate GaBayan mobile users and web admins.</p>
+        </div>
+        <div class="section-switch" role="tablist" aria-label="Account type">
+          <button type="button" class="section-btn active" data-section="users" role="tab" aria-selected="true">User Management <span class="section-count" id="count-users">–</span></button>
+          <button type="button" class="section-btn" data-section="admins" role="tab" aria-selected="false">Admin Management <span class="section-count" id="count-admins">–</span></button>
+        </div>
+      </div>
+
+      <section class="list-card" aria-label="Accounts">
+        <div class="list-toolbar">
+          <div class="tabs" id="status-tabs" role="tablist" aria-label="Status"></div>
+          <p class="acct-hint" id="inactive-hint"></p>
+        </div>
+        <div class="acct-table-head" id="table-head"></div>
+        <div class="list-body" id="accounts" aria-busy="true" aria-live="polite"></div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

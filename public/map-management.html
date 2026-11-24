@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GaBayan – Map Management</title>
+  <link rel="icon" type="image/png" href="assets/logo_whitebg.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+  <link rel="stylesheet" href="css/app.css" />
+  <link rel="stylesheet" href="css/pages/map-management.css" />
+  <script src="js/shell.js"></script>
+  <script type="module" src="js/pages/map-management.js"></script>
+</head>
+<body>
+  <app-sidebar active="map"></app-sidebar>
+
+  <main class="main">
+    <app-topbar></app-topbar>
+
+    <div class="content mm-page">
+      <header class="banner">
+        <div>
+          <h1>Map Management</h1>
+          <p>Drag a room onto another to swap their offices, or click a room to edit its details.</p>
+        </div>
+      </header>
+
+      <section class="card">
+        <div class="card-header"><h2 class="card-title">Floor Plan · First Floor</h2></div>
+        <div style="position:relative">
+          <svg id="mm-map" viewBox="0 0 668 450" role="group" aria-label="First floor plan"></svg>
+          <span class="skel skel-fill" id="mm-map-skel" aria-hidden="true"></span>
+        </div>
+      </section>
+
+      <section class="card mm-tray-card">
+        <div class="card-header">
+          <h2 class="card-title" id="mm-tray-title">Unplaced offices and rooms</h2>
+          <button type="button" class="mm-link-btn" id="mm-autofill">Auto-fill empty rooms</button>
+        </div>
+        <div class="mm-tray" id="mm-tray"></div>
+        <p class="mm-hint">Drag one onto a room to place it. Drag a room down here to take it off the map.</p>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,43 @@
+/* Underlined tab switcher (All / Today / This Week ..., Users / Admins). */
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 34px;
+}
+
+.tab {
+  padding: 10px 4px 12px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  transition: border-color 0.15s ease;
+}
+
+.tab:hover {
+  border-bottom-color: #b9c6dd;
+}
+
+.tab.active,
+.tab.active:hover {
+  font-weight: 800;
+  border-bottom-color: var(--navy);
+}
+
+.tab .tab-count {
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--active-bg);
+  color: var(--navy);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  .tabs {
+    gap: 16px;
+  }
+}

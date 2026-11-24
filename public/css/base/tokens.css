@@ -1,0 +1,81 @@
+/* Design tokens: the one place colors, type sizes, spacing, radii and shadows are defined. */
+:root {
+  /* Brand */
+  --navy: #002D62;
+  --navy-mid: #1a3a6b;
+  --navy-light: #2057CE;
+  --navy-hover: #1a4080;
+  --banner-from: #003a7a;
+  --banner-to: #1565c0;
+  --accent: #4a7cff;
+  --accent-hover: #3a65d4;
+  --link: #2a7de1;
+
+  /* Surfaces */
+  --main-bg: #dce8f5;
+  --sidebar-bg: #ffffff;
+  --card-bg: #ffffff;
+  --panel-bg: #e8eef8;
+  --active-bg: #e8eef8;
+  --hover-bg: #f0f4fb;
+
+  /* Text */
+  --text-dark: #0d1f3c;
+  --text-muted: #6b7a99;
+  --label: #4a4a4a;
+  --placeholder: #9aa3b2;
+
+  /* Inputs and lines */
+  --input-bg: #ffffff;
+  --input-border: #d1d9e6;
+  --line: #e8eef8;
+
+  /* Status */
+  --success: #16a34a;
+  --success-bg: #dcfce7;
+  --warning: #d97706;
+  --warning-bg: #fef3c7;
+  --danger: #dc2626;
+  --danger-bg: #fee2e2;
+  --info: #2563eb;
+  --info-bg: #dbeafe;
+
+  /* Type scale */
+  --font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.85rem;
+  --fs-md: 0.95rem;
+  --fs-base: 1rem;
+  --fs-lg: 1.15rem;
+  --fs-xl: 1.5rem;
+  --fs-2xl: 2rem;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* Shape */
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+  --shadow: 0 4px 20px rgba(10, 30, 80, 0.10);
+  --shadow-sm: 0 2px 8px rgba(10, 30, 80, 0.08);
+  --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.2);
+
+  /* Layers */
+  --z-sidebar: 10;
+  --z-drawer: 1000;
+  --z-dropdown: 1100;
+  --z-modal: 2000;
+  --z-toast: 3000;
+
+  /* Layout */
+  --sidebar-width: 310px;
+  --sidebar-collapsed-width: 72px;
+}
