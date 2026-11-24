@@ -157,6 +157,25 @@
   border: 0;
   border-radius: var(--radius-sm);
   background: #fff0f0;
+  /* Hidden until the tile is hovered (or focused from the keyboard, or mid-delete) */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s, visibility 0.15s, background 0.15s;
+}
+
+.tile:hover .tile-action,
+.tile:focus-within .tile-action,
+.tile-action:disabled {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Touch screens cannot hover: keep the button visible there */
+@media (hover: none) {
+  .tile-action {
+    opacity: 1;
+    visibility: visible;
+  }
 }
 
 .tile-action:hover {
