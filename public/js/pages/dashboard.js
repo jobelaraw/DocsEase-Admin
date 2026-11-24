@@ -4,7 +4,7 @@
 import { startPage } from '../core/page.js';
 import { html, render, $ } from '../core/dom.js';
 import { api } from '../core/api.js';
-import { cached, takeStatsStale, STATS_KEY } from '../core/cache.js';
+import { cached, onTabReturn, STATS_KEY } from '../core/cache.js';
 import { openOfficeForm } from '../components/office-form-modal.js';
 import { rankListSkeleton, renderRankList } from '../components/rank-list.js';
 import { lineChart, monthLabel } from '../components/chart.js';
@@ -44,10 +44,15 @@ function drawStats(stats) {
   });
 }
 
-// Last numbers show at once (shared with Analytics); refreshed when older than a minute.
+// The last numbers show at once (shared with Analytics) while the server is asked;
+// it answers from its saved copy unless something changed since.
+// refresh: recount now (right after this admin's own save, before the trigger has run).
+let loading = false;
 async function loadStats({ refresh = false } = {}) {
+  if (loading && !refresh) return;
+  loading = true;
   try {
-    await cached(STATS_KEY, () => api.getStats({ refresh }), drawStats, { maxAgeMs: 60000, force: refresh });
+    await cached(STATS_KEY, (version) => api.getStats({ version, refresh }), drawStats, { force: refresh });
   } catch (error) {
     console.error('[dashboard] could not load stats:', error);
     ['#stat-offices', '#stat-services', '#stat-users', '#stat-applicants', '#stat-history'].forEach((id) => {
@@ -55,18 +60,20 @@ async function loadStats({ refresh = false } = {}) {
     });
     if (mostUsed.getAttribute('aria-busy')) renderRankList(mostUsed, [], { empty: "Couldn't load data." });
   } finally {
+    loading = false;
     $('#trend-skel')?.remove();
   }
 }
 
 const session = await startPage();
-loadStats({ refresh: takeStatsStale() });
+loadStats();
+onTabReturn(() => loadStats());
 
 // Super Admins add offices here; normal admins add services to their office.
 const actions = $('#actions');
 if (session.role === 'super_admin') {
   render(actions, html`<button type="button" class="btn btn-cta" data-add-office><img src="assets/add_service.svg" alt="" /><span>Add New Office</span></button>`);
-  actions.querySelector('[data-add-office]').addEventListener('click', () => openOfficeForm({ onSaved: () => { takeStatsStale(); loadStats({ refresh: true }); } }));
+  actions.querySelector('[data-add-office]').addEventListener('click', () => openOfficeForm({ onSaved: () => loadStats({ refresh: true }) }));
 } else if (session.officeId) {
   render(actions, html`<a class="btn btn-cta" href="service-form.html?officeId=${encodeURIComponent(session.officeId)}"><img src="assets/add_service.svg" alt="" /><span>Add New Service</span></a>`);
 }

@@ -1,12 +1,13 @@
 // Small browser cache for server answers that main pages need on every visit
 // (dashboard stats, account lists, Deleted Records). "Show the last copy now,
-// refresh in the background":
+// download again only if the data changed":
 //
-//   cached(STATS_KEY, () => api.getStats(), (data, { fresh }) => draw(data), { maxAgeMs: 60000 });
+//   cached(STATS_KEY, (version) => api.getStats({ version }), (data, { fresh }) => draw(data));
 //
 // - The saved copy is drawn immediately (no skeleton on revisits).
-// - If it is older than maxAgeMs (or missing), the server is asked and the
-//   callback runs again with the new data.
+// - The server is always asked, with the version of the saved copy. It answers
+//   "unchanged" unless the data changed since (versions are bumped by Firestore
+//   triggers: functions/src/lib/versions.js), so there are no refresh timers.
 // - Entries belong to the signed-in admin and are wiped on sign-out.
 // - personal: true keeps the entry only for this browser tab (sessionStorage),
 //   for lists with names/emails; otherwise it survives new tabs (localStorage).
@@ -29,9 +30,10 @@ export function readCache(key, { personal = false } = {}) {
   }
 }
 
-export function writeCache(key, data, { personal = false } = {}) {
+// Without a version (a page saving its own edits), the next request downloads in full.
+export function writeCache(key, data, { personal = false, version = null } = {}) {
   try {
-    storeFor(personal).setItem(fullKey(key), JSON.stringify({ savedAt: Date.now(), data }));
+    storeFor(personal).setItem(fullKey(key), JSON.stringify({ savedAt: Date.now(), version, data }));
   } catch {
     /* storage full or blocked: caching is optional */
   }
@@ -50,18 +52,25 @@ export function clearCache() {
   });
 }
 
-// Draws the saved copy (if any), then refreshes it when it is older than maxAgeMs.
-// Resolves with the newest data. A failed refresh keeps the saved copy on screen;
+// Draws the saved copy (if any), then asks the server whether it is still current.
+// fetcher(knownVersion) calls an adminApi action that answers
+//   { version, unchanged: true }  - the saved copy is still right (one cheap read), or
+//   { version, data }             - new data.
+// Resolves with the newest data. A failed request keeps the saved copy on screen;
 // with nothing saved, the error is thrown so the page can show its error state.
-export async function cached(key, fetcher, onData, { maxAgeMs = 60000, personal = false, force = false } = {}) {
+//   force:    download in full (right after this admin's own change, before the server trigger ran)
+//   maxAgeMs: download in full once the copy is this old (for values no trigger sees,
+//             e.g. "last active" in Account Management); Infinity by default
+export async function cached(key, fetcher, onData, { personal = false, force = false, maxAgeMs = Infinity } = {}) {
   const entry = readCache(key, { personal });
   if (entry) onData(entry.data, { fresh: false, savedAt: entry.savedAt });
-  if (entry && !force && Date.now() - entry.savedAt < maxAgeMs) return entry.data;
+  const usable = entry && !force && entry.version && Date.now() - entry.savedAt < maxAgeMs;
   try {
-    const data = await fetcher();
-    writeCache(key, data, { personal });
-    onData(data, { fresh: true, savedAt: Date.now() });
-    return data;
+    const result = await fetcher(usable ? entry.version : null);
+    if (result.unchanged && entry) return entry.data;
+    writeCache(key, result.data, { personal, version: result.version });
+    onData(result.data, { fresh: true, savedAt: Date.now() });
+    return result.data;
   } catch (error) {
     if (entry) {
       console.warn(`[cache] could not refresh "${key}", showing the saved copy:`, error);
@@ -74,23 +83,12 @@ export async function cached(key, fetcher, onData, { maxAgeMs = 60000, personal 
 // ---------- dashboard / analytics numbers ----------
 // v2: the server answer depends on the admin's office (scope "all" / "office");
 // copies saved under the old key are never shown.
-export const STATS_KEY = 'stats-v2';
-const STATS_STALE = 'gabayan_stats_stale';
+// Pages ask on every visit and whenever the tab is shown again (onTabReturn).
+export const STATS_KEY = 'stats-v3';
 
-// Call after adding/removing offices or services: the next Dashboard/Analytics
-// visit fetches fresh numbers (skipping both this cache and the server's).
-export function markStatsStale() {
-  forgetCache(STATS_KEY);
-  try { localStorage.setItem(STATS_STALE, '1'); } catch { /* ignore */ }
-}
-
-// True once after markStatsStale(); clears the flag.
-export function takeStatsStale() {
-  try {
-    const stale = localStorage.getItem(STATS_STALE) === '1';
-    localStorage.removeItem(STATS_STALE);
-    return stale;
-  } catch {
-    return false;
-  }
+// Calls fn when the admin comes back to this tab (switching tabs or windows).
+export function onTabReturn(fn) {
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') fn();
+  });
 }

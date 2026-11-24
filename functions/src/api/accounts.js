@@ -1,5 +1,6 @@
 // Account Management actions (Super Admin only): list, deactivate/reactivate, remove a login.
 const admin = require("firebase-admin");
+const { withVersion } = require("../lib/versions");
 const { db, FieldValue, validId } = require("../lib/refs");
 const { toMillis } = require("../lib/time");
 const { invalid, notFound, forbidden } = require("../lib/errors");
@@ -25,10 +26,14 @@ async function authUsersByUid(uids) {
 }
 
 // Lists mobile users or web admins, merged with Firebase Auth login metadata.
-async function listAccounts(caller, { type }) {
+// version: the version of the copy the page already has -> { unchanged: true } if still current
+async function listAccounts(caller, { type, version }) {
   const collectionName = ACCOUNT_COLLECTIONS[type];
   if (!collectionName) throw invalid("type must be 'users' or 'admins'.");
+  return withVersion(type, version, () => loadAccounts(caller, type, collectionName));
+}
 
+async function loadAccounts(caller, type, collectionName) {
   const snap = await db().collection(collectionName).get();
   const authByUid = await authUsersByUid(snap.docs.map((d) => d.id));
 

@@ -4,7 +4,6 @@ import { startPage } from '../core/page.js';
 import { html, render, $, $$, on, debounce } from '../core/dom.js';
 import { api } from '../core/api.js';
 import { logActivity } from '../core/activity-log.js';
-import { markStatsStale } from '../core/cache.js';
 import { TRASH_RETENTION_DAYS } from '../core/constants.js';
 import { skeleton } from '../components/skeleton.js';
 import { toast, confirm } from '../components/toast.js';
@@ -64,7 +63,6 @@ on(grid, 'click', '[data-action="trash"]', async (event, button) => {
   toast.loading('Deleting Office Category', 'The office category is being moved to Deleted Records.');
   try {
     await api.trashOffice(id);
-    markStatsStale();
     logActivity('office_deleted', { office_name: name });
     toast.success('Moved to Deleted Records', `"${name}" was moved to Deleted Records. You can recover it from the Review Queue within ${TRASH_RETENTION_DAYS} days.`, { button: 'OK' });
   } catch (error) {

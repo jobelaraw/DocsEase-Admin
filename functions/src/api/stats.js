@@ -6,8 +6,13 @@
 const { db, Timestamp } = require("../lib/refs");
 const { DAY_MS, toMillis, manilaParts, manilaMidnight } = require("../lib/time");
 
+const { withVersion } = require("../lib/versions");
+
+// The counted numbers are saved in CACHE_DOC and reused until the "stats" version
+// moves (src/lib/versions.js), the Manila date changes ("today"/"this week"
+// totals), or as a safety net after MAX_AGE_MS in case a trigger ever failed.
 const CACHE_DOC = "stats/summary";
-const CACHE_MS = 5 * 60 * 1000;
+const MAX_AGE_MS = 60 * 60 * 1000;
 
 // Same status/name/date rules the dashboard and analytics pages used.
 function historyFacts(data) {
@@ -193,20 +198,36 @@ function viewFor(caller, full) {
   };
 }
 
-// Any active admin (the dashboard is shown to every admin). { refresh: true } skips the cache.
-// The cache holds every office's numbers; each caller only receives what viewFor() allows.
-async function getStats(caller, { refresh } = {}) {
+const manilaDay = (ms) => { const p = manilaParts(ms); return `${p.year}-${p.month}-${p.day}`; };
+
+// The full numbers (every office), recounted only when out of date.
+async function summary(changeCount, refresh) {
   const ref = db().doc(CACHE_DOC);
-  if (!refresh) {
-    const cached = await ref.get();
-    const computedAt = cached.exists ? toMillis(cached.get("computedAt")) : null;
-    const data = cached.exists ? cached.get("data") : null;
-    // Copies saved before the per-office breakdown existed are recomputed.
-    if (computedAt && Date.now() - computedAt < CACHE_MS && data && data.byOffice) return viewFor(caller, data);
+  const cached = await ref.get();
+  if (!refresh && cached.exists) {
+    const computedAt = toMillis(cached.get("computedAt"));
+    const data = cached.get("data");
+    const now = Date.now();
+    const upToDate = computedAt && data && data.byOffice && // copies from before the per-office breakdown are recounted
+      cached.get("changeCount") === changeCount &&
+      manilaDay(computedAt) === manilaDay(now) &&
+      now - computedAt < MAX_AGE_MS;
+    if (upToDate) return data;
   }
   const data = await computeStats();
-  await ref.set({ computedAt: Timestamp.fromMillis(data.computedAt), data });
-  return viewFor(caller, data);
+  await ref.set({ computedAt: Timestamp.fromMillis(data.computedAt), changeCount, data });
+  return data;
+}
+
+// Any active admin (the dashboard is shown to every admin).
+//   version: the version of the copy the page already has -> { unchanged: true } if still current
+//   refresh: recount now (right after an admin's own save, before the trigger has run)
+// Each caller only receives what viewFor() allows; their role/office is part of the
+// version, so a change to either never leaves an old view in the browser.
+async function getStats(caller, { version, refresh } = {}) {
+  const suffix = `${manilaDay(Date.now())}:${caller.role}:${normalize(caller.office)}`;
+  return withVersion("stats", refresh ? null : version,
+    async (changeCount) => viewFor(caller, await summary(changeCount, refresh)), suffix);
 }
 
 module.exports = { getStats, computeStats, viewFor };

@@ -4,6 +4,7 @@
 // - Trashed offices stay at offices/{officeId}
 // Both are only marked isDeleted: true, so document IDs, fields and every
 // nested subcollection are kept until recovery or permanent deletion.
+const { withVersion } = require("../lib/versions");
 const { db, FieldValue, Timestamp, officeRef, serviceRef, validId } = require("../lib/refs");
 const { DAY_MS, toMillis } = require("../lib/time");
 const { invalid, notFound, conflict } = require("../lib/errors");
@@ -157,7 +158,12 @@ async function findServicesAcrossOffices(field, op, value) {
 }
 
 // Lists every trashed office and service for the Deleted Records tab.
-async function listDeleted() {
+// version: the version of the copy the page already has -> { unchanged: true } if still current
+function listDeleted(caller, { version } = {}) {
+  return withVersion("deleted", version, loadDeleted);
+}
+
+async function loadDeleted() {
   const [serviceDocs, trashedOffices] = await Promise.all([
     findServicesAcrossOffices("isDeleted", "==", true),
     db().collection("offices").where("isDeleted", "==", true).get()

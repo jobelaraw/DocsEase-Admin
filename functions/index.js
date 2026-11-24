@@ -21,5 +21,13 @@ const citizenNotify = require("./src/triggers/citizen-notify");
 exports.onServiceWritten = citizenNotify.onServiceWritten;
 exports.onOfficeCreated = citizenNotify.onOfficeCreated;
 
+// Version bumps for the data admin pages cache (src/lib/versions.js): pages re-download only after a change
+const dataVersions = require("./src/triggers/data-versions");
+exports.versionsOnHistoryWritten = dataVersions.versionsOnHistoryWritten;
+exports.versionsOnUserWritten = dataVersions.versionsOnUserWritten;
+exports.versionsOnAdminWritten = dataVersions.versionsOnAdminWritten;
+exports.versionsOnOfficeWritten = dataVersions.versionsOnOfficeWritten;
+exports.versionsOnServiceWritten = dataVersions.versionsOnServiceWritten;
+
 // Nightly trash cleanup
 exports.purgeExpiredDeletedServices = require("./src/scheduled/purge-trash").purgeExpiredDeletedServices;

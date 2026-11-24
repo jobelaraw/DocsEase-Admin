@@ -9,7 +9,6 @@ import { DAYS, buildSchedule, parseSchedule } from '../core/schedule.js';
 import { logActivity } from '../core/activity-log.js';
 import { findDuplicate, createOfficeOrRoom } from '../data/offices.js';
 import { openModal } from './modal.js';
-import { markStatsStale } from '../core/cache.js';
 import { toast } from './toast.js';
 
 const options = (list, selected, placeholder, placeholderSelectable = false) => html`
@@ -134,7 +133,6 @@ export function openOfficeForm({ record = null, onSaved = null, onSubmit = null 
         : 'An office or room with this name already exists.', f.name);
     }
     const { id, isOffice } = await createOfficeOrRoom(values);
-    markStatsStale();
     logActivity('office_added', { office_name: values.name });
     await dialog.close('force');
     toast.success(isOffice ? 'Office Added' : 'Room Added', `"${values.name}" has been added.`, { button: 'OK' });

@@ -6,7 +6,7 @@
 import { startPage } from '../core/page.js';
 import { render, $, $$, on } from '../core/dom.js';
 import { api } from '../core/api.js';
-import { cached, takeStatsStale, STATS_KEY } from '../core/cache.js';
+import { cached, onTabReturn, STATS_KEY } from '../core/cache.js';
 import { skeleton } from '../components/skeleton.js';
 import { toast } from '../components/toast.js';
 import { rankListSkeleton, renderRankList } from '../components/rank-list.js';
@@ -100,10 +100,22 @@ function drawStats(data) {
   ]);
 }
 
-// Last numbers show at once (shared with the Dashboard); refreshed when older than a minute.
+// The last numbers show at once (shared with the Dashboard) while the server is asked;
+// it answers from its saved copy unless something changed since.
+let loading = false;
+async function loadStats() {
+  if (loading) return;
+  loading = true;
+  try {
+    await cached(STATS_KEY, (version) => api.getStats({ version }), drawStats);
+  } finally {
+    loading = false;
+  }
+}
+onTabReturn(() => loadStats().catch((error) => console.warn('[analytics] could not refresh stats:', error)));
+
 try {
-  const refresh = takeStatsStale();
-  await cached(STATS_KEY, () => api.getStats({ refresh }), drawStats, { maxAgeMs: 60000, force: refresh });
+  await loadStats();
 } catch (error) {
   console.error('[analytics] could not load stats:', error);
   $$('[data-skel]').forEach((el) => { if (el.querySelector('.skel')) setStat(`#${el.id}`, null); });

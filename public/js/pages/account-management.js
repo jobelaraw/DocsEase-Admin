@@ -4,7 +4,7 @@
 import { startPage } from '../core/page.js';
 import { html, render, $, $$, on, debounce } from '../core/dom.js';
 import { api } from '../core/api.js';
-import { cached, writeCache } from '../core/cache.js';
+import { cached, writeCache, onTabReturn } from '../core/cache.js';
 import { logActivity } from '../core/activity-log.js';
 import { formatDate } from '../core/dates.js';
 import { toast } from '../components/toast.js';
@@ -133,13 +133,15 @@ function draw() {
   render(list, html`${rows.map(row)}`);
 }
 
-// Lists hold names and emails: cached for this browser tab only, refreshed after 2 minutes.
-const CACHE = { maxAgeMs: 120000, personal: true };
+// Lists hold names and emails: cached for this browser tab only. Downloaded again
+// when an account changes (server version check), and every 10 minutes for
+// "Last login"/"Last active", which come from Firebase Auth and bump no version.
+const CACHE = { maxAgeMs: 10 * 60 * 1000, personal: true };
 
 async function load(section) {
   state.failed[section] = null;
   try {
-    await cached(`accounts:${section}`, () => api.listAccounts(section), (result) => {
+    await cached(`accounts:${section}`, (version) => api.listAccounts(section, version), (result) => {
       state.data[section] = result.accounts.map(withStatus);
       state.selfUid = result.selfUid;
       draw();
@@ -249,3 +251,4 @@ await startPage({ superAdminOnly: true });
 // Both lists load in parallel (one warm server instance answers both)
 load('users');
 load('admins');
+onTabReturn(() => { load('users'); load('admins'); });

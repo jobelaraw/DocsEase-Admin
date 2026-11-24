@@ -1,6 +1,6 @@
 // Calls to the admin Cloud Functions (functions/src). One callable, many actions.
 //   import { api } from '../core/api.js';
-//   const { accounts } = await api.listAccounts('admins');
+//   const { data: { accounts } } = await api.listAccounts('admins');
 // Errors are thrown as Error with the server's user-friendly message and a .code
 // ('permission-denied', 'not-found', 'invalid-argument', ...).
 import { functions } from './firebase.js';
@@ -27,14 +27,14 @@ async function call(fn, action, data = {}) {
 
 export const api = {
   // Account Management (Super Admin)
-  listAccounts: (type) => call(adminApi, 'listAccounts', { type }),
+  listAccounts: (type, version = null) => call(adminApi, 'listAccounts', { type, version }),
   setAccountStatus: (type, uid, action, reason = '') => call(adminApi, 'setAccountStatus', { type, uid, action, reason }),
   deleteAuthUser: (uid) => call(adminApi, 'deleteAuthUser', { uid }),
 
   // Deleted Records (Super Admin)
   trashService: (officeId, serviceId, requestId) => call(adminApi, 'trashService', { officeId, serviceId, ...(requestId ? { requestId } : {}) }),
   trashOffice: (officeId) => call(adminApi, 'trashOffice', { officeId }),
-  listDeleted: () => call(adminApi, 'listDeleted'),
+  listDeleted: (version = null) => call(adminApi, 'listDeleted', { version }),
   restoreService: (officeId, serviceId) => call(adminApi, 'restoreService', { officeId, serviceId }),
   restoreOffice: (officeId) => call(adminApi, 'restoreOffice', { officeId }),
   purgeService: (officeId, serviceId, confirmName) => call(adminApi, 'purgeService', { officeId, serviceId, confirmName }),
@@ -47,7 +47,7 @@ export const api = {
   deleteCompletedRequest: (requestId) => call(adminApi, 'deleteCompletedRequest', { requestId }),
 
   // Dashboard + Analytics numbers (any admin)
-  getStats: ({ refresh = false } = {}) => call(adminApi, 'getStats', { refresh })
+  getStats: ({ version = null, refresh = false } = {}) => call(adminApi, 'getStats', { version, refresh })
 };
 
 // Login page "Forgot password" (no sign-in needed)

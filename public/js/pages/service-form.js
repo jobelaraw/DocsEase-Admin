@@ -6,7 +6,6 @@
 import { startPage } from '../core/page.js';
 import { html, render, $ } from '../core/dom.js';
 import { logActivity } from '../core/activity-log.js';
-import { markStatsStale } from '../core/cache.js';
 import { notifySuperAdminDeleteRequest } from '../core/email.js';
 import { TRASH_RETENTION_DAYS } from '../core/constants.js';
 import { toast, confirm } from '../components/toast.js';
@@ -197,7 +196,6 @@ async function main() {
       return;
     }
     await saveService(target.id, id, data, { isNew: true });
-  markStatsStale();
     guard.release();
     logActivity('service_added', { office_name: target.name, service_name: data.service_name });
     officeId = target.id;
@@ -257,7 +255,6 @@ async function main() {
     try {
       const result = await deleteOrRequestDeletion({ session, officeId, officeName: office.name, serviceId, serviceName: name });
       if (result === 'deleted') {
-        markStatsStale();
         logActivity('service_deleted', details);
         guard.release();
         await toast.success('Moved to Deleted Records', `The service was moved to Deleted Records. You can recover it from the Review Queue within ${TRASH_RETENTION_DAYS} days.`);
