@@ -27,6 +27,15 @@
       width: 500%;
       height: 100vh;
       transition: transform 0.65s cubic-bezier(0.77, 0, 0.18, 1);
+      /* Keep the strip on its own GPU layer, so the slide starts without a hitch */
+      will-change: transform;
+      backface-visibility: hidden;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .wrapper {
+        transition-duration: 0.2s;
+      }
     }
 
     .wrapper.signup-mode {
@@ -120,9 +129,10 @@
       line-height: 1.12;
       letter-spacing: 0.02em;
       margin-bottom: 24px;
-      text-shadow: 20px 10px 90px rgba(0, 0, 0, 0.95),
-        0 0 1px rgba(0, 0, 0, 0.7),
-        0 0 800px rgba(0, 0, 0, 0.4);
+      /* Small blurs only: an 800px blur repainted on every typewriter tick made the slide stutter */
+      text-shadow: 8px 6px 40px rgba(0, 0, 0, 0.85),
+        0 2px 12px rgba(0, 0, 0, 0.45),
+        0 0 1px rgba(0, 0, 0, 0.7);
     }
 
     .photo-text h1 .accent {

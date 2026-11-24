@@ -57,28 +57,77 @@ const value = (id) => (document.getElementById(id)?.value || '').trim();
 // ---------- screens ----------
 const FIELDS = ['si-email', 'si-password', 'su-name', 'su-email', 'su-password', 'su-confirm', 'recovery-email', 'recovery-code', 'new-password', 'confirm-new-password'];
 
-function resetForms() {
-  clearAllErrors();
-  FIELDS.forEach((id) => { const f = document.getElementById(id); if (f) f.value = ''; });
-  $('#sign-in-btn').disabled = true;
-  $('#sign-up-btn').disabled = true;
-  AdminAgreement.reset();
-  ['su-password-rules', 'reset-password-rules'].forEach((id) => { $(`#${id}`).style.display = 'none'; });
-  $$('.rule-item').forEach((rule) => {
+// Clears one screen's fields, errors, password rules and eye toggles.
+function resetForms(scope) {
+  const inside = (el) => el && scope.contains(el);
+  $$('.input-wrap', scope).forEach((w) => w.classList.remove('has-error', 'has-success'));
+  $$('.field-error', scope).forEach((e) => { e.textContent = ''; e.style.display = 'none'; });
+  FIELDS.forEach((id) => { const f = document.getElementById(id); if (inside(f)) f.value = ''; });
+  ['#sign-in-btn', '#sign-up-btn'].forEach((sel) => { if (inside($(sel))) $(sel).disabled = true; });
+  if (scope.id === 'screen-signup') AdminAgreement.reset();
+  ['su-password-rules', 'reset-password-rules'].forEach((id) => { const r = document.getElementById(id); if (inside(r)) r.style.display = 'none'; });
+  $$('.rule-item', scope).forEach((rule) => {
     rule.classList.remove('valid');
     const icon = rule.querySelector('.rule-icon');
     if (icon) icon.textContent = '✕';
   });
-  $$('[data-eye]').forEach((btn) => setEye(btn, false));
+  $$('[data-eye]', scope).forEach((btn) => setEye(btn, false));
 }
 
 const SCREENS = { signin: 'wrapper', signup: 'wrapper signup-mode', forgotpass: 'wrapper forgotpass-mode', recoverycode: 'wrapper recoverycode-mode', resetpass: 'wrapper resetpass-mode' };
+const screenEl = (name) => document.getElementById(`screen-${name}`);
+let current = 'signin';
+let slideId = 0;
+
+// Only the screen on view can be focused or clicked: tabbing into an off-screen
+// field would make the browser scroll the strip and jump the layout.
+function setActiveScreen(name) {
+  Object.keys(SCREENS).forEach((n) => { screenEl(n).inert = n !== name; });
+}
+setActiveScreen(current);
+
+// Runs once the slide has finished (with a fallback in case transitionend never fires).
+function afterSlide(fn) {
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    wrapper.removeEventListener('transitionend', onEnd);
+    clearTimeout(timer);
+    fn();
+  };
+  const onEnd = (e) => { if (e.target === wrapper && e.propertyName === 'transform') finish(); };
+  wrapper.addEventListener('transitionend', onEnd);
+  const timer = setTimeout(finish, 1000);
+}
 
 function go(screen, { keepValues = false, instant = false } = {}) {
-  if (!keepValues) resetForms();
-  if (instant) wrapper.style.transition = 'none';
-  wrapper.className = SCREENS[screen];
-  if (instant) setTimeout(() => { wrapper.style.transition = ''; }, 50);
+  const from = current;
+  current = screen;
+  const id = ++slideId;
+  setActiveScreen(screen);
+
+  // Screens out of view are cleared now; the one sliding away is cleared once it is
+  // off-screen, so its fields and errors don't visibly change mid-slide.
+  if (!keepValues) {
+    Object.keys(SCREENS).forEach((n) => { if (n !== from || from === screen) resetForms(screenEl(n)); });
+  }
+
+  if (instant) {
+    wrapper.style.transition = 'none';
+    wrapper.className = SCREENS[screen];
+    void wrapper.offsetWidth; // apply the jump before turning the transition back on
+    wrapper.style.transition = '';
+  } else {
+    wrapper.className = SCREENS[screen];
+    wrapper.dataset.sliding = '';
+    afterSlide(() => { if (id === slideId) delete wrapper.dataset.sliding; });
+  }
+
+  if (!keepValues && from !== screen) {
+    const reset = () => { if (current !== from) resetForms(screenEl(from)); };
+    if (instant) reset(); else afterSlide(reset);
+  }
   if (screen === 'signup') loadOfficeOptions();
 }
 
@@ -103,6 +152,8 @@ function typewriter(elements, words) {
   let ci = 0;
   let deleting = false;
   (function tick() {
+    // Hold the headline still while the screens slide, so the slide never waits on a repaint.
+    if ('sliding' in wrapper.dataset) { setTimeout(tick, 100); return; }
     const word = words[wi];
     const text = deleting ? word.substring(0, ci--) : word.substring(0, ci++);
     elements.forEach((el) => { if (el) el.textContent = text; });
