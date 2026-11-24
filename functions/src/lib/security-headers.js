@@ -8,7 +8,9 @@ const HEADERS = {
   "Strict-Transport-Security": "max-age=63072000; includeSubDomains",
   "X-Content-Type-Options": "nosniff",
   // Responses carry account data and stats: never keep them in browser or proxy caches
-  "Cache-Control": "no-store"
+  "Cache-Control": "no-cache, no-store, must-revalidate, private",
+  "Pragma": "no-cache",
+  "Expires": "0"
 };
 
 function withSecurityHeaders(fn) {
