@@ -4,6 +4,8 @@
 //
 // Add the admin panel's domain here when it is served from somewhere new.
 const ALLOWED_ORIGINS = [
+  // Admin panel on Vercel (production)
+  "https://gabayan-admin-portal-m4q9.vercel.app",
   "https://docsease-efacc.web.app",
   "https://docsease-efacc.firebaseapp.com",
   // Local testing (any port), e.g. Live Server or the Firebase emulators
