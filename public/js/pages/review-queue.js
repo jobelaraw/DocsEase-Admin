@@ -42,12 +42,12 @@ function cardSkeleton() {
   return html`${[0, 1, 2].map(() => html`
     <div class="rq-card" aria-hidden="true">
       <div class="rq-card-top">
-        <span class="skel skel-circle" style="width:40px;height:40px"></span>
-        <div class="skel-stack" style="flex:1;gap:6px"><span class="skel skel-text" style="width:55%"></span><span class="skel skel-text" style="width:30%;height:10px"></span></div>
-        <span class="skel" style="width:90px;height:24px;border-radius:10px"></span>
+        <span class="skel skel-circle" data-style="width:40px;height:40px"></span>
+        <div class="skel-stack" data-style="flex:1;gap:6px"><span class="skel skel-text" data-style="width:55%"></span><span class="skel skel-text" data-style="width:30%;height:10px"></span></div>
+        <span class="skel" data-style="width:90px;height:24px;border-radius:10px"></span>
       </div>
-      <div class="skel-stack"><span class="skel skel-text"></span><span class="skel skel-text" style="width:85%"></span></div>
-      <span class="skel" style="height:38px;border-radius:6px"></span>
+      <div class="skel-stack"><span class="skel skel-text"></span><span class="skel skel-text" data-style="width:85%"></span></div>
+      <span class="skel" data-style="height:38px;border-radius:6px"></span>
     </div>`)}`;
 }
 render(grid, cardSkeleton());

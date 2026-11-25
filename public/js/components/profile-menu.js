@@ -202,7 +202,7 @@ function openDeleteAccount() {
           <button type="button" class="btn btn-danger" data-confirm-delete>Confirm Delete</button>
         </div>
       </div>
-      <div data-step="progress" hidden style="text-align:center">
+      <div data-step="progress" hidden data-style="text-align:center">
         <div class="del-spinner"></div>
         <strong>Deletion in progress</strong>
         <p class="modal-text">Please wait while we delete your account. Do not close this page.</p>

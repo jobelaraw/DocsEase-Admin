@@ -7,6 +7,8 @@ const HEADERS = {
   // Browsers must use HTTPS for this host for 2 years (RFC 6797)
   "Strict-Transport-Security": "max-age=63072000; includeSubDomains",
   "X-Content-Type-Options": "nosniff",
+  // JSON only: the response may load nothing, be framed by no one, and submit no forms
+  "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'; form-action 'none'; base-uri 'none'",
   // Responses carry account data and stats: never keep them in browser or proxy caches
   "Cache-Control": "no-cache, no-store, must-revalidate, private",
   "Pragma": "no-cache",

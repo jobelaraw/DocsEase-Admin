@@ -1,0 +1,14 @@
+{
+  "name": "gabayan-admin-documentation",
+  "private": true,
+  "description": "Builds docs/GaBayan-Admin-Documentation.pdf from documentation.html (see README.md)",
+  "type": "module",
+  "scripts": {
+    "seed": "node tools/seed-emulator.cjs",
+    "screenshots": "node tools/capture-screenshots.mjs",
+    "build": "node tools/build-pdf.mjs"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^25.18.1"
+  }
+}

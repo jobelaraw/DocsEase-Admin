@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://cdn.jsdelivr.net https://apis.google.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://asia-southeast1-docsease-efacc.cloudfunctions.net https://api.emailjs.com https://cdn.jsdelivr.net http://127.0.0.1:9099 http://127.0.0.1:8080 http://127.0.0.1:5001; frame-src https://docsease-efacc.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'self'" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://cdn.jsdelivr.net https://apis.google.com; style-src 'self'; font-src 'self'; img-src 'self' data: https://lh3.googleusercontent.com; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://asia-southeast1-docsease-efacc.cloudfunctions.net https://api.emailjs.com https://cdn.jsdelivr.net http://127.0.0.1:9099 http://127.0.0.1:8080 http://127.0.0.1:5001; frame-src https://docsease-efacc.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'self'; form-action 'self'" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GaBayan – Authentication</title>
   <link rel="stylesheet" href="css/base/fonts.css" />
@@ -44,8 +44,7 @@
           <div class="logo-icon">
             <img src="assets/logo.png" alt="GaBayan" />
           </div>
-          <span class="logo-wordmark"><img src="assets/docsease_text.png" alt="GaBayan"
-              style="height:20px; width:auto; object-fit:contain;" /></span>
+          <span class="logo-wordmark"><img src="assets/docsease_text.png" alt="GaBayan" /></span>
         </div>
         <div class="panel-heading">
           <h2>Welcome back, Admin!</h2>
@@ -111,8 +110,7 @@
           <div class="logo-icon">
             <img src="assets/logo.png" alt="GaBayan" />
           </div>
-          <span class="logo-wordmark"><img src="assets/docsease_text.png" alt="GaBayan"
-              style="height:20px; width:auto; object-fit:contain;" /></span>
+          <span class="logo-wordmark"><img src="assets/docsease_text.png" alt="GaBayan" /></span>
         </div>
         <div class="panel-heading">
           <h2>Create Account</h2>
@@ -165,7 +163,7 @@
             </div>
             <div class="field-error" id="err-su-password"></div>
 
-            <div class="password-rules-container" id="su-password-rules" style="display: none;">
+            <div class="password-rules-container" id="su-password-rules">
               <div class="rule-item" id="rule-length">
                 <span class="rule-icon">✕</span>
                 <span>Use at least 8 characters</span>
@@ -246,8 +244,7 @@
           <div class="logo-icon">
             <img src="assets/logo.png" alt="GaBayan" />
           </div>
-          <span class="logo-wordmark"><img src="assets/docsease_text.png" alt="GaBayan"
-              style="height:20px; width:auto; object-fit:contain;" /></span>
+          <span class="logo-wordmark"><img src="assets/docsease_text.png" alt="GaBayan" /></span>
         </div>
 
         <div class="panel-heading">
@@ -297,8 +294,7 @@
           <div class="logo-icon">
             <img src="assets/logo.png" alt="GaBayan" />
           </div>
-          <span class="logo-wordmark"><img src="assets/docsease_text.png" alt="GaBayan"
-              style="height:20px; width:auto; object-fit:contain;" /></span>
+          <span class="logo-wordmark"><img src="assets/docsease_text.png" alt="GaBayan" /></span>
         </div>
 
         <div class="panel-heading">
@@ -351,8 +347,7 @@
           <div class="logo-icon">
             <img src="assets/logo.png" alt="GaBayan" />
           </div>
-          <span class="logo-wordmark"><img src="assets/docsease_text.png" alt="GaBayan"
-              style="height:20px; width:auto; object-fit:contain;" /></span>
+          <span class="logo-wordmark"><img src="assets/docsease_text.png" alt="GaBayan" /></span>
         </div>
 
         <div class="panel-heading">
@@ -374,7 +369,7 @@
             </div>
             <div class="field-error" id="err-new-password"></div>
 
-            <div class="password-rules-container" id="reset-password-rules" style="display: none;">
+            <div class="password-rules-container" id="reset-password-rules">
               <div class="rule-item" id="rule-reset-length">
                 <span class="rule-icon">✕</span>
                 <span>Use at least 8 characters</span>

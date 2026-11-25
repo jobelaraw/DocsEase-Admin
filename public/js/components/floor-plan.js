@@ -103,7 +103,7 @@ export function createFloorPlan({ svg, tray, trayCard, trayTitle, onEdit, onChan
     const list = unplaced();
     trayTitle.textContent = loaded ? `Unplaced offices and rooms (${list.length})` : 'Unplaced offices and rooms';
     if (!loaded) {
-      render(tray, html`${[90, 130, 70, 110, 150, 85].map((w) => html`<span class="skel skel-pill skel-inline" style="width:${w}px;height:32px" aria-hidden="true"></span>`)}`);
+      render(tray, html`${[90, 130, 70, 110, 150, 85].map((w) => html`<span class="skel skel-pill skel-inline" data-style="width:${w}px;height:32px" aria-hidden="true"></span>`)}`);
     } else if (!list.length) {
       render(tray, html`<p class="mm-empty-note">Everything on this floor is placed on the map.</p>`);
     } else {
