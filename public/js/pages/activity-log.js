@@ -16,9 +16,9 @@ let session = null;
 
 render(list, html`${Array.from({ length: 8 }, (_, i) => html`
   <div class="log-row" aria-hidden="true">
-    <span class="skel" style="width:15px;height:15px;border-radius:4px"></span>
-    <span class="skel skel-text" style="width:${[65, 80, 50, 72, 58, 85, 45, 68][i]}%"></span>
-    <span class="skel skel-text" style="width:70px;height:10px"></span><span></span>
+    <span class="skel" data-style="width:15px;height:15px;border-radius:4px"></span>
+    <span class="skel skel-text" data-style="width:${[65, 80, 50, 72, 58, 85, 45, 68][i]}%"></span>
+    <span class="skel skel-text" data-style="width:70px;height:10px"></span><span></span>
   </div>`)}`);
 
 // ---------- wording ----------

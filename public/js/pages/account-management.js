@@ -53,14 +53,14 @@ function skeletonRows(count = 6) {
   return html`${Array.from({ length: count }, (_, i) => html`
     <div class="acct-row ${isAdmins() ? 'is-admins' : ''}" aria-hidden="true">
       <div class="acct-person">
-        <span class="skel skel-circle" style="width:36px;height:36px"></span>
-        <div class="skel-stack" style="flex:1;gap:6px"><span class="skel skel-text" style="width:${[60, 75, 50, 70, 55, 65][i]}%"></span><span class="skel skel-text" style="width:80%;height:10px"></span></div>
+        <span class="skel skel-circle" data-style="width:36px;height:36px"></span>
+        <div class="skel-stack" data-style="flex:1;gap:6px"><span class="skel skel-text" data-style="width:${[60, 75, 50, 70, 55, 65][i]}%"></span><span class="skel skel-text" data-style="width:80%;height:10px"></span></div>
       </div>
-      ${isAdmins() ? html`<span class="skel skel-text" style="width:75%"></span>` : ''}
-      <span class="skel skel-text" style="width:70%"></span>
-      <span class="skel skel-text" style="width:55%"></span>
-      <span class="skel skel-pill" style="width:72px;height:22px"></span>
-      <span class="skel skel-pill" style="width:120px;justify-self:end"></span>
+      ${isAdmins() ? html`<span class="skel skel-text" data-style="width:75%"></span>` : ''}
+      <span class="skel skel-text" data-style="width:70%"></span>
+      <span class="skel skel-text" data-style="width:55%"></span>
+      <span class="skel skel-pill" data-style="width:72px;height:22px"></span>
+      <span class="skel skel-pill" data-style="width:120px;justify-self:end"></span>
     </div>`)}`;
 }
 

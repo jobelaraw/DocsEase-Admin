@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://cdn.jsdelivr.net https://apis.google.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://asia-southeast1-docsease-efacc.cloudfunctions.net https://api.emailjs.com https://cdn.jsdelivr.net http://127.0.0.1:9099 http://127.0.0.1:8080 http://127.0.0.1:5001; frame-src https://docsease-efacc.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'self'" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://cdn.jsdelivr.net https://apis.google.com; style-src 'self'; font-src 'self'; img-src 'self' data: https://lh3.googleusercontent.com; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://asia-southeast1-docsease-efacc.cloudfunctions.net https://api.emailjs.com https://cdn.jsdelivr.net http://127.0.0.1:9099 http://127.0.0.1:8080 http://127.0.0.1:5001; frame-src https://docsease-efacc.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'self'; form-action 'self'" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GaBayan – Dashboard</title>
   <link rel="icon" type="image/png" href="assets/logo_whitebg.png" />
@@ -38,7 +38,7 @@
             <div class="stat-icon"><img src="assets/map_mngment.svg" alt="" /></div>
             <div class="stat-label">Total Offices</div>
           </div>
-          <div class="stat-value" id="stat-offices"><span class="skel skel-inline" style="width:72px;height:34px" aria-hidden="true"></span></div>
+          <div class="stat-value" id="stat-offices"><span class="skel skel-inline skel-stat" aria-hidden="true"></span></div>
         </div>
         <div class="stat-card">
           <div class="stat-header">
@@ -46,28 +46,28 @@
             <div class="stat-label" data-scope="all">Total Services</div>
             <div class="stat-label" data-scope="office">Office Services</div>
           </div>
-          <div class="stat-value" id="stat-services"><span class="skel skel-inline" style="width:72px;height:34px" aria-hidden="true"></span></div>
+          <div class="stat-value" id="stat-services"><span class="skel skel-inline skel-stat" aria-hidden="true"></span></div>
         </div>
         <div class="stat-card" data-scope="all">
           <div class="stat-header">
             <div class="stat-icon"><img src="assets/total_users.svg" alt="" /></div>
             <div class="stat-label">Total Users</div>
           </div>
-          <div class="stat-value" id="stat-users"><span class="skel skel-inline" style="width:72px;height:34px" aria-hidden="true"></span></div>
+          <div class="stat-value" id="stat-users"><span class="skel skel-inline skel-stat" aria-hidden="true"></span></div>
         </div>
         <div class="stat-card" data-scope="office">
           <div class="stat-header">
             <div class="stat-icon"><img src="assets/total_users.svg" alt="" /></div>
             <div class="stat-label">Applicants</div>
           </div>
-          <div class="stat-value" id="stat-applicants"><span class="skel skel-inline" style="width:72px;height:34px" aria-hidden="true"></span></div>
+          <div class="stat-value" id="stat-applicants"><span class="skel skel-inline skel-stat" aria-hidden="true"></span></div>
         </div>
         <div class="stat-card" data-scope="office">
           <div class="stat-header">
             <div class="stat-icon"><img src="assets/total_completed.svg" alt="" /></div>
             <div class="stat-label">Service Records</div>
           </div>
-          <div class="stat-value" id="stat-history"><span class="skel skel-inline" style="width:72px;height:34px" aria-hidden="true"></span></div>
+          <div class="stat-value" id="stat-history"><span class="skel skel-inline skel-stat" aria-hidden="true"></span></div>
         </div>
       </div>
 

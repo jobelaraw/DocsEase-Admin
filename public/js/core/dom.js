@@ -37,11 +37,22 @@ export function html(strings, ...values) {
   return new SafeHtml(out);
 }
 
+// The Content-Security-Policy blocks style="" attributes in markup, so templates
+// write data-style="width:40%" and it is applied here through the CSSOM (allowed).
+function applyDataStyles(rootEl) {
+  rootEl.querySelectorAll('[data-style]').forEach((el) => {
+    el.style.cssText += ';' + el.dataset.style;
+    el.removeAttribute('data-style');
+  });
+}
+
 // Replaces an element's content. Plain strings are inserted as text.
 export function render(el, content) {
   if (!el) return;
-  if (content instanceof SafeHtml) el.innerHTML = content.value;
-  else el.textContent = content == null ? '' : String(content);
+  if (content instanceof SafeHtml) {
+    el.innerHTML = content.value;
+    applyDataStyles(el);
+  } else el.textContent = content == null ? '' : String(content);
 }
 
 export const $ = (selector, rootEl = document) => rootEl.querySelector(selector);
@@ -59,6 +70,7 @@ export function on(rootEl, type, selector, handler) {
 export function toElement(content) {
   const template = document.createElement('template');
   template.innerHTML = content instanceof SafeHtml ? content.value : escapeHtml(content);
+  applyDataStyles(template.content);
   return template.content.firstElementChild;
 }
 

@@ -234,3 +234,8 @@
     border-radius: 20px;
   }
 }
+
+/* Positions the loading skeleton over the floor plan */
+.mm-map-wrap {
+  position: relative;
+}

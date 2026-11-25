@@ -97,7 +97,7 @@ export function createServiceEditor({ tabBar, content, tabs }) {
       ${tabs.map((t, i) => html`
         <div class="tab-btn ${i === current ? 'active' : ''}" data-tab="${i}" role="tab" aria-selected="${i === current}">
           <input type="text" value="${t.tab_name}" placeholder="Tab Name" data-tab-name="${i}" aria-label="Channel name"
-                 style="width:${Math.max(90, t.tab_name.length * 8)}px" />
+                 data-style="width:${Math.max(90, t.tab_name.length * 8)}px" />
           ${tabs.length > 1 ? html`<button type="button" class="tab-delete" data-remove-tab="${i}" aria-label="Delete ${t.tab_name || 'tab'}"><img src="assets/delete.svg" alt="" /></button>` : ''}
         </div>`)}
       <button type="button" class="btn-add-tab" data-add-tab aria-label="Add a channel">+</button>`);
