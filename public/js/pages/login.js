@@ -63,6 +63,10 @@ function resetForms(scope) {
   $$('.input-wrap', scope).forEach((w) => w.classList.remove('has-error', 'has-success'));
   $$('.field-error', scope).forEach((e) => { e.textContent = ''; e.style.display = 'none'; });
   FIELDS.forEach((id) => { const f = document.getElementById(id); if (inside(f)) f.value = ''; });
+  
+  const office = document.getElementById('su-office');
+  if (inside(office)) office.value = '';
+  
   ['#sign-in-btn', '#sign-up-btn'].forEach((sel) => { if (inside($(sel))) $(sel).disabled = true; });
   if (scope.id === 'screen-signup') AdminAgreement.reset();
   ['su-password-rules', 'reset-password-rules'].forEach((id) => { const r = document.getElementById(id); if (inside(r)) r.style.display = 'none'; });
