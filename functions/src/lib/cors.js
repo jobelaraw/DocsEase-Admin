@@ -9,6 +9,7 @@ const ALLOWED_ORIGINS = [
   "https://docsease-efacc.web.app",
   "https://docsease-efacc.firebaseapp.com",
   // Local testing (any port), e.g. Live Server or the Firebase emulators
+  /^https:\/\/gabayan-admin-portal-m4q9-[a-z0-9]+-direct-scion\.vercel\.app$/,
   /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/
 ];
 
