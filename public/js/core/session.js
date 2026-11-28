@@ -14,6 +14,7 @@ const shell = window.GaBayan;
 const FRESH_MS = 10 * 60 * 1000; // a cached session this recent is used while it is re-checked
 
 let current = null;
+let leaving = false; // true while signOut() runs, so it controls its own redirect
 const listeners = new Set();
 
 export function getSession() {
@@ -108,6 +109,9 @@ export async function requireAdmin({ superAdminOnly = false } = {}) {
   const user = await firstAuthState();
   if (!user) return go('login.html');
 
+  // Keep watching: if this admin signs out elsewhere (another tab), leave this page too.
+  onAuthStateChanged(auth, (u) => { if (!u && !leaving) go('login.html'); });
+
   const cached = shell.readSession();
   if (cached && cached.uid === user.uid && Date.now() - (cached.savedAt || 0) < FRESH_MS && !redirectFor(cached, { superAdminOnly })) {
     publish(cached);
@@ -137,6 +141,7 @@ export async function requireAdmin({ superAdminOnly = false } = {}) {
 
 // Signs out, forgets everything cached on this computer, then goes to the login page.
 export async function signOut({ redirect = true } = {}) {
+  leaving = true;
   shell.saveSession(null);
   clearCache();
   try {
@@ -148,6 +153,13 @@ export async function signOut({ redirect = true } = {}) {
   } catch (error) {
     console.error('[session] sign out failed:', error);
   }
-  await clearLocalData();
+  try {
+    await clearLocalData();
+  } catch (error) {
+    console.warn('[session] could not clear local data:', error);
+  }
   if (redirect) location.replace('login.html');
 }
+
+// A page restored from the back/forward cache never re-runs requireAdmin(); reload so it does.
+window.addEventListener('pageshow', (e) => { if (e.persisted) location.reload(); });
