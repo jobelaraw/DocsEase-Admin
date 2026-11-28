@@ -14,7 +14,6 @@ const shell = window.GaBayan;
 const FRESH_MS = 10 * 60 * 1000; // a cached session this recent is used while it is re-checked
 
 let current = null;
-let leaving = false; // true while signOut() runs, so it controls its own redirect
 const listeners = new Set();
 
 export function getSession() {
@@ -72,7 +71,6 @@ export async function loadSession(user) {
 }
 
 function go(url) {
-  document.documentElement.style.opacity = '0'; // never leave a protected page showing while leaving it
   location.replace(url);
   return new Promise(() => {}); // the page is leaving; never resolve
 }
@@ -101,27 +99,12 @@ async function leave(session) {
 // A recent cached session lets the page start immediately; it is re-checked in the
 // background and the page is left if access was revoked meanwhile.
 export async function requireAdmin({ superAdminOnly = false } = {}) {
-  // Keep the page invisible until we know this is an allowed admin, so a signed-out
-  // visitor never sees the protected layout. (Set through the DOM, which the CSP allows.)
-  const root = document.documentElement;
-  const early = shell.readSession();
-  const showNow = shell.hasFreshAccess() && (!superAdminOnly || (early && early.role === 'super_admin'));
-  if (!showNow) root.style.opacity = '0';
-  const reveal = () => { root.style.opacity = ''; };
-
   const user = await firstAuthState();
-  if (!user) {
-    shell.saveSession(null); // a saved session must not outlive the Firebase sign-in
-    return go('login.html');
-  }
-
-  // Keep watching: if this admin signs out elsewhere (another tab), leave this page too.
-  onAuthStateChanged(auth, (u) => { if (!u && !leaving) go('login.html'); });
+  if (!user) return go('login.html');
 
   const cached = shell.readSession();
   if (cached && cached.uid === user.uid && Date.now() - (cached.savedAt || 0) < FRESH_MS && !redirectFor(cached, { superAdminOnly })) {
     publish(cached);
-    reveal();
     loadSession(user).then((fresh) => {
       if (redirectFor(fresh, { superAdminOnly })) return leave(fresh);
       if (JSON.stringify({ ...fresh, savedAt: 0 }) !== JSON.stringify({ ...cached, savedAt: 0 })) publish(fresh);
@@ -141,13 +124,11 @@ export async function requireAdmin({ superAdminOnly = false } = {}) {
   const redirect = redirectFor(session, { superAdminOnly });
   if (redirect) return leave(session);
   publish(session);
-  reveal();
   return session;
 }
 
 // Signs out, forgets everything cached on this computer, then goes to the login page.
 export async function signOut({ redirect = true } = {}) {
-  leaving = true;
   shell.saveSession(null);
   clearCache();
   try {
@@ -159,13 +140,6 @@ export async function signOut({ redirect = true } = {}) {
   } catch (error) {
     console.error('[session] sign out failed:', error);
   }
-  try {
-    await clearLocalData();
-  } catch (error) {
-    console.warn('[session] could not clear local data:', error);
-  }
+  await clearLocalData();
   if (redirect) location.replace('login.html');
 }
-
-// A page restored from the back/forward cache never re-runs requireAdmin(); reload so it does.
-window.addEventListener('pageshow', (e) => { if (e.persisted) location.reload(); });

@@ -5,7 +5,6 @@
  * The menu comes from NAV below; pages never contain sidebar markup.
  * js/core/session.js confirms the signed-in admin and calls GaBayan.applySession().
  */
-
 (function () {
   'use strict';
 
@@ -255,23 +254,8 @@
     toggleSidebar: toggleSidebar,
     openDrawer: openDrawer,
     closeDrawer: closeDrawer,
-    currentPage: currentPage,
-    hasFreshAccess: hasFreshAccess
+    currentPage: currentPage
   };
-
-  var SESSION_FRESH_MS = 10 * 60 * 1000;
-
-  function hasFreshAccess() {
-    var session = readSession();
-    if (!session || session.status !== 'active') return false;
-    if (Date.now() - (session.savedAt || 0) >= SESSION_FRESH_MS) return false;
-    var needsSuper = SUPER_ADMIN_PAGES[currentPage()] !== undefined;
-    return !needsSuper || isSuperAdmin(session);
-  }
-
-  if (!/(^|\/)(login(\.html)?)?$/.test(location.pathname) && !hasFreshAccess()) {
-    root.style.opacity = '0';
-  }
 
   // Before first paint: collapsed state and the cached role.
   if (read(localStorage, KEYS.collapsed) === '1') root.classList.add('sidebar-collapsed');
