@@ -99,12 +99,19 @@ async function leave(session) {
 // A recent cached session lets the page start immediately; it is re-checked in the
 // background and the page is left if access was revoked meanwhile.
 export async function requireAdmin({ superAdminOnly = false } = {}) {
+  // Keep the page invisible until we know this is an allowed admin, so a signed-out
+  // visitor never sees the protected layout. (Set through the DOM, which the CSP allows.)
+  const root = document.documentElement;
+  root.style.visibility = 'hidden';
+  const reveal = () => { root.style.visibility = ''; };
+
   const user = await firstAuthState();
   if (!user) return go('login.html');
 
   const cached = shell.readSession();
   if (cached && cached.uid === user.uid && Date.now() - (cached.savedAt || 0) < FRESH_MS && !redirectFor(cached, { superAdminOnly })) {
     publish(cached);
+    reveal();
     loadSession(user).then((fresh) => {
       if (redirectFor(fresh, { superAdminOnly })) return leave(fresh);
       if (JSON.stringify({ ...fresh, savedAt: 0 }) !== JSON.stringify({ ...cached, savedAt: 0 })) publish(fresh);
@@ -124,6 +131,7 @@ export async function requireAdmin({ superAdminOnly = false } = {}) {
   const redirect = redirectFor(session, { superAdminOnly });
   if (redirect) return leave(session);
   publish(session);
+  reveal();
   return session;
 }
 
