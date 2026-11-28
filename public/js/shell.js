@@ -6,8 +6,11 @@
  * js/core/session.js confirms the signed-in admin and calls GaBayan.applySession().
  */
 
+// Protected pages stay fully transparent until js/core/session.js confirms an allowed
+// admin and un-hides them. Opacity is used (not visibility) because no child element
+// can override it. The login page and "/" are left alone.
 if (!/(^|\/)(login(\.html)?)?$/.test(location.pathname)) {
-  document.documentElement.style.visibility = 'hidden';
+  document.documentElement.style.opacity = '0';
 }
 
 (function () {
