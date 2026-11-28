@@ -6,13 +6,6 @@
  * js/core/session.js confirms the signed-in admin and calls GaBayan.applySession().
  */
 
-// Protected pages stay fully transparent until js/core/session.js confirms an allowed
-// admin and un-hides them. Opacity is used (not visibility) because no child element
-// can override it. The login page and "/" are left alone.
-if (!/(^|\/)(login(\.html)?)?$/.test(location.pathname)) {
-  document.documentElement.style.opacity = '0';
-}
-
 (function () {
   'use strict';
 
@@ -262,8 +255,23 @@ if (!/(^|\/)(login(\.html)?)?$/.test(location.pathname)) {
     toggleSidebar: toggleSidebar,
     openDrawer: openDrawer,
     closeDrawer: closeDrawer,
-    currentPage: currentPage
+    currentPage: currentPage,
+    hasFreshAccess: hasFreshAccess
   };
+
+  var SESSION_FRESH_MS = 10 * 60 * 1000;
+
+  function hasFreshAccess() {
+    var session = readSession();
+    if (!session || session.status !== 'active') return false;
+    if (Date.now() - (session.savedAt || 0) >= SESSION_FRESH_MS) return false;
+    var needsSuper = SUPER_ADMIN_PAGES[currentPage()] !== undefined;
+    return !needsSuper || isSuperAdmin(session);
+  }
+
+  if (!/(^|\/)(login(\.html)?)?$/.test(location.pathname) && !hasFreshAccess()) {
+    root.style.opacity = '0';
+  }
 
   // Before first paint: collapsed state and the cached role.
   if (read(localStorage, KEYS.collapsed) === '1') root.classList.add('sidebar-collapsed');
