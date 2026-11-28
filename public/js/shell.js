@@ -5,6 +5,11 @@
  * The menu comes from NAV below; pages never contain sidebar markup.
  * js/core/session.js confirms the signed-in admin and calls GaBayan.applySession().
  */
+
+if (!/(^|\/)(login(\.html)?)?$/.test(location.pathname)) {
+  document.documentElement.style.visibility = 'hidden';
+}
+
 (function () {
   'use strict';
 
