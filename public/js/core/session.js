@@ -72,6 +72,7 @@ export async function loadSession(user) {
 }
 
 function go(url) {
+  document.documentElement.style.opacity = '0'; // never leave a protected page showing while leaving it
   location.replace(url);
   return new Promise(() => {}); // the page is leaving; never resolve
 }
@@ -103,11 +104,16 @@ export async function requireAdmin({ superAdminOnly = false } = {}) {
   // Keep the page invisible until we know this is an allowed admin, so a signed-out
   // visitor never sees the protected layout. (Set through the DOM, which the CSP allows.)
   const root = document.documentElement;
-  root.style.opacity = '0';
+  const early = shell.readSession();
+  const showNow = shell.hasFreshAccess() && (!superAdminOnly || (early && early.role === 'super_admin'));
+  if (!showNow) root.style.opacity = '0';
   const reveal = () => { root.style.opacity = ''; };
 
   const user = await firstAuthState();
-  if (!user) return go('login.html');
+  if (!user) {
+    shell.saveSession(null); // a saved session must not outlive the Firebase sign-in
+    return go('login.html');
+  }
 
   // Keep watching: if this admin signs out elsewhere (another tab), leave this page too.
   onAuthStateChanged(auth, (u) => { if (!u && !leaving) go('login.html'); });
