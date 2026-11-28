@@ -102,8 +102,8 @@ export async function requireAdmin({ superAdminOnly = false } = {}) {
   // Keep the page invisible until we know this is an allowed admin, so a signed-out
   // visitor never sees the protected layout. (Set through the DOM, which the CSP allows.)
   const root = document.documentElement;
-  root.style.visibility = 'hidden';
-  const reveal = () => { root.style.visibility = ''; };
+  root.style.opacity = '0';
+  const reveal = () => { root.style.opacity = ''; };
 
   const user = await firstAuthState();
   if (!user) return go('login.html');
